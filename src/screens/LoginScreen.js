@@ -4,12 +4,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const LoginScreen = ({ route, navigation }) => {
   const { role } = route.params || { role: 'student' };
@@ -22,7 +22,19 @@ const LoginScreen = ({ route, navigation }) => {
   const roleColor = isStudent ? 'blue' : 'purple';
 
   const handleLogin = () => {
+    // TODO: Implement actual login API call
     console.log('Login:', { username, password, role });
+    
+    // Navigate to appropriate home screen based on role
+    if (isStudent) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'StudentHome' }],
+      });
+    } else {
+      // TODO: Navigate to teacher home when implemented
+      console.log('Teacher login - not implemented yet');
+    }
   };
 
   const gradientColors = isStudent ? ['#2563eb', '#9333ea'] : ['#9333ea', '#7c3aed'];

@@ -10,7 +10,6 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import { slides } from '../data/slideWelcomes';
-import RoleSelectionScreen from './RoleSelectionScreen';
 
 const { width, height } = Dimensions.get('window');
 
