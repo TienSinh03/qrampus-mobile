@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import IntroCarouselScreen from '../screens/IntroCarouselScreen';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
 import LoginScreen from '../screens/LoginScreen';
+import StudentTabNavigator from './StudentTabNavigator';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   return (
@@ -33,7 +34,13 @@ const AppNavigator = () => {
           name="Login" 
           component={LoginScreen} 
         />
-        
+        <Stack.Screen
+          name="StudentHome"
+          component={StudentTabNavigator}
+          options={{
+            gestureEnabled: false,
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
