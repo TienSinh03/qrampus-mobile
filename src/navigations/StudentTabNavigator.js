@@ -3,7 +3,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
 import StudentHomeScreen from '../screens/student/StudentHomeScreen';
-import StudentScheduleScreen from '../screens/student/StudentScheduleScreen';
 import StudentProfileScreen from '../screens/student/StudentProfileScreen';
 import { Platform } from 'react-native';
 
@@ -54,13 +53,7 @@ const StudentTabNavigator = () => {
           tabBarLabel: 'Trang chủ',
         }}
       />
-      <Tab.Screen
-        name="Schedule"
-        component={StudentScheduleScreen}
-        options={{
-          tabBarLabel: 'Lịch học',
-        }}
-      />
+
       <Tab.Screen
         name="Profile"
         component={StudentProfileScreen}
