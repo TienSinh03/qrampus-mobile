@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import StudentHomeScreen from '../screens/student/StudentHomeScreen';
 import StudentProfileScreen from '../screens/student/StudentProfileScreen';
+import StudentScheduleScreen from '../screens/student/StudentScheduleScreen';
 import { Platform } from 'react-native';
 
 const Tab = createBottomTabNavigator();
@@ -51,6 +52,13 @@ const StudentTabNavigator = () => {
         component={StudentHomeScreen}
         options={{
           tabBarLabel: 'Trang chủ',
+        }}
+      />
+      <Tab.Screen
+        name="Schedule"
+        component={StudentScheduleScreen}
+        options={{
+          tabBarLabel: 'Lịch học',
         }}
       />
 
