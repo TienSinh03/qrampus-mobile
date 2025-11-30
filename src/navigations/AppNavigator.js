@@ -7,6 +7,7 @@ import RoleSelectionScreen from '../screens/RoleSelectionScreen';
 import LoginScreen from '../screens/LoginScreen';
 import StudentTabNavigator from './StudentTabNavigator';
 import NotificationScreen from '../screens/NotificationScreen';
+import QRScanScreen from '../screens/student/QRScanScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -47,6 +48,14 @@ const AppNavigator = () => {
           component={NotificationScreen}
           options={{
             gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="QRScan"
+          component={QRScanScreen}
+          options={{
+            presentation: 'fullScreenModal',
+            animation: 'slide_from_bottom',
           }}
         />
       </Stack.Navigator>

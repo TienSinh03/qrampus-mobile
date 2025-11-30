@@ -56,7 +56,7 @@ const StudentScheduleScreen = ({ navigation }) => {
         startTime: '07:00',
         endTime: '09:00',
         teacherName: 'TS. Nguyễn Văn A',
-        hasQR: false,
+        hasQR: true,
       },
     ],
     '2025-01-07': [
@@ -234,6 +234,7 @@ const StudentScheduleScreen = ({ navigation }) => {
           onRefresh={onRefresh}
           onHeaderPress={() => setViewMode('month')}
           onSchedulePress={handleSchedulePress}
+          navigation={navigation}
         />
       )}
       {viewMode === 'week' && (
@@ -244,6 +245,7 @@ const StudentScheduleScreen = ({ navigation }) => {
           onRefresh={onRefresh}
           onSetDateSelect={setSelectedDate}
           onSchedulePress={handleSchedulePress}
+          navigation={navigation}
         />
       )}
       {viewMode === 'month' && (
