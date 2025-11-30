@@ -53,10 +53,6 @@ const StudentHomeScreen = ({ navigation }) => {
     console.log('Schedule pressed:', schedule);
   };
 
-  const handleQRPress = (schedule) => {
-    console.log('QR pressed:', schedule);
-  };
-
   const getCurrentDate = () => {
     const days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
     const today = new Date();
@@ -108,7 +104,7 @@ const StudentHomeScreen = ({ navigation }) => {
                 key={schedule.id}
                 schedule={schedule}
                 onPress={() => handleSchedulePress(schedule)}
-                onQRPress={() => handleQRPress(schedule)}
+                navigation={navigation}
               />
             ))
           ) : (

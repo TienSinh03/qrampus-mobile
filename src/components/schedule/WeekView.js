@@ -8,7 +8,8 @@ const WeekView = ({
   refreshing, 
   onRefresh, 
   onSetDateSelect,
-  onSchedulePress 
+  onSchedulePress,
+  navigation 
 }) => {
   const getWeekDates = (dateString) => {
     const date = new Date(dateString);
@@ -106,6 +107,7 @@ const WeekView = ({
               key={schedule.id}
               schedule={schedule}
               onPress={() => onSchedulePress(schedule)}
+              navigation={navigation}
             />
           ))
         ) : (

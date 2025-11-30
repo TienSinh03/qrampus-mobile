@@ -3,8 +3,9 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const ScheduleCard = ({ schedule, onPress, onQRPress }) => {
+const ScheduleCard = ({ schedule, onPress, navigation }) => {
   const {
+    id,
     courseName = 'Tên môn học',
     courseCode = 'MH001',
     room = 'A101',
@@ -13,6 +14,18 @@ const ScheduleCard = ({ schedule, onPress, onQRPress }) => {
     teacherName = 'Giảng viên',
     hasQR = false,
   } = schedule || {};
+
+  // xử lý khi nhấn vào nút QR
+  const handleQRPress = (schedule) => {
+      console.log('QR pressed:', schedule);
+  
+      navigation.navigate('QRScan', {
+        scheduleId: schedule.id,
+        courseName: schedule.courseName,
+        courseCode: schedule.courseCode,
+        room: schedule.room,
+      });
+  };
 
   return (
     <TouchableOpacity
@@ -68,7 +81,7 @@ const ScheduleCard = ({ schedule, onPress, onQRPress }) => {
         {/* QR Code Button */}
         {hasQR && (
           <TouchableOpacity
-            onPress={onQRPress}
+            onPress={() => handleQRPress(schedule)}
             className="bg-white rounded-xl py-3 flex-row items-center justify-center"
             style={{
               shadowColor: '#000',

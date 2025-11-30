@@ -9,7 +9,8 @@ const DayView = ({
   refreshing, 
   onRefresh, 
   onHeaderPress,
-  onSchedulePress 
+  onSchedulePress,
+  navigation
 }) => {
   const formatDateHeader = (dateString) => {
     const date = new Date(dateString);
@@ -50,6 +51,7 @@ const DayView = ({
               key={schedule.id}
               schedule={schedule}
               onPress={() => onSchedulePress(schedule)}
+              navigation={navigation}
             />
           ))
         ) : (
