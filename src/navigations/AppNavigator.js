@@ -6,6 +6,7 @@ import IntroCarouselScreen from '../screens/IntroCarouselScreen';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
 import LoginScreen from '../screens/LoginScreen';
 import StudentTabNavigator from './StudentTabNavigator';
+import NotificationScreen from '../screens/NotificationScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +38,13 @@ const AppNavigator = () => {
         <Stack.Screen
           name="StudentHome"
           component={StudentTabNavigator}
+          options={{
+            gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="Notification"
+          component={NotificationScreen}
           options={{
             gestureEnabled: false,
           }}
