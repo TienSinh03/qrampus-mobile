@@ -5,7 +5,6 @@ import {
   ScrollView, 
   TouchableOpacity, 
   StyleSheet, 
-  RefreshControl, 
   Modal,
   Animated,
   Dimensions,
@@ -14,9 +13,11 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Calendar } from 'react-native-calendars';
 import { LocaleConfig } from 'react-native-calendars';
-import ScheduleCard from '../../components/ScheduleCard';
+import DayView from '../../components/schedule/DayView';
+import WeekView from '../../components/schedule/WeekView';
+import MonthView from '../../components/schedule/MonthView';
+import ViewModeSelector from '../../components/schedule/ViewModeSelector';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -107,40 +108,6 @@ const StudentScheduleScreen = ({ navigation }) => {
     console.log('Schedule pressed:', schedule);
   };
 
-  const getWeekDates = (dateString) => {
-    const date = new Date(dateString);
-    const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Thứ 2 là đầu tuần
-    const monday = new Date(date.setDate(diff));
-    
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      weekDates.push({
-        date: d.toISOString().split('T')[0],
-        day: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'][i],
-        dayNum: d.getDate(),
-      });
-    }
-    return weekDates;
-  };
-
-  // Định dạng ngày cho header
-  const formatDateHeader = (dateString) => {
-    const date = new Date(dateString);
-    const days = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    const dayName = days[date.getDay()];
-    return `${dayName}, ${date.getDate()}/${date.getMonth() + 1}`;
-  };
-
-  // lấy tên ngày trong tuần
-  const getDayName = (dateString) => {
-    const date = new Date(dateString);
-    const days = ['chủ nhật', 'thứ hai', 'thứ ba', 'thứ tư', 'thứ năm', 'thứ sáu', 'thứ bảy'];
-    return days[date.getDay()];
-  };
-
   const onRefresh = () => {
     setRefreshing(true);
     setTimeout(() => {
@@ -213,262 +180,30 @@ const StudentScheduleScreen = ({ navigation }) => {
     closeDatePicker();
   };
 
-  // View Day
-  const renderDayView = () => (
-    <ScrollView 
-      contentContainerStyle={{ paddingBottom: 20 }}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      <View className="px-4 py-3 bg-white border-b border-gray-100">
-        <TouchableOpacity 
-          onPress={() => setViewMode('month')}
-          className="flex-row items-center justify-between"
-        >
-          <Text className="text-gray-900 font-semibold text-base">
-            {formatDateHeader(selectedDate)}
-          </Text>
-          <Ionicons name="chevron-down" size={20} color="#6b7280" />
-        </TouchableOpacity>
-      </View>
-
-      <View className="px-6 py-4">
-        {scheduleData[selectedDate] && scheduleData[selectedDate].length > 0 ? (
-          scheduleData[selectedDate].map((schedule) => (
-            <ScheduleCard
-              key={schedule.id}
-              schedule={schedule}
-              onPress={() => handleSchedulePress(schedule)}
-            />
-          ))
-        ) : (
-          <View className="items-center justify-center py-12">
-            <Text className="text-6xl mb-3">📅</Text>
-            <Text className="text-gray-900 font-bold text-lg mb-1">
-              Không có lịch học
-            </Text>
-            <Text className="text-gray-500 text-sm">
-              Không có dữ liệu vào {getDayName(selectedDate)}, {selectedDate}
-            </Text>
-          </View>
-        )}
-      </View>
-    </ScrollView>
-  );
-
-  // View Week
-  const renderWeekView = () => {
-    const weekDates = getWeekDates(selectedDate);
-    
-    return (
-      <ScrollView 
-        contentContainerStyle={{ paddingBottom: 20 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {/* Week Header */}
-        <View className="px-4 py-3 bg-white">
-          <View className="flex-row items-center justify-between mb-3">
-            <TouchableOpacity>
-              <Text className="text-gray-900 font-semibold">2025</Text>
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <Text className="text-gray-900 font-semibold">Tuần 1</Text>
-            </TouchableOpacity>
-          </View>
-          
-          {/* Week Days */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {weekDates.map((item) => (
-              <TouchableOpacity
-                key={item.date}
-                onPress={() => setSelectedDate(item.date)}
-                style={[
-                  styles.weekDayButton,
-                  item.date === selectedDate && styles.weekDayButtonSelected,
-                  scheduleData[item.date] && styles.weekDayButtonWithSchedule,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.weekDayText,
-                    item.date === selectedDate && styles.weekDayTextSelected,
-                  ]}
-                >
-                  {item.day}
-                </Text>
-                <Text
-                  style={[
-                    styles.weekDayNum,
-                    item.date === selectedDate && styles.weekDayNumSelected,
-                  ]}
-                >
-                  {item.dayNum}
-                </Text>
-                {scheduleData[item.date] && (
-                  <View style={styles.weekDayDot} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Schedule List */}
-        <View className="px-6 py-4">
-          <View className="bg-blue-600 rounded-lg px-3 py-1 self-start mb-4">
-            <Text className="text-white font-semibold text-sm">
-              {formatDateHeader(selectedDate)}
-            </Text>
-          </View>
-
-          {scheduleData[selectedDate] && scheduleData[selectedDate].length > 0 ? (
-            scheduleData[selectedDate].map((schedule) => (
-              <ScheduleCard
-                key={schedule.id}
-                schedule={schedule}
-                onPress={() => handleSchedulePress(schedule)}
-              />
-            ))
-          ) : (
-            <View className="items-center justify-center py-8">
-              <Text className="text-gray-400 text-sm">Không có lịch học</Text>
-            </View>
-          )}
-        </View>
-      </ScrollView>
-    );
+  const handlePrevMonth = () => {
+    const newDate = new Date(currentMonth);
+    newDate.setMonth(newDate.getMonth() - 1);
+    const newDateString = newDate.toISOString().split('T')[0];
+    setCurrentMonth(newDateString);
+    setSelectedDate(newDateString);
   };
 
-  // View Month
-  const renderMonthView = () => {
-    const currentYear = new Date(currentMonth).getFullYear();
-    const currentMonthNum = new Date(currentMonth).getMonth() + 1;
+  const handleNextMonth = () => {
+    const newDate = new Date(currentMonth);
+    newDate.setMonth(newDate.getMonth() + 1);
+    const newDateString = newDate.toISOString().split('T')[0];
+    setCurrentMonth(newDateString);
+    setSelectedDate(newDateString);
+  };
 
-    return (
-      <ScrollView 
-        contentContainerStyle={{ paddingBottom: 20 }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        <View className="bg-white">
-          {/* Year and Month Selector */}
-          <View className="px-4 py-3 border-b border-gray-100">
-            <View className="flex-row items-center justify-between">
-              {/* Year Selector */}
-              <TouchableOpacity 
-                onPress={() => openDatePicker('year')}
-                className="flex-row items-center"
-              >
-                <Text className="text-gray-900 font-semibold text-base mr-1">
-                  {currentYear}
-                </Text>
-                <Ionicons name="chevron-down" size={18} color="#6b7280" />
-              </TouchableOpacity>
+  const handleDayPress = (day) => {
+    setSelectedDate(day.dateString);
+    setViewMode('day');
+  };
 
-              {/* Month Selector */}
-              <View className="flex-row items-center">
-                <TouchableOpacity
-                  onPress={() => {
-                    const newDate = new Date(currentMonth);
-                    newDate.setMonth(newDate.getMonth() - 1);
-                    const newDateString = newDate.toISOString().split('T')[0];
-                    setCurrentMonth(newDateString);
-                    setSelectedDate(newDateString);
-                  }}
-                  className="p-2"
-                >
-                  <Ionicons name="chevron-back" size={20} color="#2563eb" />
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  onPress={() => openDatePicker('month')}
-                  className="px-4 py-1 bg-blue-600 rounded-lg mx-2"
-                >
-                  <Text className="text-white font-semibold">
-                    Tháng {currentMonthNum}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    const newDate = new Date(currentMonth);
-                    newDate.setMonth(newDate.getMonth() + 1);
-                    const newDateString = newDate.toISOString().split('T')[0];
-                    setCurrentMonth(newDateString);
-                    setSelectedDate(newDateString);
-                  }}
-                  className="p-2"
-                >
-                  <Ionicons name="chevron-forward" size={20} color="#2563eb" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          {/* Calendar */}
-          <Calendar
-            key={currentMonth}
-            current={currentMonth}
-            onDayPress={(day) => {
-              setSelectedDate(day.dateString);
-              setViewMode('day');
-            }}
-            onMonthChange={(month) => {
-              setCurrentMonth(month.dateString);
-              setSelectedDate(month.dateString);
-            }}
-            markedDates={markedDates}
-            enableSwipeMonths={true}
-            theme={{
-              backgroundColor: '#ffffff',
-              calendarBackground: '#ffffff',
-              textSectionTitleColor: '#6b7280',
-              selectedDayBackgroundColor: '#2563eb',
-              selectedDayTextColor: '#ffffff',
-              todayTextColor: '#2563eb',
-              dayTextColor: '#1f2937',
-              textDisabledColor: '#d1d5db',
-              dotColor: '#10b981',
-              selectedDotColor: '#ffffff',
-              arrowColor: '#2563eb',
-              monthTextColor: '#1f2937',
-              textDayFontFamily: 'System',
-              textMonthFontFamily: 'System',
-              textDayHeaderFontFamily: 'System',
-              textDayFontWeight: '400',
-              textMonthFontWeight: '600',
-              textDayHeaderFontWeight: '600',
-              textDayFontSize: 14,
-              textMonthFontSize: 16,
-              textDayHeaderFontSize: 12,
-            }}
-          />
-        </View>
-
-        {/* Legend */}
-        <View className="px-6 py-4 flex-row items-center flex-wrap">
-          <View className="flex-row items-center mr-4 mb-2">
-            <View className="w-3 h-3 rounded-full bg-green-500 mr-2" />
-            <Text className="text-gray-600 text-sm">Lịch học</Text>
-          </View>
-          <View className="flex-row items-center mr-4 mb-2">
-            <View className="w-3 h-3 rounded-full bg-yellow-400 mr-2" />
-            <Text className="text-gray-600 text-sm">Lịch thi</Text>
-          </View>
-          <View className="flex-row items-center mr-4 mb-2">
-            <View className="w-3 h-3 rounded-full bg-blue-600 mr-2" />
-            <Text className="text-gray-600 text-sm">Lịch trực tuyến</Text>
-          </View>
-          <View className="flex-row items-center mb-2">
-            <View className="w-3 h-3 rounded-full bg-red-500 mr-2" />
-            <Text className="text-gray-600 text-sm">Tạm ngưng</Text>
-          </View>
-        </View>
-      </ScrollView>
-    );
+  const handleMonthChange = (month) => {
+    setCurrentMonth(month.dateString);
+    setSelectedDate(month.dateString);
   };
 
   return (
@@ -488,55 +223,44 @@ const StudentScheduleScreen = ({ navigation }) => {
       </View>
 
       {/* View Mode Selector */}
-      <View className="bg-white px-4 py-3 flex-row border-b border-gray-200">
-        <TouchableOpacity
-          onPress={() => setViewMode('day')}
-          className={`px-6 py-2 rounded-lg mr-2 ${
-            viewMode === 'day' ? 'bg-blue-600' : 'bg-white'
-          }`}
-        >
-          <Text
-            className={`font-semibold ${
-              viewMode === 'day' ? 'text-white' : 'text-gray-600'
-            }`}
-          >
-            Ngày
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setViewMode('week')}
-          className={`px-6 py-2 rounded-lg mr-2 ${
-            viewMode === 'week' ? 'bg-blue-600' : 'bg-white'
-          }`}
-        >
-          <Text
-            className={`font-semibold ${
-              viewMode === 'week' ? 'text-white' : 'text-gray-600'
-            }`}
-          >
-            Tuần
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setViewMode('month')}
-          className={`px-6 py-2 rounded-lg ${
-            viewMode === 'month' ? 'bg-blue-600' : 'bg-white'
-          }`}
-        >
-          <Text
-            className={`font-semibold ${
-              viewMode === 'month' ? 'text-white' : 'text-gray-600'
-            }`}
-          >
-            Tháng
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <ViewModeSelector viewMode={viewMode} onViewModeChange={setViewMode} />
 
       {/* Content */}
-      {viewMode === 'day' && renderDayView()}
-      {viewMode === 'week' && renderWeekView()}
-      {viewMode === 'month' && renderMonthView()}
+      {viewMode === 'day' && (
+        <DayView
+          selectedDate={selectedDate}
+          scheduleData={scheduleData}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          onHeaderPress={() => setViewMode('month')}
+          onSchedulePress={handleSchedulePress}
+        />
+      )}
+      {viewMode === 'week' && (
+        <WeekView
+          selectedDate={selectedDate}
+          scheduleData={scheduleData}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          onSetDateSelect={setSelectedDate}
+          onSchedulePress={handleSchedulePress}
+        />
+      )}
+      {viewMode === 'month' && (
+        <MonthView
+          currentMonth={currentMonth}
+          selectedDate={selectedDate}
+          markedDates={markedDates}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          onYearPress={() => openDatePicker('year')}
+          onMonthPress={() => openDatePicker('month')}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+          onDayPress={handleDayPress}
+          onMonthChange={handleMonthChange}
+        />
+      )}
 
       {/* Date Picker Modal */}
       <Modal
@@ -668,45 +392,6 @@ const StudentScheduleScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  weekDayButton: {
-    width: 60,
-    paddingVertical: 12,
-    marginHorizontal: 4,
-    borderRadius: 12,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-  },
-  weekDayButtonSelected: {
-    backgroundColor: '#2563eb',
-  },
-  weekDayButtonWithSchedule: {
-    borderWidth: 2,
-    borderColor: '#fbbf24',
-  },
-  weekDayText: {
-    fontSize: 12,
-    color: '#6b7280',
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  weekDayTextSelected: {
-    color: '#ffffff',
-  },
-  weekDayNum: {
-    fontSize: 18,
-    color: '#1f2937',
-    fontWeight: 'bold',
-  },
-  weekDayNumSelected: {
-    color: '#ffffff',
-  },
-  weekDayDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#fbbf24',
-    marginTop: 4,
-  },
   backdrop: {
     position: 'absolute',
     top: 0,
