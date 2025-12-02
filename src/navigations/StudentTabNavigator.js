@@ -1,76 +1,36 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
-
+import BaseTabNavigator from './BaseTabNavigator';
 import StudentHomeScreen from '../screens/student/StudentHomeScreen';
 import StudentProfileScreen from '../screens/student/StudentProfileScreen';
 import StudentScheduleScreen from '../screens/student/StudentScheduleScreen';
-import { Platform } from 'react-native';
 
-const Tab = createBottomTabNavigator();
+const StudentTabNavigator = ({ route }) => {
+  const role = route.params?.userRole;
+  const tabs = [
+    {
+      name: 'Home',
+      component: StudentHomeScreen,
+      label: 'Trang chủ',
+      icon: 'home-outline',
+      iconFocused: 'home',
+    },
+    {
+      name: 'Schedule',
+      component: StudentScheduleScreen,
+      label: 'Lịch học',
+      icon: 'calendar-outline',
+      iconFocused: 'calendar',
+    },
+    {
+      name: 'Profile',
+      component: StudentProfileScreen,
+      label: 'Cá nhân',
+      icon: 'person-outline',
+      iconFocused: 'person',
+    },
+  ];
 
-const StudentTabNavigator = () => {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: '#2563eb',
-        tabBarInactiveTintColor: '#9ca3af',
-        tabBarStyle: {
-          height: Platform.OS === 'ios' ? 85 : 65,
-          paddingBottom: Platform.OS === 'ios' ? 25 : 10,
-          paddingTop: 8,
-          borderTopWidth: 1,
-          borderTopColor: '#f3f4f6',
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-        },
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Schedule') {
-            iconName = focused ? 'calendar' : 'calendar-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-      })}
-    >
-      <Tab.Screen
-        name="Home"
-        component={StudentHomeScreen}
-        options={{
-          tabBarLabel: 'Trang chủ',
-        }}
-      />
-      <Tab.Screen
-        name="Schedule"
-        component={StudentScheduleScreen}
-        options={{
-          tabBarLabel: 'Lịch học',
-        }}
-      />
-
-      <Tab.Screen
-        name="Profile"
-        component={StudentProfileScreen}
-        options={{
-          tabBarLabel: 'Cá nhân',
-        }}
-      />
-    </Tab.Navigator>
-  );
+  return <BaseTabNavigator tabs={tabs} userRole={role} />;
 };
 
 export default StudentTabNavigator;

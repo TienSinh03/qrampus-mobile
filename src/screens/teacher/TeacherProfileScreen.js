@@ -1,17 +1,17 @@
 import React from 'react';
 import BaseProfileScreen from '../../components/BaseProfileScreen';
 
-const StudentProfileScreen = ({ navigation }) => {
+const TeacherProfileScreen = ({ navigation }) => {
   const userData = {
-    name: 'Nguyễn Văn Nam',
-    id: 'MSSV: 20200001',
-    subtitle: 'IT K65 - Công nghệ thông tin',
+    name: 'Thầy Nguyễn Văn A',
+    id: 'Mã GV: GV001234',
+    subtitle: 'Khoa Công nghệ thông tin',
     avatarUri: null,
   };
 
   const stats = [
-    { label: 'Tỷ lệ điểm danh', value: '92%' },
-    { label: 'Số buổi học', value: '45' },
+    { label: 'Tỷ lệ điểm danh TB', value: '78%' },
+    { label: 'Số giờ dạy', value: '18h' },
   ];
 
   const menuItems = [
@@ -24,27 +24,41 @@ const StudentProfileScreen = ({ navigation }) => {
     },
     {
       id: '2',
-      icon: 'document-text-outline',
-      title: 'Lịch sử điểm danh',
-      subtitle: 'Xem lịch sử điểm danh các môn học',
-      onPress: () => console.log('Attendance history'),
+      icon: 'book-outline',
+      title: 'Danh sách lớp học',
+      subtitle: 'Quản lý các lớp học đang giảng dạy',
+      onPress: () => console.log('My courses'),
     },
     {
       id: '3',
-      icon: 'stats-chart-outline',
-      title: 'Thống kê',
-      subtitle: 'Xem thống kê điểm danh',
-      onPress: () => console.log('Statistics'),
+      icon: 'document-text-outline',
+      title: 'Lịch sử điểm danh',
+      subtitle: 'Xem lịch sử điểm danh các lớp',
+      onPress: () => console.log('Attendance history'),
     },
     {
       id: '4',
+      icon: 'stats-chart-outline',
+      title: 'Thống kê chi tiết',
+      subtitle: 'Báo cáo và phân tích điểm danh',
+      onPress: () => console.log('Detailed statistics'),
+    },
+    {
+      id: '5',
+      icon: 'qr-code-outline',
+      title: 'Quản lý QR',
+      subtitle: 'Lịch sử tạo mã QR điểm danh',
+      onPress: () => console.log('QR history'),
+    },
+    {
+      id: '6',
       icon: 'settings-outline',
       title: 'Cài đặt',
       subtitle: 'Cài đặt ứng dụng',
       onPress: () => console.log('Settings'),
     },
     {
-      id: '5',
+      id: '7',
       icon: 'help-circle-outline',
       title: 'Trợ giúp',
       subtitle: 'Hướng dẫn sử dụng và hỗ trợ',
@@ -55,7 +69,7 @@ const StudentProfileScreen = ({ navigation }) => {
   return (
     <BaseProfileScreen
       navigation={navigation}
-      userRole="student"
+      userRole="teacher"
       userData={userData}
       stats={stats}
       menuItems={menuItems}
@@ -63,4 +77,4 @@ const StudentProfileScreen = ({ navigation }) => {
   );
 };
 
-export default StudentProfileScreen;
+export default TeacherProfileScreen;

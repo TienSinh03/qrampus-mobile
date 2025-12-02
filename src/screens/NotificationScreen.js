@@ -5,8 +5,8 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import NotificationItem from '../components/NotificationItem';
 
-const NotificationScreen = ({ navigation }) => {
-  const userRole = 'student' // sau này thay thế bằng uid từ auth để lấy role thực
+const NotificationScreen = ({ navigation, route }) => {
+  const userRole = route.params?.userRole || 'student'; // sau này thay thế bằng uid từ auth để lấy role thực
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('all'); // 'all', 'unread', 'read'
 
@@ -37,7 +37,7 @@ const NotificationScreen = ({ navigation }) => {
   const configRole = roleConfig[userRole];
 
   // thay bằng API call
-  const getNotifications = () => {
+  const getNotifications = (userRole) => {
     if (userRole === 'student') {
       return [
         {
@@ -139,7 +139,7 @@ const NotificationScreen = ({ navigation }) => {
         {
           id: '3',
           type: 'missing_qr_5min',
-          title: '⚠️ Chưa tạo mã QR điểm danh',
+          title: ' Chưa tạo mã QR điểm danh',
           message: 'Lớp "Cơ sở dữ liệu" đã bắt đầu được 5 phút nhưng chưa có mã QR điểm danh.',
           courseCode: 'IT4420',
           courseName: 'Cơ sở dữ liệu',
@@ -199,7 +199,7 @@ const NotificationScreen = ({ navigation }) => {
     }
   };
 
-  const notifications = getNotifications();
+  const notifications = getNotifications(userRole);
 
   /**
    * Lọc thông báo theo trạng thái
@@ -362,6 +362,7 @@ const NotificationScreen = ({ navigation }) => {
               onPress={handleNotificationPress}
               getTimeAgo={getTimeAgo}
               getPriorityBorder={getPriorityBorder}
+              userRole={userRole}
             />
           ))
         ) : (

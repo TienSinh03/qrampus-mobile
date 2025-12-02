@@ -7,7 +7,8 @@ const NotificationItem = ({
   configRole, 
   onPress, 
   getTimeAgo, 
-  getPriorityBorder 
+  getPriorityBorder,
+  userRole
 }) => {
   return (
     <TouchableOpacity
@@ -70,9 +71,9 @@ const NotificationItem = ({
               </View>
             )}
             {notification.startTime && (
-              <View className="bg-blue-100 px-2 py-1 rounded mr-2 mb-1 flex-row items-center">
+              <View className="bg-purple-100 px-2 py-1 rounded mr-2 mb-1 flex-row items-center">
                 <Ionicons name="time-outline" size={14} color="#6b7280" />
-                <Text className="text-blue-700 text-xs font-semibold ml-1">
+                <Text className={`${configRole.tagText} text-xs font-semibold ml-1`}>
                   {notification.startTime}
                 </Text>
               </View>

@@ -6,6 +6,7 @@ import IntroCarouselScreen from '../screens/IntroCarouselScreen';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
 import LoginScreen from '../screens/LoginScreen';
 import StudentTabNavigator from './StudentTabNavigator';
+import TeacherTabNavigator from './TeacherTabNavigator';
 import NotificationScreen from '../screens/NotificationScreen';
 import QRScanScreen from '../screens/student/QRScanScreen';
 
@@ -39,6 +40,13 @@ const AppNavigator = () => {
         <Stack.Screen
           name="StudentHome"
           component={StudentTabNavigator}
+          options={{
+            gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="TeacherHome"
+          component={TeacherTabNavigator}
           options={{
             gestureEnabled: false,
           }}

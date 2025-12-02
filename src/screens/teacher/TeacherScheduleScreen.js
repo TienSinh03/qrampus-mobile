@@ -1,9 +1,9 @@
 import React from 'react';
 import BaseScheduleScreen from '../../components/BaseScheduleScreen';
-import ScheduleCard from '../../components/ScheduleCard';
+import TeacherScheduleCard from '../../components/TeacherScheduleCard';
 
-const StudentScheduleScreen = ({ navigation }) => {
-  const userRole = 'student';
+const TeacherScheduleScreen = ({ navigation }) => {
+  const userRole = 'teacher';
   // Mock data - thay bằng API call
   const scheduleData = {
     '2025-01-06': [
@@ -14,32 +14,32 @@ const StudentScheduleScreen = ({ navigation }) => {
         room: 'D3-201',
         startTime: '07:00',
         endTime: '09:00',
-        teacherName: 'TS. Nguyễn Văn A',
-        hasQR: true,
+        studentCount: 45,
+        hasActiveSession: false,
       },
     ],
     '2025-01-07': [
       {
         id: '2',
-        courseName: 'Trí tuệ Nhân tạo',
-        courseCode: 'IT4868',
+        courseName: 'Cơ sở dữ liệu',
+        courseCode: 'IT3090',
         room: 'D5-302',
         startTime: '09:15',
         endTime: '11:15',
-        teacherName: 'PGS.TS. Trần Thị B',
-        hasQR: false,
+        studentCount: 38,
+        hasActiveSession: false,
       },
     ],
-    '2025-01-09': [
+    '2025-12-02': [
       {
         id: '3',
-        courseName: 'Cơ sở dữ liệu',
-        courseCode: 'IT4420',
-        room: 'D9-101',
-        startTime: '13:00',
-        endTime: '15:00',
-        teacherName: 'TS. Lê Văn C',
-        hasQR: false,
+        courseName: 'Mạng máy tính',
+        courseCode: 'IT4060',
+        room: 'TC-209',
+        startTime: '23:00',
+        endTime: '23:50',
+        studentCount: 42,
+        hasActiveSession: false,
       },
     ],
   };
@@ -48,10 +48,10 @@ const StudentScheduleScreen = ({ navigation }) => {
     <BaseScheduleScreen
       navigation={navigation}
       userRole={userRole}
-      title="Lịch học/ lịch thi"
+      title="Lịch giảng/ lịch thi"
       scheduleData={scheduleData}
     />
   );
 };
 
-export default StudentScheduleScreen;
+export default TeacherScheduleScreen;

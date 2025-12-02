@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const ScheduleCard = ({ schedule, onPress, navigation }) => {
+const ScheduleCard = ({ schedule, navigation }) => {
   const {
     id,
     courseName = 'Tên môn học',
@@ -26,10 +26,12 @@ const ScheduleCard = ({ schedule, onPress, navigation }) => {
         room: schedule.room,
       });
   };
-
+  const handleSchedulePress = schedule => {
+    console.log('Card pressed:', schedule);
+  };
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={() => handleSchedulePress(schedule)}
       activeOpacity={0.7}
       className="mb-4"
     >

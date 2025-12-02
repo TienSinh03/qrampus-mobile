@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
 import ScheduleCard from '../ScheduleCard';
+import TeacherScheduleCard from '../TeacherScheduleCard';
 
 const WeekView = ({ 
   selectedDate, 
@@ -8,8 +9,9 @@ const WeekView = ({
   refreshing, 
   onRefresh, 
   onSetDateSelect,
-  onSchedulePress,
-  navigation 
+  navigation,
+  themeColor,
+  userRole
 }) => {
   const getWeekDates = (dateString) => {
     const date = new Date(dateString);
@@ -65,7 +67,7 @@ const WeekView = ({
               onPress={() => onSetDateSelect(item.date)}
               style={[
                 styles.weekDayButton,
-                item.date === selectedDate && styles.weekDayButtonSelected,
+                item.date === selectedDate && { backgroundColor: themeColor },
                 scheduleData[item.date] && styles.weekDayButtonWithSchedule,
               ]}
             >
@@ -95,7 +97,7 @@ const WeekView = ({
 
       {/* Schedule List */}
       <View className="px-6 py-4">
-        <View className="bg-blue-600 rounded-lg px-3 py-1 self-start mb-4">
+        <View className=" rounded-lg px-3 py-1 self-start mb-4" style={{ backgroundColor: themeColor }}>
           <Text className="text-white font-semibold text-sm">
             {formatDateHeader(selectedDate)}
           </Text>
@@ -103,12 +105,19 @@ const WeekView = ({
 
         {scheduleData[selectedDate] && scheduleData[selectedDate].length > 0 ? (
           scheduleData[selectedDate].map((schedule) => (
-            <ScheduleCard
-              key={schedule.id}
-              schedule={schedule}
-              onPress={() => onSchedulePress(schedule)}
-              navigation={navigation}
-            />
+            userRole === 'student' ? (
+              <ScheduleCard
+                key={schedule.id}
+                schedule={schedule}
+                navigation={navigation}
+              />
+            ) : (
+              <TeacherScheduleCard
+                key={schedule.id}
+                schedule={schedule}
+                navigation={navigation}
+              />
+            )
           ))
         ) : (
           <View className="items-center justify-center py-8">
@@ -128,9 +137,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#f3f4f6',
     alignItems: 'center',
-  },
-  weekDayButtonSelected: {
-    backgroundColor: '#2563eb',
   },
   weekDayButtonWithSchedule: {
     borderWidth: 2,
