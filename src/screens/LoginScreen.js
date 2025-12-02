@@ -29,11 +29,14 @@ const LoginScreen = ({ route, navigation }) => {
     if (isStudent) {
       navigation.reset({
         index: 0,
-        routes: [{ name: 'StudentHome' }],
+        routes: [{ name: 'StudentHome', params: { userRole: 'student' } }],
       });
     } else {
       // TODO: Navigate to teacher home when implemented
-      console.log('Teacher login - not implemented yet');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'TeacherHome', params: { userRole: 'teacher' } }],
+      });
     }
   };
 

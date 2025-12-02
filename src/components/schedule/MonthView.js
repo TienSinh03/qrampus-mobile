@@ -14,7 +14,8 @@ const MonthView = ({
   onPrevMonth,
   onNextMonth,
   onDayPress,
-  onMonthChange
+  onMonthChange,
+  themeColor
 }) => {
   const currentYear = new Date(currentMonth).getFullYear();
   const currentMonthNum = new Date(currentMonth).getMonth() + 1;
@@ -47,12 +48,13 @@ const MonthView = ({
                 onPress={onPrevMonth}
                 className="p-2"
               >
-                <Ionicons name="chevron-back" size={20} color="#2563eb" />
+                <Ionicons name="chevron-back" size={20} color={themeColor} />
               </TouchableOpacity>
               
               <TouchableOpacity 
                 onPress={onMonthPress}
-                className="px-4 py-1 bg-blue-600 rounded-lg mx-2"
+                className="px-4 py-1  rounded-lg mx-2"
+                style={{ backgroundColor: themeColor }}
               >
                 <Text className="text-white font-semibold">
                   Tháng {currentMonthNum}
@@ -63,7 +65,7 @@ const MonthView = ({
                 onPress={onNextMonth}
                 className="p-2"
               >
-                <Ionicons name="chevron-forward" size={20} color="#2563eb" />
+                <Ionicons name="chevron-forward" size={20} color={themeColor} />
               </TouchableOpacity>
             </View>
           </View>
@@ -81,14 +83,14 @@ const MonthView = ({
             backgroundColor: '#ffffff',
             calendarBackground: '#ffffff',
             textSectionTitleColor: '#6b7280',
-            selectedDayBackgroundColor: '#2563eb',
+            selectedDayBackgroundColor: themeColor,
             selectedDayTextColor: '#ffffff',
-            todayTextColor: '#2563eb',
+            todayTextColor: themeColor,
             dayTextColor: '#1f2937',
             textDisabledColor: '#d1d5db',
             dotColor: '#10b981',
             selectedDotColor: '#ffffff',
-            arrowColor: '#2563eb',
+            arrowColor: themeColor,
             monthTextColor: '#1f2937',
             textDayFontFamily: 'System',
             textMonthFontFamily: 'System',
