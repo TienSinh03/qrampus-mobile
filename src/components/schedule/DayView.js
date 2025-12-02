@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ScheduleCard from '../ScheduleCard';
+import TeacherScheduleCard from '../TeacherScheduleCard';
 
 const DayView = ({ 
   selectedDate, 
@@ -9,7 +10,7 @@ const DayView = ({
   refreshing, 
   onRefresh, 
   onHeaderPress,
-  onSchedulePress,
+  userRole,
   navigation
 }) => {
   const formatDateHeader = (dateString) => {
@@ -47,12 +48,19 @@ const DayView = ({
       <View className="px-6 py-4">
         {scheduleData[selectedDate] && scheduleData[selectedDate].length > 0 ? (
           scheduleData[selectedDate].map((schedule) => (
-            <ScheduleCard
-              key={schedule.id}
-              schedule={schedule}
-              onPress={() => onSchedulePress(schedule)}
-              navigation={navigation}
-            />
+            userRole === 'student' ? (
+              <ScheduleCard
+                key={schedule.id}
+                schedule={schedule}
+                navigation={navigation}
+              />
+            ) : (
+              <TeacherScheduleCard
+                key={schedule.id}
+                schedule={schedule}
+                navigation={navigation}
+              />
+            )
           ))
         ) : (
           <View className="items-center justify-center py-12">
