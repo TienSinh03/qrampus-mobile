@@ -57,8 +57,12 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
     return () => clearInterval(interval);
   }, [startTime]);
 
-  const handleSchedulePress = schedule => {
-    console.log('Card pressed:', schedule);
+  const handleSchedulePress = () => {
+    if (navigation) {
+      navigation.navigate('SessionList', {
+        schedule,
+      });
+    }
   }
   
   const handleCreateQR = (schedule) => {

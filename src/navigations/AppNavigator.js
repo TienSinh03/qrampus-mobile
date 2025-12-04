@@ -9,6 +9,7 @@ import StudentTabNavigator from './StudentTabNavigator';
 import TeacherTabNavigator from './TeacherTabNavigator';
 import NotificationScreen from '../screens/NotificationScreen';
 import QRScanScreen from '../screens/student/QRScanScreen';
+import SessionListScreen from '../screens/teacher/SessionListScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -64,6 +65,13 @@ const AppNavigator = () => {
           options={{
             presentation: 'fullScreenModal',
             animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="SessionList"
+          component={SessionListScreen}
+          options={{
+            headerShown: false,
           }}
         />
       </Stack.Navigator>
