@@ -16,6 +16,7 @@ const TeacherScheduleScreen = ({ navigation }) => {
         endTime: '09:00',
         studentCount: 45,
         hasActiveSession: false,
+        courseSectionId: 101,
       },
     ],
     '2025-01-07': [
@@ -28,6 +29,7 @@ const TeacherScheduleScreen = ({ navigation }) => {
         endTime: '11:15',
         studentCount: 38,
         hasActiveSession: false,
+        courseSectionId: 102,
       },
     ],
     '2025-12-02': [
@@ -40,6 +42,7 @@ const TeacherScheduleScreen = ({ navigation }) => {
         endTime: '23:50',
         studentCount: 42,
         hasActiveSession: false,
+        courseSectionId: 103,
       },
     ],
   };

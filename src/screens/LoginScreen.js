@@ -66,7 +66,7 @@ const LoginScreen = ({ route, navigation }) => {
           <View className="flex-1 justify-center px-8">
             {/* Header */}
             <View className="items-center mb-12">
-              <Text className="text-6xl mb-4">{roleIcon}</Text>
+              {/* <Text className="text-6xl mb-4">{roleIcon}</Text> */}
               <Text className="text-white text-3xl font-bold mb-2">Đăng nhập</Text>
               <Text className="text-white/90 text-lg">
                 {roleTitle}

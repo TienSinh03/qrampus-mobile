@@ -13,6 +13,7 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
     endTime = '09:00',
     studentCount = 0,
     hasActiveSession = false,
+    courseSectionId = 1,
   } = schedule || {};
 
   const [timeRemaining, setTimeRemaining] = useState('');
@@ -57,14 +58,18 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
     return () => clearInterval(interval);
   }, [startTime]);
 
-  const handleSchedulePress = schedule => {
-    console.log('Card pressed:', schedule);
+  const handleSchedulePress = () => {
+    if (navigation) {
+      navigation.navigate('SessionList', {
+        schedule,
+      });
+    }
   }
   
   const handleCreateQR = (schedule) => {
       // Navigate to QR generation screen
       console.log('Create QR for:', schedule);
-      //  navigation.navigate('CreateQRSession', { scheduleId: schedule.id });
+       navigation.navigate('CreateQRSession', { schedule: schedule });
   };
 
   return (
