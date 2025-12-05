@@ -17,6 +17,7 @@ const TeacherHomeScreen = ({ navigation }) => {
       endTime: '10:00',
       studentCount: 45,
       hasActiveSession: false,
+      courseSectionId: 101,
     },
     {
       id: '2',
@@ -27,6 +28,7 @@ const TeacherHomeScreen = ({ navigation }) => {
       endTime: '15:00',
       studentCount: 38,
       hasActiveSession: false,
+      courseSectionId: 102,
     },
     {
       id: '3',
@@ -37,6 +39,7 @@ const TeacherHomeScreen = ({ navigation }) => {
       endTime: '23:50',
       studentCount: 42,
       hasActiveSession: false,
+      courseSectionId: 103,
     },
   ]);
 

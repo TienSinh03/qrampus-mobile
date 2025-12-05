@@ -13,6 +13,7 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
     endTime = '09:00',
     studentCount = 0,
     hasActiveSession = false,
+    courseSectionId = 1,
   } = schedule || {};
 
   const [timeRemaining, setTimeRemaining] = useState('');
@@ -68,7 +69,7 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
   const handleCreateQR = (schedule) => {
       // Navigate to QR generation screen
       console.log('Create QR for:', schedule);
-      //  navigation.navigate('CreateQRSession', { scheduleId: schedule.id });
+       navigation.navigate('CreateQRSession', { schedule: schedule });
   };
 
   return (

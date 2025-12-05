@@ -270,7 +270,7 @@ const NotificationScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50" edges={['top']}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       
       {/* Header */}
       <View className={`${configRole.headerBg} px-4 py-3`}>

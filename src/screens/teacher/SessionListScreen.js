@@ -108,21 +108,21 @@ const SessionListScreen = ({ navigation, route }) => {
 
   // Tạo phiên điểm danh mới
   const handleCreateNewSession = () => {
-    // navigation.navigate('CreateQRSession', { 
-    //   schedule,
-    //   isNewSession: true,
-    // });
+    navigation.navigate('CreateQRSession', { 
+      schedule,
+      isNewSession: true,
+    });
     console.log('Creating new session for schedule:', schedule.id);
   };
 
   // Xem chi tiết phiên điểm danh
   const handleViewSessionDetail = (session) => {
     if (session.status === 'active') {
-    //   navigation.navigate('CreateQRSession', { 
-    //     schedule,
-    //     sessionId: session.id,
-    //     isNewSession: false,
-    //   });
+      navigation.navigate('CreateQRSession', { 
+        schedule,
+        sessionId: session.id,
+        isNewSession: false,
+      });
         console.log('Viewing active session:', session.id);
     } else {
       // Hiển thị modal chi tiết cho các phiên đã kết thúc
