@@ -194,11 +194,12 @@ const SessionListScreen = ({ navigation, route }) => {
           </View>
         </View>
 
-        {/* Create Session Button*/}
-        {isInActiveWindow && (
+        {/* Action Buttons */}
+        <View className="flex-row" style={{ gap: 8 }}>
+          {/* Student List Button */}
           <TouchableOpacity
-            onPress={handleCreateNewSession}
-            className="bg-white rounded-xl py-3.5 flex-row items-center justify-center"
+            onPress={() => navigation.navigate('StudentList', { schedule })}
+            className="flex-1 bg-white rounded-xl py-3.5 flex-row items-center justify-center"
             style={{
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
@@ -207,15 +208,31 @@ const SessionListScreen = ({ navigation, route }) => {
               elevation: 3,
             }}
           >
-            <Ionicons name="qr-code" size={22} color="#7c3aed" />
-            <Text className="text-purple-600 font-bold text-base ml-2">
-              Tạo phiên điểm danh mới
-            </Text>
+            <Ionicons name="people" size={22} color="#7c3aed" />
+            <Text className="text-purple-600 font-bold text-base ml-2">Danh sách SV</Text>
           </TouchableOpacity>
-        )}
+
+          {/* Create Session Button*/}
+          {isInActiveWindow && (
+            <TouchableOpacity
+              onPress={handleCreateNewSession}
+              className="flex-1 bg-white rounded-xl py-3.5 flex-row items-center justify-center"
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 3,
+                elevation: 3,
+              }}
+            >
+              <Ionicons name="qr-code" size={22} color="#7c3aed" />
+              <Text className="text-purple-600 font-bold text-base ml-2">Tạo phiên</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         {!isInActiveWindow && (
-          <View className="bg-white/10 rounded-xl py-3 flex-row items-center justify-center">
+          <View className="bg-white/10 rounded-xl py-3 flex-row items-center justify-center mt-2">
             <Ionicons name="time-outline" size={18} color="white" />
             <Text className="text-white/70 text-sm ml-2">
               Chưa đến giờ tạo phiên (±5 phút)

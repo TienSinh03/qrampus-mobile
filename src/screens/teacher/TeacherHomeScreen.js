@@ -13,22 +13,26 @@ const TeacherHomeScreen = ({ navigation }) => {
       courseName: 'Lập trình Di động',
       courseCode: 'IT4788',
       room: 'D3-201',
-      startTime: '08:00',
-      endTime: '10:00',
+      startTime: '17:05',
+      endTime: '18:00',
       studentCount: 45,
       hasActiveSession: false,
       courseSectionId: 101,
+      practice_group_id: null, // Lịch lý thuyết
+      practice_group_name: null,
     },
     {
       id: '2',
-      courseName: 'Cơ sở dữ liệu',
+      courseName: 'Cơ sở dữ liệu - Thực hành',
       courseCode: 'IT3090',
       room: 'D5-302',
       startTime: '13:00',
       endTime: '15:00',
-      studentCount: 38,
+      studentCount: 15,
       hasActiveSession: false,
       courseSectionId: 102,
+      practice_group_id: 1, // Group A
+      practice_group_name: 'Group A',
     },
     {
       id: '3',
@@ -40,6 +44,8 @@ const TeacherHomeScreen = ({ navigation }) => {
       studentCount: 42,
       hasActiveSession: false,
       courseSectionId: 103,
+      practice_group_id: null, // Lịch lý thuyết
+      practice_group_name: null,
     },
   ]);
 
