@@ -209,14 +209,15 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
 
     const mockScanInterval = setInterval(() => {
       const randomStudent = {
-        id: Math.floor(Math.random() * 1000),
+        id: Date.now() + Math.random(),
         name: `Sinh viên ${Math.floor(Math.random() * 100)}`,
         studentId: `2020${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-        scanTime: new Date(),
+        scanTime: new Date().toISOString(),
       };
 
       setAttendedStudents((prev) => {
         if (prev.length >= totalStudents) return prev;
+        if (prev.some(s => s.studentId === randomStudent.studentId)) return prev;
         return [...prev, randomStudent];
       });
     }, 8000);
@@ -226,7 +227,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
 
       {/* Header */}
       <LinearGradient
@@ -441,7 +442,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
             <View className="bg-white rounded-2xl p-4 mb-4" style={{ elevation: 3 }}>
               {(sessionEnded ? attendedStudents : attendedStudents.slice(-5)).reverse().map((student, index) => (
                 <View
-                  key={student.id}
+                  key={`${student.id}-${student.scanTime}-${index}`}
                   className={`flex-row items-center py-3 ${
                     index !== 0 ? 'border-t border-gray-100' : ''
                   }`}

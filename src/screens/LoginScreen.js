@@ -84,11 +84,11 @@ const LoginScreen = ({ route, navigation }) => {
               }}
             >
               <View className="mb-6">
-                <Text className="text-gray-700 text-base font-semibold mb-2">Tên đăng nhập</Text>
+                <Text className="text-gray-700 text-base font-semibold mb-2">Mã đăng nhập</Text>
                 <TextInput
                   value={username}
                   onChangeText={setUsername}
-                  placeholder="Nhập tên đăng nhập"
+                  placeholder={isStudent ? 'Nhập mã sinh viên' : 'Nhập mã giảng viên'}
                   className="bg-gray-100 rounded-xl px-4 py-4 text-base"
                   autoCapitalize="none"
                 />

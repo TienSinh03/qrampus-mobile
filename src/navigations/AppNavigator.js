@@ -11,6 +11,7 @@ import NotificationScreen from '../screens/NotificationScreen';
 import QRScanScreen from '../screens/student/QRScanScreen';
 import CreateQRSessionScreen from '../screens/teacher/CreateQRSessionScreen';
 import SessionListScreen from '../screens/teacher/SessionListScreen';
+import StudentListScreen from '../screens/teacher/StudentListScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -71,6 +72,13 @@ const AppNavigator = () => {
         <Stack.Screen
           name="SessionList"
           component={SessionListScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="StudentList"
+          component={StudentListScreen}
           options={{
             headerShown: false,
           }}
