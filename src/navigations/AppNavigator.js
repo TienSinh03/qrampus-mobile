@@ -9,6 +9,7 @@ import StudentTabNavigator from './StudentTabNavigator';
 import TeacherTabNavigator from './TeacherTabNavigator';
 import NotificationScreen from '../screens/NotificationScreen';
 import QRScanScreen from '../screens/student/QRScanScreen';
+import ScheduleDetailScreen from '../screens/student/ScheduleDetailScreen';
 import CreateQRSessionScreen from '../screens/teacher/CreateQRSessionScreen';
 import SessionListScreen from '../screens/teacher/SessionListScreen';
 import StudentListScreen from '../screens/teacher/StudentListScreen';
@@ -67,6 +68,13 @@ const AppNavigator = () => {
           options={{
             presentation: 'fullScreenModal',
             animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="ScheduleDetail"
+          component={ScheduleDetailScreen}
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen
