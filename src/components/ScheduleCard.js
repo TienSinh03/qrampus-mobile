@@ -28,6 +28,10 @@ const ScheduleCard = ({ schedule, navigation }) => {
   };
   const handleSchedulePress = schedule => {
     console.log('Card pressed:', schedule);
+    // Navigate to schedule detail screen
+    navigation.navigate('ScheduleDetail', {
+      schedule: schedule,
+    });
   };
   return (
     <TouchableOpacity
