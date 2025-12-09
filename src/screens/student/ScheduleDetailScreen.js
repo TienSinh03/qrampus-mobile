@@ -50,14 +50,9 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
 
   // xử lý khi nhấn vào nút xem yêu cầu nghỉ phép
   const handleViewLeaveRequests = () => {
-    // navigation.navigate('LeaveRequestList', {
-    //   schedule: schedule,
-    // });
-    Alert.alert(
-      'Tính năng sắp ra mắt',
-      'Chức năng xin nghỉ phép sẽ được ra mắt trong thời gian tới. Vui lòng cập nhật ứng dụng để sử dụng tính năng này.',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate('LeaveRequestList', {
+      schedule: schedule,
+    });
   };
 
   // xử lý khi nhấn vào nút tạo yêu cầu nghỉ phép
