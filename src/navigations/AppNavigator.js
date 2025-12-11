@@ -10,6 +10,7 @@ import TeacherTabNavigator from './TeacherTabNavigator';
 import NotificationScreen from '../screens/NotificationScreen';
 import QRScanScreen from '../screens/student/QRScanScreen';
 import ScheduleDetailScreen from '../screens/student/ScheduleDetailScreen';
+import LeaveRequestScreen from '../screens/student/LeaveRequestScreen';
 import LeaveRequestListScreen from '../screens/student/LeaveRequestListScreen';
 import CreateQRSessionScreen from '../screens/teacher/CreateQRSessionScreen';
 import SessionListScreen from '../screens/teacher/SessionListScreen';
@@ -74,6 +75,13 @@ const AppNavigator = () => {
         <Stack.Screen
           name="ScheduleDetail"
           component={ScheduleDetailScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="LeaveRequest"
+          component={LeaveRequestScreen}
           options={{
             headerShown: false,
           }}

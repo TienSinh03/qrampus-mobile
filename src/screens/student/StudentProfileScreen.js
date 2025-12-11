@@ -31,6 +31,13 @@ const StudentProfileScreen = ({ navigation }) => {
     },
     {
       id: '3',
+      icon: 'clipboard-outline',
+      title: 'Xin nghỉ phép',
+      subtitle: 'Nộp đơn xin nghỉ học có phép',
+      onPress: () => navigation.navigate('LeaveRequest'),
+    },
+    {
+      id: '4',
       icon: 'list-outline',
       title: 'Yêu cầu của tôi',
       subtitle: 'Xem danh sách đơn đã nộp',
