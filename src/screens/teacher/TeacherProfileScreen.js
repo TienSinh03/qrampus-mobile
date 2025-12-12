@@ -45,20 +45,28 @@ const TeacherProfileScreen = ({ navigation }) => {
     },
     {
       id: '5',
+      icon: 'document-text',
+      title: 'Duyệt đơn nghỉ phép',
+      subtitle: 'Xét duyệt yêu cầu xin nghỉ của sinh viên',
+      onPress: () => navigation.navigate('TeacherLeaveRequestList'),
+      badge: 3, // Number of pending requests
+    },
+    {
+      id: '6',
       icon: 'qr-code-outline',
       title: 'Quản lý QR',
       subtitle: 'Lịch sử tạo mã QR điểm danh',
       onPress: () => console.log('QR history'),
     },
     {
-      id: '6',
+      id: '7',
       icon: 'settings-outline',
       title: 'Cài đặt',
       subtitle: 'Cài đặt ứng dụng',
       onPress: () => console.log('Settings'),
     },
     {
-      id: '7',
+      id: '8',
       icon: 'help-circle-outline',
       title: 'Trợ giúp',
       subtitle: 'Hướng dẫn sử dụng và hỗ trợ',
