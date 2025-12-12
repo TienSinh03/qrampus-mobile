@@ -15,6 +15,8 @@ import LeaveRequestListScreen from '../screens/student/LeaveRequestListScreen';
 import CreateQRSessionScreen from '../screens/teacher/CreateQRSessionScreen';
 import SessionListScreen from '../screens/teacher/SessionListScreen';
 import StudentListScreen from '../screens/teacher/StudentListScreen';
+import TeacherLeaveRequestListScreen from '../screens/teacher/TeacherLeaveRequestListScreen';
+import TeacherLeaveRequestDetailScreen from '../screens/teacher/TeacherLeaveRequestDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -113,6 +115,20 @@ const AppNavigator = () => {
           options={{
             presentation: 'fullScreenModal',
             animation: 'slide_from_bottom',
+          }}
+        />
+        <Stack.Screen
+          name="TeacherLeaveRequestList"
+          component={TeacherLeaveRequestListScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="TeacherLeaveRequestDetail"
+          component={TeacherLeaveRequestDetailScreen}
+          options={{
+            headerShown: false,
           }}
         />
       </Stack.Navigator>

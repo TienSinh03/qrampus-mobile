@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform } from 'react-native';
+import { Platform, TouchableOpacity, Animated } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -18,8 +18,8 @@ const BaseTabNavigator = ({
         tabBarActiveTintColor: roleColor,
         tabBarInactiveTintColor: '#9ca3af',
         tabBarStyle: {
-          height: Platform.OS === 'ios' ? 85 : 65,
-          paddingBottom: Platform.OS === 'ios' ? 25 : 10,
+          height: Platform.OS === 'ios' ? 85 : 75,
+          paddingBottom: Platform.OS === 'ios' ? 25 : 15,
           paddingTop: 8,
           borderTopWidth: 1,
           borderTopColor: '#f3f4f6',
