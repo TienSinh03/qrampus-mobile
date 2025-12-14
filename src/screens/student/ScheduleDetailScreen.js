@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,8 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
     excused: 1,
     total: 11,
   });
+  const [showSurvey, setShowSurvey] = useState(false);
+  const [hasCompletedSurvey, setHasCompletedSurvey] = useState(false);
 
   const {
     id,
@@ -36,6 +38,53 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
     hasQR = false,
     credits = 3,
   } = schedule || {};
+
+  // Load trạng thái khảo sát từ API khi vào trang
+  useEffect(() => {
+    const fetchSurveyStatus = async () => {
+      try {
+        // Gọi API để check xem sinh viên đã hoàn thành khảo sát cho buổi học này chưa
+
+        // setHasCompletedSurvey(data.hasCompleted);
+        
+        // Giả sử buổi học courseCode=IT4788 đã hoàn thành khảo sát
+        if (schedule.courseCode === 'IT4788') {
+          setHasCompletedSurvey(true);
+        }
+      } catch (error) {
+        console.error('Error fetching survey status:', error);
+      }
+    };
+
+    fetchSurveyStatus();
+  }, [schedule.id]);
+
+  // Kiểm tra xem có nên hiển thị khảo sát không (10 phút trước đến 10 phút sau khi kết thúc)
+  useEffect(() => {
+    const checkSurveyTime = () => {
+      const now = new Date();
+      const [endHour, endMinute] = endTime.split(':').map(Number);
+      
+      const classEndTime = new Date();
+      classEndTime.setHours(endHour, endMinute, 0, 0);
+      
+      // Thời gian bắt đầu có thể làm khảo sát (10 phút trước khi kết thúc)
+      const surveyStartTime = new Date(classEndTime.getTime() - 10 * 60 * 1000);
+      // Thời gian kết thúc làm khảo sát (10 phút sau khi kết thúc)
+      const surveyEndTime = new Date(classEndTime.getTime() + 10 * 60 * 1000);
+      
+      // Hiển thị khảo sát nếu:
+      // 1. Đang trong khoảng thời gian (10 phút trước đến 10 phút sau khi kết thúc)
+      // 2. Chưa hoàn thành khảo sát
+      const shouldShow = now >= surveyStartTime && now <= surveyEndTime && !hasCompletedSurvey;
+      setShowSurvey(shouldShow);
+    };
+
+    checkSurveyTime();
+    const interval = setInterval(checkSurveyTime, 30000); // Check mỗi 30 giây
+    
+    return () => clearInterval(interval);
+  }, [endTime, hasCompletedSurvey]);
 
   // xử lý khi nhấn vào nút QR                 
   const handleQRPress = () => {
@@ -57,14 +106,30 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
 
   // xử lý khi nhấn vào nút tạo yêu cầu nghỉ phép
   const handleCreateLeaveRequest = () => {
-    // navigation.navigate('LeaveRequest', {
-    //   preSelectedSchedule: schedule,
-    // });
-    Alert.alert(
-      'Tính năng sắp ra mắt',
-      'Chức năng xin nghỉ phép sẽ được ra mắt trong thời gian tới. Vui lòng cập nhật ứng dụng để sử dụng tính năng này.',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate('LeaveRequest', {
+      preSelectedSchedule: schedule,
+    });
+  };
+
+  // xử lý khi nhấn vào nút khảo sát
+  const handleSurveyPress = () => {
+    navigation.navigate('Survey', {
+      schedule: schedule,
+      attendanceId: schedule.id, // ID của bản ghi điểm danh
+      onSubmitSuccess: () => {
+        // Callback khi submit khảo sát thành công
+        setHasCompletedSurvey(true);
+      },
+    });
+  };
+
+  // xử lý khi nhấn vào nút xem lại khảo sát
+  const handleViewSurvey = () => {
+    navigation.navigate('Survey', {
+      schedule: schedule,
+      attendanceId: schedule.id,
+      viewMode: true, // Chế độ xem lại, không cho chỉnh sửa
+    });
   };
 
   const attendanceRate = ((attendanceStats.present / attendanceStats.total) * 100).toFixed(1);
@@ -124,6 +189,66 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
               <Ionicons name="lock-closed-outline" size={20} color="#6b7280" />
               <Text className="text-gray-500 text-base ml-2">Chưa đến giờ điểm danh</Text>
             </View>
+          )}
+
+          {/* Survey Button - Show when near end time */}
+          {showSurvey && !hasCompletedSurvey && (
+            <TouchableOpacity
+              onPress={handleSurveyPress}
+              activeOpacity={0.8}
+              className="rounded-2xl overflow-hidden mb-3"
+              style={{
+                shadowColor: '#f59e0b',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.25,
+                shadowRadius: 8,
+                elevation: 5,
+              }}
+            >
+              <LinearGradient
+                colors={['#f59e0b', '#f97316']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="p-3"
+              >
+                <View className="flex-row items-center">
+                  <View className="w-14 h-14 bg-white/20 rounded-2xl items-center justify-center mr-4">
+                    <Ionicons name="star" size={28} color="white" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white font-bold text-base mb-1">Đánh giá buổi học</Text>
+                    <Text className="text-white/80 text-xs">Chia sẻ ý kiến của bạn về buổi học</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={24} color="white" />
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+          {hasCompletedSurvey && (
+            <TouchableOpacity
+              onPress={handleViewSurvey}
+              activeOpacity={0.7}
+              className="bg-green-50 rounded-2xl p-3 mb-3 border border-green-200"
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 2,
+                elevation: 1,
+              }}
+            >
+              <View className="flex-row items-center">
+                <View className="w-12 h-12 bg-green-100 rounded-xl items-center justify-center mr-3">
+                  <Ionicons name="checkmark-circle" size={28} color="#10b981" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-green-700 font-bold text-base mb-0.5">Đã hoàn thành khảo sát</Text>
+                  <Text className="text-green-600 text-xs">Nhấn để xem lại đánh giá của bạn</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#10b981" />
+              </View>
+            </TouchableOpacity>
           )}
 
           {/* Leave Request Actions */}
