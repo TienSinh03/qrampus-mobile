@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -12,21 +13,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
+  const { schedule } = route?.params || {};
   const [requests, setRequests] = useState([]);
   const [courses, setCourses] = useState([]);
-  const [filterStatus, setFilterStatus] = useState('pending'); // pending, approved, rejected, all
-  const [filterCourse, setFilterCourse] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all'); // pending, approved, rejected, all
+  const [filterCourse, setFilterCourse] = useState(schedule?.courseCode || 'all');
   const [refreshing, setRefreshing] = useState(false);
+  const [showCourseModal, setShowCourseModal] = useState(false);
 
   useEffect(() => {
     fetchRequests();
   }, []);
 
   const fetchRequests = async () => {
-    // TODO: API GET /api/teachers/{teacher_id}/leave-requests
-    // Response: [{ id, student_name, student_id, courseCode, schedule, 
-    //   reason_type, note, attachments, status, created_at, hours_remaining }]
-
     const mockRequests = [
       {
         id: 1,
@@ -76,7 +75,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
         ],
         status: 'pending',
         createdAt: '2025-12-11 08:00:00',
-        hoursRemaining: 20,
+        hoursRemaining: 11,
       },
       {
         id: 3,
@@ -208,7 +207,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
 
       {/* Header */}
       <LinearGradient
@@ -221,7 +220,20 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
           <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-white text-xl font-bold flex-1">Duyệt đơn nghỉ phép</Text>
+          <View className="flex-1">
+            <Text className="text-white text-xl font-bold">Duyệt đơn nghỉ phép</Text>
+            {schedule && (
+              <Text className="text-white/80 text-sm" numberOfLines={1}>
+                {schedule.courseCode} - {schedule.courseName}
+              </Text>
+            )}
+          </View>
+          <TouchableOpacity 
+            onPress={() => setShowCourseModal(true)}
+            className="mr-3 bg-white/20 rounded-full p-2"
+          >
+            <Ionicons name="funnel" size={20} color="white" />
+          </TouchableOpacity>
           {urgentCount > 0 && (
             <View className="bg-red-500 rounded-full px-3 py-1">
               <Text className="text-white text-xs font-bold">
@@ -231,7 +243,25 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
           )}
         </View>
 
-        {/* Course Filter Chips */}
+        {/* Course Filter Badge */}
+        {schedule && filterCourse !== 'all' && (
+          <View className="bg-white/20 rounded-xl px-4 py-2 mb-3">
+            <View className="flex-row items-center">
+              <Ionicons name="book" size={16} color="white" />
+              <Text className="text-white font-semibold ml-2 flex-1" numberOfLines={1}>
+                Đang lọc: {schedule.courseName}
+              </Text>
+              <TouchableOpacity 
+                onPress={() => setFilterCourse('all')}
+                className="ml-2 bg-white/30 rounded-full p-1"
+              >
+                <Ionicons name="close" size={14} color="white" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Course Filter */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
           <TouchableOpacity
             onPress={() => setFilterCourse('all')}
@@ -349,7 +379,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
             >
               {/* Urgent Badge */}
               {request.status === 'pending' && request.hoursRemaining < 12 && (
-                <View className="absolute top-2 right-2 bg-red-500 rounded-full px-2 py-1 z-10">
+                <View className="absolute top-0.5 right-2 bg-red-500 rounded-full px-2 py-1 z-10">
                   <Text className="text-white text-xs font-bold">
                     Còn {request.hoursRemaining}h
                   </Text>
@@ -442,7 +472,92 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
         )}
 
         <View className="h-6" />
+
+        {/* Course Filter Modal */}
       </ScrollView>
+      <Modal
+          visible={showCourseModal}
+          animationType="fade"
+          transparent={true}
+          onRequestClose={() => setShowCourseModal(false)}
+      >
+          <TouchableOpacity 
+            activeOpacity={1} 
+            onPress={() => setShowCourseModal(false)}
+            className="flex-1 bg-black/50 justify-end"
+          >
+            <TouchableOpacity activeOpacity={1} className="bg-white rounded-t-3xl">
+              <View className="px-6 py-4 border-b border-gray-200">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-gray-900 text-lg font-bold">Lọc theo môn học</Text>
+                  <TouchableOpacity onPress={() => setShowCourseModal(false)}>
+                    <Ionicons name="close" size={24} color="#6b7280" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+  
+              <ScrollView className="px-6 py-4" style={{ maxHeight: 400 }}>
+                {/* All Courses Option */}
+                <TouchableOpacity
+                  onPress={() => {
+                    setFilterCourse('all');
+                    setShowCourseModal(false);
+                  }}
+                  className={`rounded-xl p-4 mb-3 flex-row items-center justify-between ${
+                    filterCourse === 'all' ? 'bg-purple-50 border-2 border-purple-500' : 'bg-gray-50'
+                  }`}
+                >
+                  <View className="flex-1">
+                    <Text className={`font-bold text-base mb-1 ${
+                      filterCourse === 'all' ? 'text-purple-700' : 'text-gray-900'
+                    }`}>
+                      Tất cả môn học
+                    </Text>
+                    <Text className="text-gray-600 text-sm">
+                      {requests.length} yêu cầu
+                    </Text>
+                  </View>
+                  {filterCourse === 'all' && (
+                    <Ionicons name="checkmark-circle" size={24} color="#2563eb" />
+                  )}
+                </TouchableOpacity>
+  
+                {/* Individual Courses */}
+                {courses.map((course, index) => (
+                  <TouchableOpacity
+                    key={course.courseCode || index}
+                    onPress={() => {
+                      setFilterCourse(course.courseCode);
+                      setShowCourseModal(false);
+                    }}
+                    className={`rounded-xl p-4 mb-3 flex-row items-center justify-between ${
+                      filterCourse === course.courseCode ? 'bg-purple-50 border-2 border-purple-500' : 'bg-gray-50'
+                    }`}
+                  >
+                    <View className="flex-1">
+                      <View className="flex-row items-center mb-1">
+                        <View className="bg-purple-100 rounded-lg px-2 py-1 mr-2">
+                          <Text className="text-purple-700 text-xs font-bold">{course.courseCode}</Text>
+                        </View>
+                      </View>
+                      <Text className={`font-bold text-base mb-1 ${
+                        filterCourse === course.courseCode ? 'text-purple-700' : 'text-gray-900'
+                      }`} numberOfLines={1}>
+                        {course.name}
+                      </Text>
+                      <Text className="text-gray-600 text-sm">
+                        {requests.filter(request => request.courseCode === course.courseCode).length} yêu cầu
+                      </Text>
+                    </View>
+                    {filterCourse === course.courseCode && (
+                      <Ionicons name="checkmark-circle" size={24} color="#7c3aed" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>       
     </SafeAreaView>
   );
 };

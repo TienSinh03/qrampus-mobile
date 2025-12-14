@@ -1,0 +1,535 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Dimensions
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
+
+const TeacherScheduleDetailScreen = ({ navigation, route }) => {
+  const { schedule } = route.params;
+  const [timeRemaining, setTimeRemaining] = useState('');
+  const [isInActiveWindow, setIsInActiveWindow] = useState(false);
+  const [isUrgent, setIsUrgent] = useState(false);
+
+  const {
+    id,
+    courseName = 'Tên môn học',
+    courseCode = 'MH001',
+    room = 'A101',
+    startTime = '07:00',
+    endTime = '09:00',
+    studentCount = 0,
+    hasActiveSession = false,
+    date,
+    dayOfWeek,
+    credits = 3,
+    practice_group_id = null,
+    practice_group_name = null,
+  } = schedule || {};
+
+  // Thống kê điểm danh (thay bằng API call - hôm nay)
+  const [attendanceStats, setAttendanceStats] = useState({
+    present: 38,
+    absent: 5,
+    excused: 2,
+    total: studentCount,
+  });
+
+  // Tính toán thời gian còn lại và trạng thái khẩn cấp (sau này chỉnh lại)
+  useEffect(() => {
+    const calculateTimeRemaining = () => {
+      const now = new Date();
+      const [startHour, startMinute] = startTime.split(':').map(Number);
+      
+      const classTime = new Date();
+      classTime.setHours(startHour, startMinute, 0, 0);
+      
+      const diffMs = classTime - now;
+      const diffMinutes = Math.floor(diffMs / 60000);
+      
+      // Kiểm tra nếu trong khoảng thời gian tạo phiên (5 phút trước đến 30 phút sau giờ bắt đầu)
+      const inWindow = diffMinutes >= -5 && diffMinutes <= 30;
+      setIsInActiveWindow(inWindow);
+      
+      // Kiểm tra nếu trong khoảng thời gian khẩn cấp (5 phút trước đến 5 phút sau giờ bắt đầu)
+      const urgent = diffMinutes >= -5 && diffMinutes <= 5;
+      setIsUrgent(urgent);
+      
+      if (diffMinutes > 60) {
+        const hours = Math.floor(diffMinutes / 60);
+        const mins = diffMinutes % 60;
+        setTimeRemaining(`${hours}h ${mins}p nữa`);
+      } else if (diffMinutes > 0) {
+        setTimeRemaining(`${diffMinutes} phút nữa`);
+      } else if (diffMinutes > -30) {
+        setTimeRemaining('Đang diễn ra');
+      } else {
+        setTimeRemaining('Đã kết thúc');
+      }
+    };
+
+    calculateTimeRemaining();
+    const interval = setInterval(calculateTimeRemaining, 30000);
+    
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  const handleCreateQR = () => {
+    navigation.navigate('CreateQRSession', { schedule });
+  };
+
+  const handleViewStudentList = () => {
+    navigation.navigate('StudentList', { schedule });
+  };
+
+  const handleViewSessionList = () => {
+    navigation.navigate('SessionList', { schedule });
+  };
+
+  const handleViewLeaveRequests = () => {
+    navigation.navigate('TeacherLeaveRequestList', { schedule });
+  };
+
+  const attendanceRate = studentCount > 0 
+    ? ((attendanceStats.present / studentCount) * 100).toFixed(1)
+    : 0;
+
+  return (
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <StatusBar style="dark" />
+
+      {/* Header */}
+      <LinearGradient
+        colors={isUrgent && !hasActiveSession ? ['#dc2626', '#ef4444'] : ['#7c3aed', '#8b5cf6']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="px-6 py-4"
+      >
+        <View className="flex-row items-center justify-between mb-4">
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white text-lg font-bold">Chi tiết lịch giảng dạy</Text>
+          <View style={{ width: width*0.05 }} />
+        </View>
+
+        <View className="items-center mb-2">
+          <View className="bg-white/20 px-4 py-2 rounded-full mb-3">
+            <Text className="text-white font-bold text-base">{courseCode}</Text>
+          </View>
+          <Text className="text-white text-2xl font-bold text-center mb-1">
+            {courseName}
+          </Text>
+          {practice_group_name && (
+            <View className="bg-white/30 px-3 py-1 rounded-full mt-2">
+              <Text className="text-white text-sm font-semibold">
+                {practice_group_name}
+              </Text>
+            </View>
+          )}
+        </View>
+      </LinearGradient>
+
+      {/* Content */}
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Quick Status Card */}
+        {timeRemaining && (
+          <View className="px-6 pt-6 pb-2">
+            <View className="bg-white rounded-2xl p-4 flex-row items-center" style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 4,
+              elevation: 2,
+            }}>
+              <View className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
+                timeRemaining === 'Đang diễn ra' ? 'bg-green-100' : 
+                timeRemaining === 'Đã kết thúc' ? 'bg-gray-100' : 'bg-purple-100'
+              }`}>
+                <Ionicons 
+                  name={timeRemaining === 'Đang diễn ra' ? 'time' : timeRemaining === 'Đã kết thúc' ? 'checkmark-done' : 'alarm'} 
+                  size={28} 
+                  color={timeRemaining === 'Đang diễn ra' ? '#10b981' : timeRemaining === 'Đã kết thúc' ? '#6b7280' : '#7c3aed'} 
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="text-gray-500 text-xs mb-1">Trạng thái lớp học</Text>
+                <Text className={`text-lg font-bold ${
+                  timeRemaining === 'Đang diễn ra' ? 'text-green-600' : 
+                  timeRemaining === 'Đã kết thúc' ? 'text-gray-600' : 'text-purple-600'
+                }`}>
+                  {timeRemaining}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        <View className="px-6 pt-4 pb-4">
+          <Text className="text-gray-900 font-bold text-lg mb-4">Điểm danh</Text>
+          
+          {/* Create QR or Active Session */}
+          {isInActiveWindow && !hasActiveSession && (
+            <TouchableOpacity
+              onPress={handleCreateQR}
+              activeOpacity={0.8}
+              className="rounded-2xl overflow-hidden mb-4"
+              style={{
+                shadowColor: isUrgent ? '#dc2626' : '#7c3aed',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.25,
+                shadowRadius: 8,
+                elevation: 5,
+              }}
+            >
+              <LinearGradient
+                colors={isUrgent ? ['#dc2626', '#ef4444'] : ['#7c3aed', '#8b5cf6']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="p-5"
+              >
+                <View className="flex-row items-center">
+                  <View className="w-14 h-14 bg-white/20 rounded-2xl items-center justify-center mr-4">
+                    <Ionicons name="qr-code" size={28} color="white" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white font-bold text-lg mb-1">
+                      {isUrgent ? 'Tạo QR điểm danh ngay!' : 'Tạo QR điểm danh'}
+                    </Text>
+                    <Text className="text-white/80 text-sm">
+                      {isUrgent ? 'Lớp học đã bắt đầu' : 'Tạo phiên điểm danh mới'}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={24} color="white" />
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+          {isInActiveWindow && hasActiveSession && (
+            <View 
+              className="rounded-2xl overflow-hidden mb-4"
+              style={{
+                shadowColor: '#10b981',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.2,
+                shadowRadius: 6,
+                elevation: 4,
+              }}
+            >
+              <LinearGradient
+                colors={['#10b981', '#34d399']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="p-5"
+              >
+                <View className="flex-row items-center">
+                  <View className="w-14 h-14 bg-white/20 rounded-2xl items-center justify-center mr-4">
+                    <View className="w-4 h-4 bg-white rounded-full" style={{
+                      shadowColor: '#fff',
+                      shadowOffset: { width: 0, height: 0 },
+                      shadowOpacity: 0.8,
+                      shadowRadius: 8,
+                    }} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white font-bold text-lg mb-1">
+                      Phiên đang hoạt động
+                    </Text>
+                    <Text className="text-white/80 text-sm">
+                      Sinh viên đang điểm danh
+                    </Text>
+                  </View>
+                  <Ionicons name="checkmark-circle" size={32} color="white" />
+                </View>
+              </LinearGradient>
+            </View>
+          )}
+
+          {!isInActiveWindow && (
+            <View 
+              className="bg-gray-100 rounded-2xl p-5 mb-4 flex-row items-center"
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 2,
+                elevation: 1,
+              }}
+            >
+              <View className="w-14 h-14 bg-gray-200 rounded-2xl items-center justify-center mr-4">
+                <Ionicons name="lock-closed" size={24} color="#9ca3af" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-gray-700 font-bold text-base mb-1">
+                  {timeRemaining === 'Đã kết thúc' ? 'Đã kết thúc' : 'Chưa đến giờ'}
+                </Text>
+                <Text className="text-gray-500 text-sm">
+                  {timeRemaining === 'Đã kết thúc' ? 'Buổi học đã hoàn thành' : 'Chưa thể tạo phiên điểm danh'}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Quick Actions Dashboard */}
+        <View className="px-6 pb-4">
+          <Text className="text-gray-900 font-bold text-lg mb-4">Quản lý</Text>
+          
+          <View className="flex-row mb-3" style={{ gap: 12 }}>
+            {/* Student List */}
+            <TouchableOpacity
+              onPress={handleViewStudentList}
+              activeOpacity={0.7}
+              className="flex-1 bg-white rounded-2xl overflow-hidden"
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 4,
+                elevation: 2,
+              }}
+            >
+              <View className="p-4">
+                <View className="w-12 h-12 bg-purple-50 rounded-xl items-center justify-center mb-3">
+                  <Ionicons name="people" size={24} color="#7c3aed" />
+                </View>
+                <Text className="text-gray-900 font-bold text-base mb-1">
+                  Sinh viên
+                </Text>
+                <Text className="text-gray-500 text-xs mb-2">
+                  {studentCount} sinh viên
+                </Text>
+                <View className="flex-row items-center">
+                  <Text className="text-purple-600 text-xs font-semibold">Xem danh sách</Text>
+                  <Ionicons name="chevron-forward" size={14} color="#7c3aed" style={{ marginLeft: 2 }} />
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* Session List */}
+            <TouchableOpacity
+              onPress={handleViewSessionList}
+              activeOpacity={0.7}
+              className="flex-1 bg-white rounded-2xl overflow-hidden"
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 4,
+                elevation: 2,
+              }}
+            >
+              <View className="p-4">
+                <View className="w-12 h-12 bg-blue-50 rounded-xl items-center justify-center mb-3">
+                  <Ionicons name="list" size={24} color="#3b82f6" />
+                </View>
+                <Text className="text-gray-900 font-bold text-base mb-1">
+                  Phiên
+                </Text>
+                <Text className="text-gray-500 text-xs mb-2">
+                  Lịch sử điểm danh
+                </Text>
+                <View className="flex-row items-center">
+                  <Text className="text-blue-600 text-xs font-semibold">Xem chi tiết</Text>
+                  <Ionicons name="chevron-forward" size={14} color="#3b82f6" style={{ marginLeft: 2 }} />
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Leave Requests */}
+          <TouchableOpacity
+            onPress={handleViewLeaveRequests}
+            activeOpacity={0.7}
+            className="bg-white rounded-2xl overflow-hidden"
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
+          >
+            <View className="flex-row items-center p-4">
+              <View className="w-12 h-12 bg-orange-50 rounded-xl items-center justify-center mr-4">
+                <Ionicons name="document-text" size={24} color="#f59e0b" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-gray-900 font-bold text-base mb-1">
+                  Yêu cầu nghỉ phép
+                </Text>
+                <Text className="text-gray-500 text-xs">
+                  Xem và phê duyệt đơn xin nghỉ
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Schedule Information */}
+        <View className="px-6 pb-4">
+          <Text className="text-gray-900 font-bold text-lg mb-3">Thông tin lịch giảng dạy</Text>
+          
+          <View className="bg-white rounded-2xl p-4" style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+          }}>
+            {/* Date & Time */}
+            <View className="flex-row items-center mb-4 pb-4 border-b border-gray-100">
+              <View className="w-12 h-12 bg-purple-50 rounded-xl items-center justify-center mr-3">
+                <Ionicons name="calendar" size={24} color="#7c3aed" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-gray-500 text-xs mb-1">Thời gian</Text>
+                <Text className="text-gray-900 font-bold text-base">
+                  {dayOfWeek}, {date}
+                </Text>
+                <Text className="text-gray-600 text-sm">
+                  {startTime} - {endTime}
+                </Text>
+              </View>
+            </View>
+
+            {/* Room */}
+            <View className="flex-row items-center mb-4 pb-4 border-b border-gray-100">
+              <View className="w-12 h-12 bg-green-50 rounded-xl items-center justify-center mr-3">
+                <Ionicons name="location" size={24} color="#10b981" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-gray-500 text-xs mb-1">Phòng học</Text>
+                <Text className="text-gray-900 font-bold text-base">{room}</Text>
+              </View>
+            </View>
+
+            {/* Student Count */}
+            <View className="flex-row items-center mb-4 pb-4 border-b border-gray-100">
+              <View className="w-12 h-12 bg-blue-50 rounded-xl items-center justify-center mr-3">
+                <Ionicons name="people" size={24} color="#3b82f6" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-gray-500 text-xs mb-1">Số lượng sinh viên</Text>
+                <Text className="text-gray-900 font-bold text-base">{studentCount} sinh viên</Text>
+              </View>
+            </View>
+
+            {/* Credits */}
+            <View className="flex-row items-center">
+              <View className="w-12 h-12 bg-orange-50 rounded-xl items-center justify-center mr-3">
+                <Ionicons name="bookmark" size={24} color="#f59e0b" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-gray-500 text-xs mb-1">Số tín chỉ</Text>
+                <Text className="text-gray-900 font-bold text-base">{credits} tín chỉ</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Attendance Statistics */}
+        <View className="px-6 pb-6">
+          <Text className="text-gray-900 font-bold text-lg mb-3">Thống kê điểm danh</Text>
+          
+          <View className="bg-white rounded-2xl p-4" style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+          }}>
+            {/* Attendance Rate Circle */}
+            <View className="items-center mb-4">
+              <View className="w-32 h-32 rounded-full bg-purple-50 items-center justify-center mb-2"
+                style={{
+                  borderWidth: 8,
+                  borderColor: attendanceRate >= 80 ? '#10b981' : attendanceRate >= 50 ? '#f59e0b' : '#ef4444',
+                }}
+              >
+                <Text className={`text-3xl font-bold ${
+                  attendanceRate >= 80 ? 'text-green-600' : attendanceRate >= 50 ? 'text-orange-600' : 'text-red-600'
+                }`}>
+                  {attendanceRate}%
+                </Text>
+                <Text className="text-gray-500 text-xs">Tỷ lệ tham gia</Text>
+              </View>
+            </View>
+
+            {/* Stats Grid */}
+            <View className="flex-row flex-wrap">
+              <View className="w-1/2 p-2">
+                <View className="bg-green-50 rounded-xl p-3 items-center">
+                  <Ionicons name="checkmark-circle" size={32} color="#10b981" />
+                  <Text className="text-green-700 text-2xl font-bold mt-1">
+                    {attendanceStats.present}
+                  </Text>
+                  <Text className="text-gray-600 text-xs">Có mặt</Text>
+                </View>
+              </View>
+              
+              <View className="w-1/2 p-2">
+                <View className="bg-red-50 rounded-xl p-3 items-center">
+                  <Ionicons name="close-circle" size={32} color="#ef4444" />
+                  <Text className="text-red-700 text-2xl font-bold mt-1">
+                    {attendanceStats.absent}
+                  </Text>
+                  <Text className="text-gray-600 text-xs">Vắng</Text>
+                </View>
+              </View>
+              
+              <View className="w-1/2 p-2">
+                <View className="bg-blue-50 rounded-xl p-3 items-center">
+                  <Ionicons name="document-text" size={32} color="#3b82f6" />
+                  <Text className="text-blue-700 text-2xl font-bold mt-1">
+                    {attendanceStats.excused}
+                  </Text>
+                  <Text className="text-gray-600 text-xs">Vắng có phép</Text>
+                </View>
+              </View>
+              
+              <View className="w-1/2 p-2">
+                <View className="bg-gray-50 rounded-xl p-3 items-center">
+                  <Ionicons name="people-outline" size={32} color="#6b7280" />
+                  <Text className="text-gray-700 text-2xl font-bold mt-1">
+                    {studentCount}
+                  </Text>
+                  <Text className="text-gray-600 text-xs">Tổng SV</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Warning for low attendance */}
+        {attendanceRate < 80 && (
+          <View className="px-6 pb-6">
+            <View className="bg-orange-50 rounded-xl p-4 flex-row items-start border-l-4 border-orange-500">
+              <Ionicons name="warning" size={24} color="#f59e0b" />
+              <View className="flex-1 ml-3">
+                <Text className="text-orange-900 font-bold mb-1">Cảnh báo tỷ lệ tham gia</Text>
+                <Text className="text-orange-700 text-sm">
+                  Tỷ lệ tham gia của lớp học đang thấp hơn 80%. Hãy khuyến khích sinh viên tham gia đầy đủ các buổi học.
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        <View className="h-8" />
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+export default TeacherScheduleDetailScreen;
