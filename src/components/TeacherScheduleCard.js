@@ -60,7 +60,7 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
 
   const handleSchedulePress = () => {
     if (navigation) {
-      navigation.navigate('SessionList', {
+      navigation.navigate('TeacherScheduleDetail', {
         schedule,
       });
     }

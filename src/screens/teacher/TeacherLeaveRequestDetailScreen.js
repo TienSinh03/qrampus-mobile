@@ -168,7 +168,7 @@ const TeacherLeaveRequestDetailScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
 
       {/* Header */}
       <LinearGradient

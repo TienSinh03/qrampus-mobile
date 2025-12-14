@@ -17,6 +17,7 @@ import SessionListScreen from '../screens/teacher/SessionListScreen';
 import StudentListScreen from '../screens/teacher/StudentListScreen';
 import TeacherLeaveRequestListScreen from '../screens/teacher/TeacherLeaveRequestListScreen';
 import TeacherLeaveRequestDetailScreen from '../screens/teacher/TeacherLeaveRequestDetailScreen';
+import TeacherScheduleDetailScreen from '../screens/teacher/TeacherScheduleDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -127,6 +128,13 @@ const AppNavigator = () => {
         <Stack.Screen
           name="TeacherLeaveRequestDetail"
           component={TeacherLeaveRequestDetailScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="TeacherScheduleDetail"
+          component={TeacherScheduleDetailScreen}
           options={{
             headerShown: false,
           }}
