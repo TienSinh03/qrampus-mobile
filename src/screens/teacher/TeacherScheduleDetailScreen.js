@@ -10,6 +10,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import AttendanceStatistics from '../../components/statistics/AttendanceStatistics';
+import SurveyStatistics from '../../components/statistics/SurveyStatistics';
 
 const { width } = Dimensions.get('window');
 
@@ -42,6 +44,58 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
     excused: 2,
     total: studentCount,
   });
+
+  // Thống kê khảo sát (sẽ lấy từ API dựa vào schedule.id)
+  const [surveyStats, setSurveyStats] = useState({
+    totalResponses: 35, // Số sinh viên đã đánh giá
+    totalStudents: 38, // Tổng số sinh viên có mặt
+    questions: [
+      {
+        id: 1,
+        question: 'Nội dung bài giảng có rõ ràng và dễ hiểu không?',
+        type: 'rating',
+        averageRating: 4.6,
+        ratings: { 1: 0, 2: 1, 3: 3, 4: 10, 5: 21 },
+      },
+      {
+        id: 2,
+        question: 'Giảng viên có nhiệt tình và tận tâm không?',
+        type: 'rating',
+        averageRating: 4.8,
+        ratings: { 1: 0, 2: 0, 3: 2, 4: 5, 5: 28 },
+      },
+      {
+        id: 3,
+        question: 'Tài liệu học tập có đầy đủ và phù hợp không?',
+        type: 'rating',
+        averageRating: 4.4,
+        ratings: { 1: 0, 2: 2, 3: 4, 4: 15, 5: 14 },
+      },
+      {
+        id: 4,
+        question: 'Thời gian bài giảng có phù hợp không?',
+        type: 'rating',
+        averageRating: 4.2,
+        ratings: { 1: 1, 2: 2, 3: 5, 4: 17, 5: 10 },
+      },
+    ],
+    feedbacks: [
+      'Giảng viên rất nhiệt tình và bài giảng dễ hiểu. Hy vọng có thêm nhiều bài tập thực hành.',
+      'Nội dung bài học rất hay, giảng viên giảng rất chi tiết.',
+      'Cần thêm nhiều ví dụ thực tế hơn.',
+      'Bài giảng tốt, tài liệu đầy đủ.',
+    ],
+  });
+
+  useEffect(() => {
+    //  Gọi API để lấy thống kê khảo sát cho buổi học này
+    // const fetchSurveyStats = async () => {
+    //   const response = await fetch(`/api/survey/stats/${schedule.id}`);
+    //   const data = await response.json();
+    //   setSurveyStats(data);
+    // };
+    // fetchSurveyStats();
+  }, [schedule.id]);
 
   // Tính toán thời gian còn lại và trạng thái khẩn cấp (sau này chỉnh lại)
   useEffect(() => {
@@ -97,10 +151,6 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
   const handleViewLeaveRequests = () => {
     navigation.navigate('TeacherLeaveRequestList', { schedule });
   };
-
-  const attendanceRate = studentCount > 0 
-    ? ((attendanceStats.present / studentCount) * 100).toFixed(1)
-    : 0;
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -439,92 +489,13 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
         </View>
 
         {/* Attendance Statistics */}
-        <View className="px-6 pb-6">
-          <Text className="text-gray-900 font-bold text-lg mb-3">Thống kê điểm danh</Text>
-          
-          <View className="bg-white rounded-2xl p-4" style={{
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 3,
-          }}>
-            {/* Attendance Rate Circle */}
-            <View className="items-center mb-4">
-              <View className="w-32 h-32 rounded-full bg-purple-50 items-center justify-center mb-2"
-                style={{
-                  borderWidth: 8,
-                  borderColor: attendanceRate >= 80 ? '#10b981' : attendanceRate >= 50 ? '#f59e0b' : '#ef4444',
-                }}
-              >
-                <Text className={`text-3xl font-bold ${
-                  attendanceRate >= 80 ? 'text-green-600' : attendanceRate >= 50 ? 'text-orange-600' : 'text-red-600'
-                }`}>
-                  {attendanceRate}%
-                </Text>
-                <Text className="text-gray-500 text-xs">Tỷ lệ tham gia</Text>
-              </View>
-            </View>
+        <AttendanceStatistics 
+          attendanceStats={attendanceStats}
+          studentCount={studentCount}
+        />
 
-            {/* Stats Grid */}
-            <View className="flex-row flex-wrap">
-              <View className="w-1/2 p-2">
-                <View className="bg-green-50 rounded-xl p-3 items-center">
-                  <Ionicons name="checkmark-circle" size={32} color="#10b981" />
-                  <Text className="text-green-700 text-2xl font-bold mt-1">
-                    {attendanceStats.present}
-                  </Text>
-                  <Text className="text-gray-600 text-xs">Có mặt</Text>
-                </View>
-              </View>
-              
-              <View className="w-1/2 p-2">
-                <View className="bg-red-50 rounded-xl p-3 items-center">
-                  <Ionicons name="close-circle" size={32} color="#ef4444" />
-                  <Text className="text-red-700 text-2xl font-bold mt-1">
-                    {attendanceStats.absent}
-                  </Text>
-                  <Text className="text-gray-600 text-xs">Vắng</Text>
-                </View>
-              </View>
-              
-              <View className="w-1/2 p-2">
-                <View className="bg-blue-50 rounded-xl p-3 items-center">
-                  <Ionicons name="document-text" size={32} color="#3b82f6" />
-                  <Text className="text-blue-700 text-2xl font-bold mt-1">
-                    {attendanceStats.excused}
-                  </Text>
-                  <Text className="text-gray-600 text-xs">Vắng có phép</Text>
-                </View>
-              </View>
-              
-              <View className="w-1/2 p-2">
-                <View className="bg-gray-50 rounded-xl p-3 items-center">
-                  <Ionicons name="people-outline" size={32} color="#6b7280" />
-                  <Text className="text-gray-700 text-2xl font-bold mt-1">
-                    {studentCount}
-                  </Text>
-                  <Text className="text-gray-600 text-xs">Tổng SV</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Warning for low attendance */}
-        {attendanceRate < 80 && (
-          <View className="px-6 pb-6">
-            <View className="bg-orange-50 rounded-xl p-4 flex-row items-start border-l-4 border-orange-500">
-              <Ionicons name="warning" size={24} color="#f59e0b" />
-              <View className="flex-1 ml-3">
-                <Text className="text-orange-900 font-bold mb-1">Cảnh báo tỷ lệ tham gia</Text>
-                <Text className="text-orange-700 text-sm">
-                  Tỷ lệ tham gia của lớp học đang thấp hơn 80%. Hãy khuyến khích sinh viên tham gia đầy đủ các buổi học.
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
+        {/* Survey Statistics */}
+        <SurveyStatistics surveyStats={surveyStats} />
 
         <View className="h-8" />
       </ScrollView>
