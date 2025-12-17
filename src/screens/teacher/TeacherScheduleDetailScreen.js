@@ -396,6 +396,33 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
             </TouchableOpacity>
           </View>
 
+          {/* AI Photo Attendance */}
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AttendancePhoto', { schedule })}
+            activeOpacity={0.7}
+            className="bg-white rounded-2xl overflow-hidden mb-3"
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
+          >
+            <View className="flex-row items-center p-4">
+              <View className="w-12 h-12 bg-indigo-50 rounded-xl items-center justify-center mr-4">
+                <Ionicons name="camera" size={24} color="#6366f1" />
+              </View>
+              <View className="flex-1">
+                <View className="flex-row items-center mb-1">
+                  <Text className="text-gray-900 font-bold text-base mr-2">Đếm số lượng sinh viên bằng AI</Text>
+                </View>
+                <Text className="text-gray-500 text-xs">Chụp ảnh lớp học, AI tự động đếm sinh viên</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color="#9ca3af" />
+            </View>
+          </TouchableOpacity>
+
           {/* Leave Requests */}
           <TouchableOpacity
             onPress={handleViewLeaveRequests}
