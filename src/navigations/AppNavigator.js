@@ -19,6 +19,7 @@ import StudentListScreen from '../screens/teacher/StudentListScreen';
 import TeacherLeaveRequestListScreen from '../screens/teacher/TeacherLeaveRequestListScreen';
 import TeacherLeaveRequestDetailScreen from '../screens/teacher/TeacherLeaveRequestDetailScreen';
 import TeacherScheduleDetailScreen from '../screens/teacher/TeacherScheduleDetailScreen';
+import AttendancePhotoScreen from '../screens/teacher/AttendancePhotoScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -145,6 +146,15 @@ const AppNavigator = () => {
           component={TeacherScheduleDetailScreen}
           options={{
             headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="AttendancePhoto"
+          component={AttendancePhotoScreen}
+          options={{
+            headerShown: false,
+            presentation: 'fullScreenModal',
+            animation: 'fade',
           }}
         />
       </Stack.Navigator>
