@@ -13,7 +13,7 @@ const TeacherHomeScreen = ({ navigation }) => {
       courseName: 'Lập trình Di động',
       courseCode: 'IT4788',
       room: 'D3-201',
-      startTime: '17:05',
+      startTime: '11:15',
       endTime: '18:00',
       studentCount: 45,
       hasActiveSession: false,
