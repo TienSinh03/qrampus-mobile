@@ -6,12 +6,12 @@ import {
   ScrollView,
   RefreshControl,
   TextInput,
-  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import StudentDetailModal from '../../components/modal/StudentDetailModal';
 
 const StudentListScreen = ({ navigation, route }) => {
   const { schedule } = route.params;
@@ -416,107 +416,11 @@ const StudentListScreen = ({ navigation, route }) => {
       </ScrollView>
 
       {/* Student Detail Modal */}
-      <Modal
+      <StudentDetailModal
         visible={showDetailModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowDetailModal(false)}
-      >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6" style={{ maxHeight: '80%' }}>
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-gray-900 text-xl font-bold">Thông tin sinh viên</Text>
-              <TouchableOpacity onPress={() => setShowDetailModal(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-
-            {selectedStudent && (
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Basic Info */}
-                <View className="bg-gray-50 rounded-xl p-4 mb-4">
-                  <Text className="text-gray-900 text-lg font-bold mb-3">
-                    {selectedStudent.name}
-                  </Text>
-                  <View className="flex-row items-center mb-2">
-                    <Ionicons name="school-outline" size={16} color="#6b7280" />
-                    <Text className="text-gray-600 ml-2">MSSV: {selectedStudent.student_id}</Text>
-                  </View>
-                  <View className="flex-row items-center mb-2">
-                    <Ionicons name="people-outline" size={16} color="#6b7280" />
-                    <Text className="text-gray-600 ml-2">Lớp: {selectedStudent.class}</Text>
-                  </View>
-                  <View className="flex-row items-center mb-2">
-                    <Ionicons name="mail-outline" size={16} color="#6b7280" />
-                    <Text className="text-gray-600 ml-2">{selectedStudent.email}</Text>
-                  </View>
-                  <View className="flex-row items-center">
-                    <Ionicons name="call-outline" size={16} color="#6b7280" />
-                    <Text className="text-gray-600 ml-2">{selectedStudent.phone}</Text>
-                  </View>
-                </View>
-
-                {/* Enrollment Info */}
-                <View className="bg-gray-50 rounded-xl p-4 mb-4">
-                  <Text className="text-gray-900 font-bold mb-3">Thông tin đăng ký</Text>
-                  <View className="flex-row items-center justify-between mb-2">
-                    <Text className="text-gray-600">Loại đăng ký</Text>
-                    <Text className="text-gray-900 font-semibold">
-                      {selectedStudent.enrollment_type === 'theory' ? 'Lý thuyết' : 'Thực hành'}
-                    </Text>
-                  </View>
-                  {selectedStudent.practice_group && (
-                    <View className="flex-row items-center justify-between">
-                      <Text className="text-gray-600">Nhóm thực hành</Text>
-                      <Text className="text-gray-900 font-semibold">
-                        {selectedStudent.practice_group}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                {/* Attendance Stats */}
-                <View className="bg-white rounded-xl p-4 border border-gray-200 mb-4">
-                  <Text className="text-gray-900 font-bold mb-3">Thống kê điểm danh</Text>
-                  <View className="flex-row justify-between mb-3">
-                    <View className="flex-1 items-center">
-                      <Text className="text-2xl font-bold text-green-600">
-                        {selectedStudent.attended_sessions}
-                      </Text>
-                      <Text className="text-gray-500 text-xs">Có mặt</Text>
-                    </View>
-                    <View className="flex-1 items-center">
-                      <Text className="text-2xl font-bold text-red-600">
-                        {selectedStudent.absent_sessions}
-                      </Text>
-                      <Text className="text-gray-500 text-xs">Vắng</Text>
-                    </View>
-                    <View className="flex-1 items-center">
-                      <Text className="text-2xl font-bold text-purple-600">
-                        {selectedStudent.total_sessions}
-                      </Text>
-                      <Text className="text-gray-500 text-xs">Tổng</Text>
-                    </View>
-                  </View>
-                  <View
-                    className={`rounded-lg p-3 ${getAttendanceBgColor(
-                      selectedStudent.attendance_rate
-                    )}`}
-                  >
-                    <Text
-                      className={`text-center font-bold text-lg ${getAttendanceColor(
-                        selectedStudent.attendance_rate
-                      )}`}
-                    >
-                      Tỷ lệ điểm danh: {selectedStudent.attendance_rate.toFixed(1)}%
-                    </Text>
-                  </View>
-                </View>
-              </ScrollView>
-            )}
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowDetailModal(false)}
+        student={selectedStudent}
+      />
     </SafeAreaView>
   );
 };

@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Modal,
   Image,
   TextInput,
   Alert,
@@ -14,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import RejectLeaveRequestModal from '../../components/modal/RejectLeaveRequestModal';
+import ImageViewerModal from '../../components/modal/ImageViewerModal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -426,103 +427,22 @@ const TeacherLeaveRequestDetailScreen = ({ navigation, route }) => {
       )}
 
       {/* Reject Modal */}
-      <Modal
+      <RejectLeaveRequestModal
         visible={showRejectModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowRejectModal(false)}
-      >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl">
-            <View className="px-6 py-4 border-b border-gray-200">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-gray-900 text-xl font-bold">Từ chối đơn</Text>
-                <TouchableOpacity onPress={() => setShowRejectModal(false)}>
-                  <Ionicons name="close" size={24} color="#6b7280" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View className="px-6 py-4">
-              <Text className="text-gray-700 mb-3">
-                Vui lòng nhập lý do từ chối để sinh viên hiểu rõ:
-              </Text>
-
-              <TextInput
-                value={rejectReason}
-                onChangeText={setRejectReason}
-                placeholder="Ví dụ: Minh chứng không rõ ràng, cần bổ sung..."
-                placeholderTextColor="#9ca3af"
-                multiline
-                numberOfLines={4}
-                className="bg-gray-50 rounded-xl p-4 text-gray-900 mb-2"
-                style={{
-                  height: 120,
-                  textAlignVertical: 'top',
-                  borderWidth: 1,
-                  borderColor: '#e5e7eb',
-                }}
-              />
-
-              <Text className="text-gray-500 text-xs mb-4">
-                {rejectReason.length}/500 ký tự (tối thiểu 10 ký tự)
-              </Text>
-
-              <TouchableOpacity
-                onPress={handleReject}
-                disabled={rejectReason.trim().length < 10 || isProcessing}
-                className={`rounded-xl py-4 items-center ${
-                  rejectReason.trim().length < 10 ? 'bg-gray-300' : 'bg-red-500'
-                }`}
-              >
-                <Text className="text-white font-bold text-base">
-                  {isProcessing ? 'Đang xử lý...' : 'Xác nhận từ chối'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowRejectModal(false)}
+        rejectReason={rejectReason}
+        setRejectReason={setRejectReason}
+        handleReject={handleReject}
+        isProcessing={isProcessing}
+      />
 
       {/* Image Viewer Modal */}
-      <Modal
+      <ImageViewerModal
         visible={showImageModal}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setShowImageModal(false)}
-      >
-        <View className="flex-1 bg-black">
-          <SafeAreaView className="flex-1">
-            <View className="flex-row items-center justify-between px-6 py-4">
-              <Text className="text-white font-bold text-lg">
-                {selectedImage?.name}
-              </Text>
-              <TouchableOpacity onPress={() => setShowImageModal(false)}>
-                <Ionicons name="close" size={28} color="white" />
-              </TouchableOpacity>
-            </View>
-
-            <View className="flex-1 items-center justify-center">
-              {selectedImage && (
-                <Image
-                  source={{ uri: selectedImage.uri }}
-                  style={{
-                    width: SCREEN_WIDTH,
-                    height: SCREEN_WIDTH,
-                  }}
-                  resizeMode="contain"
-                />
-              )}
-            </View>
-
-            <View className="px-6 py-4">
-              <Text className="text-white text-center text-sm">
-                Pinch to zoom • Swipe to dismiss
-              </Text>
-            </View>
-          </SafeAreaView>
-        </View>
-      </Modal>
+        onClose={() => setShowImageModal(false)}
+        selectedImage={selectedImage}
+        screenWidth={SCREEN_WIDTH}
+      />
     </SafeAreaView>
   );
 };
