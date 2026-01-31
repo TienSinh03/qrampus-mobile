@@ -1,6 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useDispatch, useSelector } from 'react-redux';
+import { View, ActivityIndicator } from 'react-native';
+import { loadSessionThunk } from '../features/auth/authThunks';
+import { 
+  selectIsAuthenticated, 
+  selectLoginRole,
+  selectIsLoading,
+} from '../features/auth/authSlice';
 
 import IntroCarouselScreen from '../screens/IntroCarouselScreen';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
@@ -24,10 +32,43 @@ import AttendancePhotoScreen from '../screens/teacher/AttendancePhotoScreen';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const loginRole = useSelector(selectLoginRole);
+  const isLoading = useSelector(selectIsLoading);
+  const [isSessionLoaded, setIsSessionLoaded] = React.useState(false);
+
+  // Load session khi app khởi động
+  useEffect(() => {
+    const loadSession = async () => {
+      await dispatch(loadSessionThunk());
+      setIsSessionLoaded(true);
+    };
+    loadSession();
+  }, [dispatch]);
+
+  // Xác định màn hình khởi đầu dựa trên trạng thái auth
+  const getInitialRouteName = () => {
+    if (!isSessionLoaded) return 'IntroCarousel';
+    if (isAuthenticated && loginRole) {
+      return loginRole === 'student' ? 'StudentHome' : 'TeacherHome';
+    }
+    return 'IntroCarousel';
+  };
+
+  // Hiển thị loading khi đang load session
+  if (!isSessionLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#2563eb' }}>
+        <ActivityIndicator size="large" color="#ffffff" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="IntroCarousel"
+        initialRouteName={getInitialRouteName()}
         screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',

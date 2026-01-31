@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,41 +6,114 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginThunk } from '../features/auth/authThunks';
+import { 
+  setLoginRole, 
+  clearError, 
+  selectIsLoading, 
+  selectAuthError,
+  selectIsAuthenticated,
+  selectLoginRole,
+} from '../features/auth/authSlice';
 
 const LoginScreen = ({ route, navigation }) => {
+
+  const [refreshing, setRefreshing] = useState(false);
+
   const { role } = route.params || { role: 'student' };
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
+  const dispatch = useDispatch();
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectAuthError);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const currentLoginRole = useSelector(selectLoginRole);
 
   const isStudent = role === 'student';
   const roleTitle = isStudent ? 'Sinh viên' : 'Giảng viên';
   const roleIcon = isStudent ? '🎓' : '👨‍🏫';
   const roleColor = isStudent ? 'blue' : 'purple';
 
-  const handleLogin = () => {
-    // TODO: Implement actual login API call
-    console.log('Login:', { username, password, role });
-    
-    // Navigate to appropriate home screen based on role
-    if (isStudent) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'StudentHome', params: { userRole: 'student' } }],
-      });
-    } else {
-      // TODO: Navigate to teacher home when implemented
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'TeacherHome', params: { userRole: 'teacher' } }],
-      });
+  // Set login role khi vào màn hình
+  useEffect(() => {
+    dispatch(setLoginRole(role));
+    return () => {
+      dispatch(clearError());
+    };
+  }, [role, dispatch]);
+
+  // Xử lý khi login thành công
+  useEffect(() => {
+    if (isAuthenticated && currentLoginRole) {
+      if (currentLoginRole === 'student') {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'StudentHome', params: { userRole: 'student' } }],
+        });
+      } else if (currentLoginRole === 'teacher') {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'TeacherHome', params: { userRole: 'teacher' } }],
+        });
+      }
     }
+  }, [isAuthenticated, currentLoginRole, navigation]);
+
+  // Hiển thị lỗi
+  useEffect(() => {
+    if (error) {
+      Alert.alert(
+        'Đăng nhập thất bại',
+        error,
+        [
+          {
+            text: 'Đóng',
+            onPress: () => dispatch(clearError()),
+          },
+        ]
+      );
+    }
+  }, [error, dispatch]);
+
+  const handleLogin = () => {
+    // Validate input
+    if (!username.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập mã đăng nhập');
+      return;
+    }
+    if (!password.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập mật khẩu');
+      return;
+    }
+
+    // Dispatch login thunk với role
+    dispatch(loginThunk({
+      user_name: username.trim(),
+      password: password,
+      loginRole: role,
+    }));
   };
 
   const gradientColors = isStudent ? ['#2563eb', '#9333ea'] : ['#9333ea', '#7c3aed'];
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setUsername('');
+    setPassword('');
+
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }
 
   return (
     <LinearGradient
@@ -48,9 +121,11 @@ const LoginScreen = ({ route, navigation }) => {
       start={{ x: 0, y: 1 }}
       end={{ x: 1, y: 0 }}
       className="flex-1"
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <StatusBar style="light" />
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1"  
+      >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
@@ -118,9 +193,12 @@ const LoginScreen = ({ route, navigation }) => {
               {/* Login Button */}
               <TouchableOpacity
                 onPress={handleLogin}
+                disabled={isLoading}
                 className="rounded-xl py-4"
                 style={{
-                  backgroundColor: isStudent ? '#2563eb' : '#9333ea',
+                  backgroundColor: isLoading 
+                    ? '#9ca3af' 
+                    : (isStudent ? '#2563eb' : '#9333ea'),
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.25,
@@ -128,7 +206,11 @@ const LoginScreen = ({ route, navigation }) => {
                   elevation: 5,
                 }}
               >
-                <Text className="text-white text-center text-lg font-bold">Đăng nhập</Text>
+                {isLoading ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text className="text-white text-center text-lg font-bold">Đăng nhập</Text>
+                )}
               </TouchableOpacity>
             </View>
 

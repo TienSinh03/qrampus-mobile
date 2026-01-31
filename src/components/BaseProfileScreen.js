@@ -4,6 +4,9 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useDispatch, useSelector } from 'react-redux';
+import { logoutThunk } from '../features/auth/authThunks';
+import { selectIsLoading } from '../features/auth/authSlice';
 
 const BaseProfileScreen = ({
   navigation,
@@ -11,7 +14,6 @@ const BaseProfileScreen = ({
   userData,
   stats = [], // Array of stats objects: { label, value }
   menuItems = [], // Array of menu items
-  onLogout,
 }) => {
   const roleColors = userRole === 'teacher' 
     ? ['#7c3aed', '#8b5cf6']  // purple gradient
@@ -19,6 +21,9 @@ const BaseProfileScreen = ({
   
   const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
   const roleBgColor = userRole === 'teacher' ? '#faf5ff' : '#eff6ff';
+
+  const dispatch = useDispatch();
+  const isLoading = useSelector(selectIsLoading);
 
   const [refreshing, setRefreshing] = React.useState(false);
   const handleRefresh = () => {
@@ -29,14 +34,12 @@ const BaseProfileScreen = ({
   }
 
   const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    } else {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'IntroCarousel' }],
-      });
-    }
+    dispatch(logoutThunk());
+    
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'IntroCarousel' }],
+    });
   };
 
 
