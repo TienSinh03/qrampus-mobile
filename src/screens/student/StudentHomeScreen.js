@@ -1,10 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import BaseHomeScreen from '../../components/BaseHomeScreen';
 import ScheduleCard from '../../components/ScheduleCard';
-
+import { useSelector, useDispatch } from 'react-redux';
+import { getStudentProfileThunk } from '../../features/student/studentThunks';
+import { selectStudentProfile } from '../../features/student/studentSlice';
 const StudentHomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const userRole = 'student';
+
+  const dispatch = useDispatch();
+  const profile = useSelector(selectStudentProfile);
+  
+  useEffect(() => {
+    // Load student profile on mount
+    dispatch(getStudentProfileThunk());
+  }, [dispatch]);
+
   // thay bằng API call
   const [todaySchedules, setTodaySchedules] = useState([
     {
@@ -29,10 +40,7 @@ const StudentHomeScreen = ({ navigation }) => {
     },
   ]);
 
-  const userData = {
-    name: 'Nguyễn Văn Nam',
-    avatarUri: null,
-  };
+
   const onRefresh = () => {
     setRefreshing(true);
     // giả lập tải dữ liệu
@@ -53,7 +61,7 @@ const StudentHomeScreen = ({ navigation }) => {
     <BaseHomeScreen
       navigation={navigation}
       userRole={userRole}
-      userData={userData}
+      userData={profile}
       todaySchedules={todaySchedules}
       refreshing={refreshing}
       onRefresh={onRefresh}

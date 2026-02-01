@@ -1,11 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import BaseProfileScreen from '../../components/BaseProfileScreen';
+import { selectStudentProfile, selectStudentLoading } from '../../features/student/studentSlice';
+import { getStudentProfileThunk } from '../../features/student/studentThunks';
 
 const StudentProfileScreen = ({ navigation }) => {
-  const userData = {
-    name: 'Nguyễn Văn Nam',
-    id: 'MSSV: 20200001',
-    subtitle: 'IT K65 - Công nghệ thông tin',
+  const dispatch = useDispatch();
+  const profile = useSelector(selectStudentProfile);
+  const isLoading = useSelector(selectStudentLoading);
+
+  // Chỉ fetch nếu chưa có data (trường hợp user vào ProfileScreen trước)
+  useEffect(() => {
+    if (!profile && !isLoading) {
+      dispatch(getStudentProfileThunk());
+    }
+  }, [profile, isLoading, dispatch]);
+
+  // Map dữ liệu từ API sang format UI
+  const userData = profile ? {
+    name: profile?.full_name || 'Sinh viên',
+    code: `MSSV: ${profile?.student_code || ''}`,
+    major: profile?.class_name || '',
+    avatarUri: profile?.avatar_url || null,
+  } : {
+    name: 'Đang tải...',
+    code: 'MSSV: ---',
+    major: '---',
     avatarUri: null,
   };
 

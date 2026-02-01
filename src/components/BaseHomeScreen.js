@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const BaseHomeScreen = ({
   navigation,
-  userRole = 'student', // 'student' or 'teacher'
+  userRole = 'student',
   userData,
   todaySchedules = [],
   stats = null,
@@ -41,8 +41,8 @@ const BaseHomeScreen = ({
       
       {/* Header */}
       <Header
-        userName={userData?.name}
-        avatarUri={userData?.avatarUri}
+        userName={userData?.full_name || 'Người dùng'}
+        avatarUri={userData?.avatar_url}
         onNotificationPress={onNotificationPress}
         roleColor={roleColor}
       />
