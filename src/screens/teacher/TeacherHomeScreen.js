@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import BaseHomeScreen from '../../components/BaseHomeScreen';
 import TeacherScheduleCard from '../../components/TeacherScheduleCard';
+import { useSelector, useDispatch } from 'react-redux';
+import { getTeacherProfileThunk } from '../../features/teacher/teacherThunks';
+import { selectTeacherProfile } from '../../features/teacher/teacherSlice';
 
 const TeacherHomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [urgentAlerts, setUrgentAlerts] = useState([]);
   const userRole = 'teacher';
+
+  const dispatch = useDispatch();
+  const profile = useSelector(selectTeacherProfile);
   // thay bằng API call
   const [todaySchedules, setTodaySchedules] = useState([
     {
@@ -49,17 +55,17 @@ const TeacherHomeScreen = ({ navigation }) => {
     },
   ]);
 
-  const userData = {
-    name: 'Thầy Nguyễn Văn A',
-    avatarUri: null,
-  };
-
   //thay bằng API call
   const stats = {
     attendanceRate: 78.5,
     hoursThisWeek: 18,
     studentCount: 125,
   };
+
+  useEffect(() => {
+    // Load teacher profile on mount
+    dispatch(getTeacherProfileThunk());
+  }, [dispatch]);
 
   // Kiểm tra các lớp học sắp bắt đầu để tạo cảnh báo khẩn cấp
   useEffect(() => {
@@ -97,6 +103,7 @@ const TeacherHomeScreen = ({ navigation }) => {
   const onRefresh = () => {
     setRefreshing(true);
     // Call API to refresh data
+    dispatch(getTeacherProfileThunk());
     setTimeout(() => {
       setRefreshing(false);
     }, 1500);
@@ -114,7 +121,7 @@ const TeacherHomeScreen = ({ navigation }) => {
     <BaseHomeScreen
       navigation={navigation}
       userRole={userRole}
-      userData={userData}
+      userData={profile}
       todaySchedules={todaySchedules}
       stats={stats}
       urgentAlerts={urgentAlerts}

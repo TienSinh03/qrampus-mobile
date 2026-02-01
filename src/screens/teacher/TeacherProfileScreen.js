@@ -1,12 +1,28 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import BaseProfileScreen from '../../components/BaseProfileScreen';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectTeacherProfile, selectTeacherError, selectTeacherLoading } from '../../features/teacher/teacherSlice';
+import { getTeacherProfileThunk } from '../../features/teacher/teacherThunks';
 
 const TeacherProfileScreen = ({ navigation }) => {
+
+  const dispatch = useDispatch();
+  const profile = useSelector(selectTeacherProfile);
+  const error = useSelector(selectTeacherError);
+  const isLoading = useSelector(selectTeacherLoading);
+  console.log(' profile teacher profile:', profile);
+  useEffect(() => {
+    if (!profile && !isLoading) {
+      dispatch(getTeacherProfileThunk());
+    }
+  }, [profile, isLoading, dispatch]);
+
+
   const userData = {
-    name: 'Thầy Nguyễn Văn A',
-    id: 'Mã GV: GV001234',
-    subtitle: 'Khoa Công nghệ thông tin',
-    avatarUri: null,
+    name: profile?.full_name || 'Giảng viên',
+    code: `MSGV: ${profile?.teacher_code || ''}`,
+    major: profile?.department || '',
+    avatarUri: profile?.avatar_url || null,
   };
 
   const stats = [

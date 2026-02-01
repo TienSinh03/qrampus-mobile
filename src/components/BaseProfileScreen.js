@@ -87,13 +87,13 @@ const BaseProfileScreen = ({
 
             {/* User Info */}
             <Text className="text-white text-2xl font-bold mb-1">
-              {userData?.name || 'Người dùng'}
+              {userData?.name}
             </Text>
             <Text className="text-white/80 text-base mb-1">
-              {userData?.id || ''}
+              {userData?.code}
             </Text>
             <Text className="text-white/80 text-sm">
-              {userData?.subtitle || ''}
+              {userData?.major}
             </Text>
           </View>
         </LinearGradient>
