@@ -9,8 +9,8 @@ const ScheduleCard = ({ schedule, navigation }) => {
     courseName = 'Tên môn học',
     courseCode = 'MH001',
     room = 'A101',
-    startTime = '07:00',
-    endTime = '09:00',
+    startHour = '07:00',
+    endHour = '09:00',
     teacherName = 'Giảng viên',
     hasQR = false,
   } = schedule || {};
@@ -57,7 +57,7 @@ const ScheduleCard = ({ schedule, navigation }) => {
           <View className="flex-row items-center">
             <Ionicons name="time-outline" size={18} color="white" />
             <Text className="text-white font-bold text-base ml-2">
-              {startTime} - {endTime}
+              {startHour} - {endHour}
             </Text>
           </View>
           <View className="bg-white/20 px-3 py-1 rounded-full">
