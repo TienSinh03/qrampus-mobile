@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -8,7 +8,8 @@ import {
   Animated,
   Dimensions,
   TouchableWithoutFeedback,
-  ScrollView
+  ScrollView,
+  ActivityIndicator
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,11 +40,22 @@ const BaseScheduleScreen = ({
   userRole = 'student', // 'student' or 'teacher'
   title = 'Lịch học/ lịch thi',
   scheduleData = {},
+  currentDate: parentCurrentDate, // Current date từ parent
+  currentViewMode: parentViewMode, // Current view mode từ parent
+  isLoading = false, // Loading từ Redux
+  error = null, // Error từ Redux
   onRefresh,
+  onMonthChange, // Callback khi thay đổi tháng
+  onViewModeChange, // Callback khi thay đổi view mode
+  onDateSelect, // Callback khi user chọn ngày mới
 }) => {
-  const [viewMode, setViewMode] = useState('month');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [currentMonth, setCurrentMonth] = useState(new Date().toISOString().split('T')[0]);
+  const [viewMode, setViewMode] = useState(parentViewMode || 'month');
+  const [selectedDate, setSelectedDate] = useState(
+    parentCurrentDate || new Date().toISOString().split('T')[0]
+  );
+  const [currentMonth, setCurrentMonth] = useState(
+    parentCurrentDate || new Date().toISOString().split('T')[0]
+  );
   const [refreshing, setRefreshing] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerMode, setPickerMode] = useState('month');
@@ -52,6 +64,28 @@ const BaseScheduleScreen = ({
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
   const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
+
+  // Sync state khi parent thay đổi
+  useEffect(() => {
+    if (parentCurrentDate) {
+      setSelectedDate(parentCurrentDate);
+      setCurrentMonth(parentCurrentDate);
+    }
+  }, [parentCurrentDate]);
+
+  useEffect(() => {
+    if (parentViewMode) {
+      setViewMode(parentViewMode);
+    }
+  }, [parentViewMode]);
+
+  // Notify parent khi view mode thay đổi
+  const handleViewModeChange = (newMode) => {
+    setViewMode(newMode);
+    if (onViewModeChange) {
+      onViewModeChange(newMode);
+    }
+  };
 
   // Tạo marked dates cho calendar
   const markedDates = {};
@@ -128,7 +162,12 @@ const BaseScheduleScreen = ({
   const handleYearSelect = (year) => {
     const newDate = new Date(currentMonth);
     newDate.setFullYear(year);
-    setCurrentMonth(newDate.toISOString().split('T')[0]);
+    const newDateString = newDate.toISOString().split('T')[0];
+    setCurrentMonth(newDateString);
+    // Notify parent để fetch data mới
+    if (onMonthChange) {
+      onMonthChange(newDateString);
+    }
     closeDatePicker();
   };
 
@@ -139,6 +178,10 @@ const BaseScheduleScreen = ({
     const newDateString = newDate.toISOString().split('T')[0];
     setCurrentMonth(newDateString);
     setSelectedDate(newDateString);
+    // Notify parent để fetch data mới
+    if (onMonthChange) {
+      onMonthChange(newDateString);
+    }
     closeDatePicker();
   };
 
@@ -148,6 +191,10 @@ const BaseScheduleScreen = ({
     const newDateString = newDate.toISOString().split('T')[0];
     setCurrentMonth(newDateString);
     setSelectedDate(newDateString);
+    // Notify parent để fetch data mới
+    if (onMonthChange) {
+      onMonthChange(newDateString);
+    }
   };
 
   const handleNextMonth = () => {
@@ -156,14 +203,25 @@ const BaseScheduleScreen = ({
     const newDateString = newDate.toISOString().split('T')[0];
     setCurrentMonth(newDateString);
     setSelectedDate(newDateString);
+    // Notify parent để fetch data mới
+    if (onMonthChange) {
+      onMonthChange(newDateString);
+    }
   };
 
   const handleDayPress = (day) => {
-    setSelectedDate(day.dateString);
-    setViewMode('day');
+    const newDate = day.dateString;
+    
+    setSelectedDate(newDate);
+    handleViewModeChange('day');
+    
+    // Notify parent để update currentDate và fetch data nếu cần
+    if (onDateSelect) {
+      onDateSelect(newDate);
+    }
   };
 
-  const handleMonthChange = (month) => {
+  const handleInternalMonthChange = (month) => {
     setCurrentMonth(month.dateString);
     setSelectedDate(month.dateString);
   };
@@ -190,9 +248,29 @@ const BaseScheduleScreen = ({
       {/* View Mode Selector */}
       <ViewModeSelector 
         viewMode={viewMode} 
-        onViewModeChange={setViewMode}
+        onViewModeChange={handleViewModeChange}
         userRole={userRole}
       />
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <View className="absolute top-0 left-0 right-0 bottom-0 bg-black/20 z-10 justify-center items-center">
+          <View className="bg-white rounded-2xl p-6 shadow-lg">
+            <ActivityIndicator size="large" color={roleColor} />
+            <Text className="text-gray-600 mt-3 text-center">Đang tải lịch học...</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Error Message */}
+      {error && !isLoading && (
+        <View className="mx-4 mt-2 p-4 bg-red-50 rounded-xl border border-red-200">
+          <View className="flex-row items-center">
+            <Ionicons name="alert-circle" size={20} color="#ef4444" />
+            <Text className="text-red-600 ml-2 flex-1">{error}</Text>
+          </View>
+        </View>
+      )}
 
       {/* Content */}
       {viewMode === 'day' && (
@@ -201,7 +279,7 @@ const BaseScheduleScreen = ({
           scheduleData={scheduleData}
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          onHeaderPress={() => setViewMode('month')}
+          onHeaderPress={() => handleViewModeChange('month')}
           navigation={navigation}
           userRole={userRole}
         />
@@ -230,7 +308,7 @@ const BaseScheduleScreen = ({
           onPrevMonth={handlePrevMonth}
           onNextMonth={handleNextMonth}
           onDayPress={handleDayPress}
-          onMonthChange={handleMonthChange}
+          onMonthChange={handleInternalMonthChange}
           themeColor={roleColor}
         />
       )}

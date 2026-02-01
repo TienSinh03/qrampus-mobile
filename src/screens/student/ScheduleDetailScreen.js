@@ -29,8 +29,8 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
     courseName = 'Tên môn học',
     courseCode = 'MH001',
     room = 'A101',
-    startTime = '07:00',
-    endTime = '09:00',
+    startHour = '07:00',
+    endHour = '09:00',
     teacherName = 'Giảng viên',
     teacherEmail = 'teacher@example.com',
     date,
@@ -63,7 +63,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
   useEffect(() => {
     const checkSurveyTime = () => {
       const now = new Date();
-      const [endHour, endMinute] = endTime.split(':').map(Number);
+      const [endHour, endMinute] = endHour.split(':').map(Number);
       
       const classEndTime = new Date();
       classEndTime.setHours(endHour, endMinute, 0, 0);
@@ -84,7 +84,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
     const interval = setInterval(checkSurveyTime, 30000); // Check mỗi 30 giây
     
     return () => clearInterval(interval);
-  }, [endTime, hasCompletedSurvey]);
+  }, [endHour, hasCompletedSurvey]);
 
   // xử lý khi nhấn vào nút QR                 
   const handleQRPress = () => {
@@ -307,7 +307,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
                   {dayOfWeek}, {date}
                 </Text>
                 <Text className="text-gray-600 text-sm">
-                  {startTime} - {endTime}
+                  {startHour} - {endHour}
                 </Text>
               </View>
             </View>
