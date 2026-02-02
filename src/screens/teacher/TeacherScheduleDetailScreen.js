@@ -25,16 +25,15 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
     id,
     courseName = 'Tên môn học',
     courseCode = 'MH001',
-    room = 'A101',
-    startTime = '07:00',
-    endTime = '09:00',
+    roomName = 'A101',
+    startHour = '07:00',
+    endHour = '09:00',
     studentCount = 0,
     hasActiveSession = false,
-    date,
+    classDate,
     dayOfWeek,
     credits = 3,
-    practice_group_id = null,
-    practice_group_name = null,
+    practiceGroup = null,
   } = schedule || {};
 
   // Thống kê điểm danh (thay bằng API call - hôm nay)
@@ -101,10 +100,10 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
   useEffect(() => {
     const calculateTimeRemaining = () => {
       const now = new Date();
-      const [startHour, startMinute] = startTime.split(':').map(Number);
+      const [startHourNum, startMinute] = startHour.split(':').map(Number);
       
       const classTime = new Date();
-      classTime.setHours(startHour, startMinute, 0, 0);
+      classTime.setHours(startHourNum, startMinute, 0, 0);
       
       const diffMs = classTime - now;
       const diffMinutes = Math.floor(diffMs / 60000);
@@ -134,7 +133,7 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
     const interval = setInterval(calculateTimeRemaining, 30000);
     
     return () => clearInterval(interval);
-  }, [startTime]);
+  }, [startHour]);
 
   const handleCreateQR = () => {
     navigation.navigate('CreateQRSession', { schedule });
@@ -178,10 +177,10 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
           <Text className="text-white text-2xl font-bold text-center mb-1">
             {courseName}
           </Text>
-          {practice_group_name && (
+          {practiceGroup && (
             <View className="bg-white/30 px-3 py-1 rounded-full mt-2">
               <Text className="text-white text-sm font-semibold">
-                {practice_group_name}
+                Nhóm {practiceGroup.group_name}
               </Text>
             </View>
           )}
@@ -472,10 +471,10 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
               <View className="flex-1">
                 <Text className="text-gray-500 text-xs mb-1">Thời gian</Text>
                 <Text className="text-gray-900 font-bold text-base">
-                  {dayOfWeek}, {date}
+                  {dayOfWeek}, {classDate}
                 </Text>
                 <Text className="text-gray-600 text-sm">
-                  {startTime} - {endTime}
+                  {startHour} - {endHour}
                 </Text>
               </View>
             </View>
@@ -487,7 +486,7 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
               </View>
               <View className="flex-1">
                 <Text className="text-gray-500 text-xs mb-1">Phòng học</Text>
-                <Text className="text-gray-900 font-bold text-base">{room}</Text>
+                <Text className="text-gray-900 font-bold text-base">{roomName}</Text>
               </View>
             </View>
 

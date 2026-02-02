@@ -38,8 +38,10 @@ const transformScheduleToUI = (schedule) => {
         // Teacher info
         teacherName: schedule.teacher?.teacherName || '',
         teacherId: schedule.teacher?.teacherId || '',
+        teacherCode: schedule.teacher?.teacherCode || '',
         teacherDepartment: schedule.teacher?.department || '',
         teacherPhone: schedule.teacher?.phone || '',
+        teacherEmail: schedule.teacher?.email || '',
         // Room info
         room: schedule.room?.roomCode || schedule.room?.roomName || '',
         roomId: schedule.room?.roomId || '',
@@ -70,7 +72,7 @@ const groupSchedulesByDate = (schedules) => {
     
     // Sort schedules trong mỗi ngày theo startTime
     Object.keys(grouped).forEach(date => {
-        grouped[date].sort((a, b) => a.startTime.localeCompare(b.startTime));
+        grouped[date].sort((a, b) => a.startHour.localeCompare(b.startHour));
     });
     
     return grouped;

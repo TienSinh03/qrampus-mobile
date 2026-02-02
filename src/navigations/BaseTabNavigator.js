@@ -2,13 +2,14 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { Platform, TouchableOpacity, Animated } from 'react-native';
-
+import { useSelector } from 'react-redux';
+import { selectLoginRole } from '../features/auth/authSlice';
 const Tab = createBottomTabNavigator();
 
 const BaseTabNavigator = ({
   tabs = [], // Array of { name, component, label, icon, iconFocused }
-  userRole = 'student', // 'student' or 'teacher'
 }) => {
+  const userRole = useSelector(selectLoginRole);
   const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
 
   return (

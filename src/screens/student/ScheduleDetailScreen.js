@@ -63,10 +63,10 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
   useEffect(() => {
     const checkSurveyTime = () => {
       const now = new Date();
-      const [endHour, endMinute] = endHour.split(':').map(Number);
+      const [endHourNum, endMinute] = endHour.split(':').map(Number);
       
       const classEndTime = new Date();
-      classEndTime.setHours(endHour, endMinute, 0, 0);
+      classEndTime.setHours(endHourNum, endMinute, 0, 0);
       
       // Thời gian bắt đầu có thể làm khảo sát (10 phút trước khi kết thúc)
       const surveyStartTime = new Date(classEndTime.getTime() - 10 * 60 * 1000);

@@ -47,7 +47,7 @@ export const getStudentSchedulesThunk = createAsyncThunk(
                 params: { startDate, endDate }, // Lưu lại params để biết đang fetch range nào
             };
         } catch (error) {
-            console.error('Error fetching schedules:', error);
+            // console.error('Error fetching schedules:', error);
             return rejectWithValue(error.response?.data?.message || error.message || 'Lấy lịch học thất bại');
         }
     }
