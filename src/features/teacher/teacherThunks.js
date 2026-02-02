@@ -14,3 +14,41 @@ export const getTeacherProfileThunk = createAsyncThunk(
         }
     }
 )
+
+/**
+ * Lấy lịch giảng dạy của giảng viên
+ * @param {Object} params - { semester?, startDate, endDate, classDate? }
+ */
+export const getTeacherSchedulesThunk = createAsyncThunk(
+    'teacher/schedule',
+    async (params = {}, { rejectWithValue }) => {
+        try {
+            const { semester, startDate, endDate, classDate } = params;
+            // Build query params
+            const queryParams = new URLSearchParams();
+            if (semester) queryParams.append('semester', semester);
+            if (startDate) queryParams.append('startDate', startDate);
+            if (endDate) queryParams.append('endDate', endDate);
+            if (classDate) queryParams.append('classDate', classDate);
+
+            const queryString = queryParams.toString();
+            const url = `/teacher/me/schedule${queryString ? `?${queryString}` : ''}`;
+
+            const response = await instance.get(url);
+            
+            console.log('Fetched teacher schedules:', response?.data);
+
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Lấy lịch giảng dạy thất bại');
+            }
+
+            return {
+                schedules: response?.data?.data?.schedules || [],
+                params: { semester, startDate, endDate, classDate }
+            }
+        } catch (error) {
+            // console.error('Error fetching schedules:', error);
+            return rejectWithValue(error.response?.data?.message || error.message || 'Lấy lịch học thất bại');
+        }
+    }
+);
