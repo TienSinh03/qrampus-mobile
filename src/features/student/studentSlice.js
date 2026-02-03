@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getStudentProfileThunk, getStudentSchedulesThunk } from "./studentThunks";
+import { getStudentProfileThunk, getStudentSchedulesThunk, getMySchedules } from "./studentThunks";
 
 const initialState = {
     profile: null,
@@ -124,6 +124,21 @@ const studentSlice = createSlice({
                 state.schedulesError = null;
             })
             .addCase(getStudentSchedulesThunk.rejected, (state, action) => {
+                state.schedulesLoading = false;
+                state.schedulesError = action.payload;
+            })
+            // Get my schedules for today
+            .addCase(getMySchedules.pending, (state) => {
+                state.schedulesLoading = true;
+                state.schedulesError = null;
+            })
+            .addCase(getMySchedules.fulfilled, (state, action) => {
+                state.schedulesLoading = false;
+                state.schedules = action.payload.schedules;
+                state.schedulesByDate = groupSchedulesByDate(action.payload.schedules);
+                state.schedulesError = null;
+            })
+            .addCase(getMySchedules.rejected, (state, action) => {
                 state.schedulesLoading = false;
                 state.schedulesError = action.payload;
             });

@@ -6,7 +6,6 @@ export const getStudentProfileThunk = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await instance.get('/students/profile');
-            console.log('Fetched student profile:', response?.data);
             return response?.data?.data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Lấy thông tin sinh viên thất bại');
@@ -49,6 +48,29 @@ export const getStudentSchedulesThunk = createAsyncThunk(
         } catch (error) {
             // console.error('Error fetching schedules:', error);
             return rejectWithValue(error.response?.data?.message || error.message || 'Lấy lịch học thất bại');
+        }
+    }
+);
+
+/**
+ * Lấy lịch học cá nhân cho ngày hiện tại
+ */
+export const getMySchedules = createAsyncThunk(
+    'student/mySchedules',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await instance.get('/students/me/schedules/today')
+
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Lấy lịch học cá nhân thất bại');
+            }
+
+            return {
+                schedules: response?.data?.data?.schedules || [],
+                totalSchedules: response?.data?.data?.totalSchedules || 0,
+            }
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Lấy lịch học cá nhân thất bại');
         }
     }
 );

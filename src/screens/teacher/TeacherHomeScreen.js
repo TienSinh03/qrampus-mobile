@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import BaseHomeScreen from '../../components/BaseHomeScreen';
 import TeacherScheduleCard from '../../components/TeacherScheduleCard';
 import { useSelector, useDispatch } from 'react-redux';
-import { getTeacherProfileThunk } from '../../features/teacher/teacherThunks';
-import { selectTeacherProfile } from '../../features/teacher/teacherSlice';
+import { getTeacherProfileThunk, getMySchedules } from '../../features/teacher/teacherThunks';
+import { selectTeacherProfile, selectTeacherSchedules, selectSchedulesLoading } from '../../features/teacher/teacherSlice';
 
 const TeacherHomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
@@ -12,48 +12,9 @@ const TeacherHomeScreen = ({ navigation }) => {
 
   const dispatch = useDispatch();
   const profile = useSelector(selectTeacherProfile);
-  // thay bằng API call
-  const [todaySchedules, setTodaySchedules] = useState([
-    {
-      id: '1',
-      courseName: 'Lập trình Di động',
-      courseCode: 'IT4788',
-      room: 'D3-201',
-      startTime: '11:15',
-      endTime: '18:00',
-      studentCount: 45,
-      hasActiveSession: false,
-      courseSectionId: 101,
-      practice_group_id: null, // Lịch lý thuyết
-      practice_group_name: null,
-    },
-    {
-      id: '2',
-      courseName: 'Cơ sở dữ liệu - Thực hành',
-      courseCode: 'IT3090',
-      room: 'D5-302',
-      startTime: '13:00',
-      endTime: '15:00',
-      studentCount: 15,
-      hasActiveSession: false,
-      courseSectionId: 102,
-      practice_group_id: 1, // Group A
-      practice_group_name: 'Group A',
-    },
-    {
-      id: '3',
-      courseName: 'Mạng máy tính',
-      courseCode: 'IT4060',
-      room: 'TC-209',
-      startTime: '23:08',
-      endTime: '23:50',
-      studentCount: 42,
-      hasActiveSession: false,
-      courseSectionId: 103,
-      practice_group_id: null, // Lịch lý thuyết
-      practice_group_name: null,
-    },
-  ]);
+  const isLoading = useSelector(selectSchedulesLoading);
+  const schedules = useSelector(selectTeacherSchedules);
+
 
   //thay bằng API call
   const stats = {
@@ -63,8 +24,11 @@ const TeacherHomeScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    // Load teacher profile on mount
+    // Load student profile on mount
     dispatch(getTeacherProfileThunk());
+    
+    // Load today's schedules on mount
+    dispatch(getMySchedules());
   }, [dispatch]);
 
   // Kiểm tra các lớp học sắp bắt đầu để tạo cảnh báo khẩn cấp
@@ -73,10 +37,10 @@ const TeacherHomeScreen = ({ navigation }) => {
       const now = new Date();
       const alerts = [];
 
-      todaySchedules.forEach((schedule) => {
-        const [startHour, startMinute] = schedule.startTime.split(':').map(Number);
+      schedules.forEach((schedule) => {
+        const [startHourNum, startMinute] = schedule.startHour.split(':').map(Number);
         const classTime = new Date();
-        classTime.setHours(startHour, startMinute, 0, 0);
+        classTime.setHours(startHourNum, startMinute, 0, 0);
         
         const diffMs = classTime - now;
         const diffMinutes = Math.floor(diffMs / 60000);
@@ -85,7 +49,7 @@ const TeacherHomeScreen = ({ navigation }) => {
         if (diffMinutes >= -5 && diffMinutes <= 0 && !schedule.hasActiveSession) {
           alerts.push({
             title: 'Chưa tạo QR điểm danh!',
-            message: `${schedule.courseCode} - ${schedule.courseName} (${schedule.startTime})`,
+            message: `${schedule.courseCode} - ${schedule.courseName} (${schedule.startHour})`,
             scheduleId: schedule.id,
           });
         }
@@ -98,7 +62,7 @@ const TeacherHomeScreen = ({ navigation }) => {
     const interval = setInterval(checkUrgentAlerts, 30000); // Check every 30s
     
     return () => clearInterval(interval);
-  }, [todaySchedules]);
+  }, [schedules]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -122,12 +86,13 @@ const TeacherHomeScreen = ({ navigation }) => {
       navigation={navigation}
       userRole={userRole}
       userData={profile}
-      todaySchedules={todaySchedules}
+      todaySchedules={schedules}
       stats={stats}
       urgentAlerts={urgentAlerts}
       refreshing={refreshing}
       onRefresh={onRefresh}
       renderScheduleCard={renderScheduleCard}
+      isLoading={isLoading}
     />
   );
 };
