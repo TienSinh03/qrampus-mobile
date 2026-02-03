@@ -9,8 +9,8 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
     courseName = 'Tên môn học',
     courseCode = 'MH001',
     room = 'A101',
-    startTime = '07:00',
-    endTime = '09:00',
+    startHour = '07:00',
+    endHour = '09:00',
     studentCount = 0,
     hasActiveSession = false,
     courseSectionId = 1,
@@ -23,10 +23,10 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
   useEffect(() => {
     const calculateTimeRemaining = () => {
       const now = new Date();
-      const [startHour, startMinute] = startTime.split(':').map(Number);
+      const [startHourNum, startMinute] = startHour.split(':').map(Number);
       
       const classTime = new Date();
-      classTime.setHours(startHour, startMinute, 0, 0);
+      classTime.setHours(startHourNum, startMinute, 0, 0);
       
       const diffMs = classTime - now;
       const diffMinutes = Math.floor(diffMs / 60000);
@@ -56,7 +56,7 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
     const interval = setInterval(calculateTimeRemaining, 30000); // Update every 30s
     
     return () => clearInterval(interval);
-  }, [startTime]);
+  }, [startHour]);
 
   const handleSchedulePress = () => {
     if (navigation) {
@@ -96,7 +96,7 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
           <View className="flex-row items-center">
             <Ionicons name="time-outline" size={18} color="white" />
             <Text className="text-white font-bold text-base ml-2">
-              {startTime} - {endTime}
+              {startHour} - {endHour}
             </Text>
           </View>
           <View className="bg-white/20 px-3 py-1 rounded-full">

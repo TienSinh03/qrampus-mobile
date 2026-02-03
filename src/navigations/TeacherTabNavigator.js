@@ -3,6 +3,7 @@ import BaseTabNavigator from '../navigations/BaseTabNavigator';
 import TeacherHomeScreen from '../screens/teacher/TeacherHomeScreen';
 import TeacherScheduleScreen from '../screens/teacher/TeacherScheduleScreen';
 import TeacherProfileScreen from '../screens/teacher/TeacherProfileScreen';
+import TeacherCoursesScreen from '../screens/teacher/TeacherCoursesScreen';
 
 const TeacherTabNavigator = ({ route }) => {
   const role = route.params?.userRole;
@@ -13,6 +14,13 @@ const TeacherTabNavigator = ({ route }) => {
       label: 'Trang chủ',
       icon: 'home-outline',
       iconFocused: 'home',
+    },
+    {
+      name: 'Courses',
+      component: TeacherCoursesScreen,
+      label: 'Khóa học',
+      icon: 'book-outline',
+      iconFocused: 'book',
     },
     {
       name: 'Schedule',
