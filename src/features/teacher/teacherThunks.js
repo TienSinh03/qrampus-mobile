@@ -52,3 +52,24 @@ export const getTeacherSchedulesThunk = createAsyncThunk(
         }
     }
 );
+
+/**
+ * Lấy lịch giảng dạy cá nhân cho ngày hiện tại
+ */
+export const getMySchedules = createAsyncThunk(
+    'teacher/mySchedules',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await instance.get('/teacher/me/schedule/today');
+            console.log('Fetched teacher today schedules:', response?.data);
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Lấy lịch giảng dạy hôm nay thất bại');
+            }
+            return {
+                schedules: response?.data?.data?.schedules || []
+            }
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Lấy lịch giảng dạy hôm nay thất bại');
+        }
+    }
+);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import Header from './Header';
@@ -17,6 +17,7 @@ const BaseHomeScreen = ({
   onRefresh,
   renderScheduleCard,
   customSections = null, // Additional custom sections
+  isLoading = false,
 }) => {
   const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
   const roleLabel = userRole === 'teacher' ? 'Giảng viên' : 'Sinh viên';
@@ -46,6 +47,16 @@ const BaseHomeScreen = ({
         onNotificationPress={onNotificationPress}
         roleColor={roleColor}
       />
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <View className="absolute top-0 left-0 right-0 bottom-0 bg-black/20 z-10 justify-center items-center">
+          <View className="bg-white rounded-2xl p-6 shadow-lg">
+            <ActivityIndicator size="large" color={roleColor} />
+            <Text className="text-gray-600 mt-3 text-center">Đang tải lịch học...</Text>
+          </View>
+        </View>
+      )}
 
       <ScrollView
         className="flex-1"
@@ -102,7 +113,7 @@ const BaseHomeScreen = ({
               className="text-sm font-semibold"
               style={{ color: roleColor }}
             >
-              {todaySchedules.length} tiết {userRole === 'teacher' ? 'dạy' : 'học'}
+              {todaySchedules.length || 0} tiết {userRole === 'teacher' ? 'dạy' : 'học'}
             </Text>
           </View>
 
