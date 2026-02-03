@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getStudentProfileThunk, getStudentSchedulesThunk, getMySchedules } from "./studentThunks";
+import { getStudentProfileThunk, getStudentSchedulesThunk, getMySchedules, getStudentCoursesThunk, transformScheduleToUI } from "./studentThunks";
 
 const initialState = {
     profile: null,
@@ -11,50 +11,10 @@ const initialState = {
     schedulesLoading: false,
     schedulesError: null,
     currentScheduleRange: null, // { startDate, endDate } - range đang fetch
-};
-
-/**
- * Transform schedule từ API sang format UI
- */
-const transformScheduleToUI = (schedule) => {
-    return {
-        id: schedule.sessionId,
-        sessionId: schedule.sessionId,
-        enrollmentId: schedule.enrollmentId,
-        enrollmentStatus: schedule.enrollmentStatus,
-        classDate: schedule.classDate,
-        dayOfWeek: schedule.dayOfWeek,
-        startHour: schedule.startHour?.slice(0, 5) || '', // "07:30:00" -> "07:30"
-        endHour: schedule.endHour?.slice(0, 5) || '',
-        scheduleType: schedule.scheduleType, // 'theory' | 'practice'
-        sessionStatus: schedule.sessionStatus,
-        // Course info
-        courseName: schedule.courseSection?.courseName || '',
-        courseCode: schedule.courseSection?.courseCode || '',
-        credits: schedule.courseSection?.credits || 0,
-        semester: schedule.courseSection?.semester || '',
-        courseDescription: schedule.courseSection?.description || '',
-        courseSectionId: schedule.courseSection?.courseSectionId || '',
-        // Teacher info
-        teacherName: schedule.teacher?.teacherName || '',
-        teacherId: schedule.teacher?.teacherId || '',
-        teacherCode: schedule.teacher?.teacherCode || '',
-        teacherDepartment: schedule.teacher?.department || '',
-        teacherPhone: schedule.teacher?.phone || '',
-        teacherEmail: schedule.teacher?.email || '',
-        // Room info
-        room: schedule.room?.roomCode || schedule.room?.roomName || '',
-        roomId: schedule.room?.roomId || '',
-        roomName: schedule.room?.roomName || '',
-        roomCoordinates: schedule.room?.coordinates || [],
-        roomDescription: schedule.room?.description || '',
-        // Practice group
-        practiceGroup: schedule.practiceGroup,
-        // UI helpers
-        hasQR: schedule.sessionStatus === 'ongoing' || schedule.sessionStatus === 'scheduled',
-        isTheory: schedule.scheduleType === 'theory',
-        isPractice: schedule.scheduleType === 'practice',
-    };
+    // Courses state
+    courses: [], // Danh sách khóa học
+    coursesLoading: false,
+    coursesError: null,
 };
 
 /**
@@ -141,6 +101,20 @@ const studentSlice = createSlice({
             .addCase(getMySchedules.rejected, (state, action) => {
                 state.schedulesLoading = false;
                 state.schedulesError = action.payload;
+            })
+            // Get student courses
+            .addCase(getStudentCoursesThunk.pending, (state) => {
+                state.coursesLoading = true;
+                state.coursesError = null;
+            })
+            .addCase(getStudentCoursesThunk.fulfilled, (state, action) => {
+                state.coursesLoading = false;
+                state.courses = action.payload.courses;
+                state.coursesError = null;
+            })
+            .addCase(getStudentCoursesThunk.rejected, (state, action) => {
+                state.coursesLoading = false;
+                state.coursesError = action.payload;
             });
     },
 });
@@ -158,5 +132,10 @@ export const selectSchedulesByDate = (state) => state.student.schedulesByDate;
 export const selectSchedulesLoading = (state) => state.student.schedulesLoading;
 export const selectSchedulesError = (state) => state.student.schedulesError;
 export const selectCurrentScheduleRange = (state) => state.student.currentScheduleRange;
+
+// Courses selectors
+export const selectStudentCourses = (state) => state.student.courses;
+export const selectCoursesLoading = (state) => state.student.coursesLoading;
+export const selectCoursesError = (state) => state.student.coursesError;
 
 export default studentSlice.reducer;

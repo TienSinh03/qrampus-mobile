@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getTeacherProfileThunk, getTeacherSchedulesThunk, getMySchedules } from "./teacherThunks";
+import { getTeacherProfileThunk, getTeacherSchedulesThunk, getMySchedules, getTeacherCoursesThunk, transformScheduleToUI } from "./teacherThunks";
 
 const initialState = {
     profile: null,
@@ -12,44 +12,11 @@ const initialState = {
     schedulesLoading: false,
     schedulesError: null,
     currentScheduleRange: null, // { startDate, endDate }
-};
 
-/**
- * Transform schedule từ API sang format UI
- */
-const transformScheduleToUI = (schedule) => {
-    return {
-        id: schedule.id,
-        classDate: schedule.class_date,
-        dayOfWeek: schedule.day_of_week,
-        startHour: schedule.start_hour?.slice(0, 5) || '', // "07:30:00" -> "07:30"
-        endHour: schedule.end_hour?.slice(0, 5) || '',
-        scheduleType: schedule.schedule_type, // 'theory' | 'practice'
-        sessionNumber: schedule.session_number,
-        // Course info
-        courseName: schedule.courseSection?.name || '',
-        courseCode: schedule.courseSection?.code || '',
-        credits: schedule.courseSection?.credits || 0,
-        semester: schedule.courseSection?.semester || '',
-        courseDescription: schedule.courseSection?.description || '',
-        courseSectionId: schedule.courseSection?.id || '',
-        // Teacher info
-        teacherName: schedule.teacher?.full_name || '',
-        teacherId: schedule.teacher?.id || '',
-        teacherDepartment: schedule.teacher?.department || '',
-        teacherPhone: schedule.teacher?.phone || '',
-        teacherEmail: schedule.teacher?.email || '',
-        // Room info
-        room: schedule.room?.room_code || schedule.room?.room_name || '',
-        roomId: schedule.room?.id || '',
-        roomName: schedule.room?.room_name || '',
-        roomCoordinates: schedule.room?.coordinates || [],
-        // Practice group
-        practiceGroup: schedule.practiceGroup,
-        // UI helpers
-        isTheory: schedule.schedule_type === 'theory',
-        isPractice: schedule.schedule_type === 'practice',
-    };
+    // Courses state
+    courses: [], // Danh sách khóa học giảng dạy
+    coursesLoading: false,
+    coursesError: null,
 };
 
 /**
@@ -136,6 +103,20 @@ const teacherSlice = createSlice({
             .addCase(getMySchedules.rejected, (state, action) => {
                 state.schedulesLoading = false;
                 state.schedulesError = action.payload;
+            })
+            // Get teacher courses
+            .addCase(getTeacherCoursesThunk.pending, (state) => {
+                state.coursesLoading = true;
+                state.coursesError = null;
+            })
+            .addCase(getTeacherCoursesThunk.fulfilled, (state, action) => {
+                state.coursesLoading = false;
+                state.courses = action.payload.courses;
+                state.coursesError = null;
+            })
+            .addCase(getTeacherCoursesThunk.rejected, (state, action) => {
+                state.coursesLoading = false;
+                state.coursesError = action.payload;
             });            
     },
 });
@@ -153,5 +134,10 @@ export const selectSchedulesByDate = (state) => state.teacher.schedulesByDate;
 export const selectSchedulesLoading = (state) => state.teacher.schedulesLoading;
 export const selectSchedulesError = (state) => state.teacher.schedulesError;
 export const selectCurrentScheduleRange = (state) => state.teacher.currentScheduleRange;
+
+// Courses selectors
+export const selectTeacherCourses = (state) => state.teacher.courses;
+export const selectCoursesLoading = (state) => state.teacher.coursesLoading;
+export const selectCoursesError = (state) => state.teacher.coursesError;
 
 export default teacherSlice.reducer;
