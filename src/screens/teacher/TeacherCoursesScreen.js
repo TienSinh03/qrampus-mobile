@@ -37,8 +37,8 @@ const TeacherCoursesScreen = ({ navigation }) => {
     console.log('Course pressed:', course);
     // Navigate to course detail screen
     navigation.navigate('CourseDetail', { 
-      courseId: course.courseSectionId || course.courseId,
-      course 
+      course,
+      userRole: 'teacher'
     });
   }, [navigation]);
 
