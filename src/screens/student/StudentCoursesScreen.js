@@ -46,7 +46,7 @@ const StudentCoursesScreen = ({ navigation }) => {
     <BaseCoursesScreen
       navigation={navigation}
       userRole="student"
-      courses={courses}
+      courses={courses.filter(c => !c.practiceGroup || Object.keys(c.practiceGroup).length === 0)}
       isLoading={isLoading}
       refreshing={refreshing}
       onRefresh={onRefresh}
