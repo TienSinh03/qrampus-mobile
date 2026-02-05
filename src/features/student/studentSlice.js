@@ -27,7 +27,7 @@ const groupSchedulesByDate = (schedules) => {
         if (!grouped[date]) {
             grouped[date] = [];
         }
-        grouped[date].push(transformScheduleToUI(schedule));
+        grouped[date].push(schedule);
     });
     
     // Sort schedules trong mỗi ngày theo startTime

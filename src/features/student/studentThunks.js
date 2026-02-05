@@ -85,8 +85,11 @@ export const getStudentSchedulesThunk = createAsyncThunk(
                 throw new Error(response?.data?.message || 'Lấy lịch học thất bại');
             }
 
+            const rawSchedules = response?.data?.data?.schedules || [];
+            const schedules = rawSchedules.map(transformScheduleToUI);
+            
             return {
-                schedules: response?.data?.data?.schedules || [],
+                schedules,
                 totalSchedules: response?.data?.data?.totalSchedules || 0,
                 params: { startDate, endDate }, // Lưu lại params để biết đang fetch range nào
             };

@@ -75,14 +75,14 @@ export const getTeacherSchedulesThunk = createAsyncThunk(
 
             const response = await instance.get(url);
             
-            console.log('Fetched teacher schedules:', response?.data);
-
             if (!response?.data?.success) {
                 throw new Error(response?.data?.message || 'Lấy lịch giảng dạy thất bại');
             }
+            const rawSchedules = response?.data?.data?.schedules || [];
+            const schedules = rawSchedules.map(transformScheduleToUI);
 
             return {
-                schedules: response?.data?.data?.schedules || [],
+                schedules,
                 params: { semester, startDate, endDate, classDate }
             }
         } catch (error) {

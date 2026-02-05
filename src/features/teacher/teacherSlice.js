@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getTeacherProfileThunk, getTeacherSchedulesThunk, getMySchedules, getTeacherCoursesThunk, transformScheduleToUI } from "./teacherThunks";
+import { getTeacherProfileThunk, getTeacherSchedulesThunk, getMySchedules, getTeacherCoursesThunk } from "./teacherThunks";
 
 const initialState = {
     profile: null,
@@ -25,16 +25,16 @@ const initialState = {
 const groupSchedulesByDate = (schedules) => {
     const grouped = {};
     schedules.forEach(schedule => {
-        const date = schedule.class_date;
+        const date = schedule.classDate;
         if (!grouped[date]) {
             grouped[date] = [];
         }
-        grouped[date].push(transformScheduleToUI(schedule));
+        grouped[date].push(schedule);
     });
     
     // Sort schedules trong mỗi ngày theo startTime
     Object.keys(grouped).forEach(date => {
-        grouped[date].sort((a, b) => a.start_hour.localeCompare(b.start_hour));
+        grouped[date].sort((a, b) => a.startHour.localeCompare(b.startHour));
     });
     
     return grouped;
