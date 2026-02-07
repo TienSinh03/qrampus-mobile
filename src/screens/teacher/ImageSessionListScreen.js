@@ -227,6 +227,7 @@ const ImageSessionListScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 key={session.id || index}
                 onPress={() => handleViewSession(session)}
+                
                 activeOpacity={0.7}
                 className="bg-white rounded-2xl p-4 mb-3"
               >

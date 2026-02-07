@@ -13,63 +13,88 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchAttendanceImagesBySessionId } from '../../features/attendanceImage/attendanceImageThunks';
 
 const { width } = Dimensions.get('window');
 const imageSize = (width - 48) / 3; // 3 columns with padding
 
 const AttendanceImageScreen = ({ navigation, route }) => {
   const { imageSession, schedule } = route.params;
-  const [images, setImages] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { images, isLoading, error } = useSelector(state => state.attendanceImage);
   const [selectedImage, setSelectedImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => {
-    // TODO: Fetch images for this image session from API
-    // For now, using mock data
-    loadImages();
-  }, [imageSession?.id]);
+  // Lấy session từ trang ImageSessionListScreen qua route.params
+  // imageSession chứa: classDate, startHour, endHour, captureType, startedAt, endedAt, note
+  console.log('[DEBUG] imageSession:', imageSession);
 
-  const loadImages = async () => {
-    setIsLoading(true);
-    try {
-      // TODO: Replace with actual API call
-      // const response = await fetchImagesBySessionId(imageSession.id);
-      // setImages(response.data);
-      
-      // Mock data for demonstration
-      setTimeout(() => {
-        const mockImages = [
-          {
-            id: '1',
-            url: 'https://via.placeholder.com/400x300/7c3aed/ffffff?text=Image+1',
-            thumbnailUrl: 'https://via.placeholder.com/200x150/7c3aed/ffffff?text=Image+1',
-            uploadedAt: new Date().toISOString(),
-            studentCount: 12,
-          },
-          {
-            id: '2',
-            url: 'https://via.placeholder.com/400x300/8b5cf6/ffffff?text=Image+2',
-            thumbnailUrl: 'https://via.placeholder.com/200x150/8b5cf6/ffffff?text=Image+2',
-            uploadedAt: new Date().toISOString(),
-            studentCount: 8,
-          },
-          {
-            id: '3',
-            url: 'https://via.placeholder.com/400x300/a78bfa/ffffff?text=Image+3',
-            thumbnailUrl: 'https://via.placeholder.com/200x150/a78bfa/ffffff?text=Image+3',
-            uploadedAt: new Date().toISOString(),
-            studentCount: 15,
-          },
-        ];
-        setImages(mockImages);
-        setIsLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error('Error loading images:', error);
-      setIsLoading(false);
+  useEffect(() => {
+    if (imageSession?.id) {
+      console.log('-----------------------Dispatching fetch for session ID:', imageSession.id);
+      dispatch(fetchAttendanceImagesBySessionId(imageSession.id));
     }
+  }, [imageSession?.id, dispatch]);
+
+  // Check if current time is within allowed class session time
+  const canAddImage = () => {
+    if (!imageSession?.classDate || !imageSession?.startHour || !imageSession?.endHour) {
+      console.log('[DEBUG] Missing data - classDate:', imageSession?.classDate, 'startHour:', imageSession?.startHour, 'endHour:', imageSession?.endHour);
+      return false;
+    }
+
+    const now = new Date();
+    const classDate = new Date(imageSession.classDate);
+    
+    // Check if today is the class date
+    const isSameDate = 
+      now.getDate() === classDate.getDate() &&
+      now.getMonth() === classDate.getMonth() &&
+      now.getFullYear() === classDate.getFullYear();
+
+    if (!isSameDate) {
+      console.log('[DEBUG] Not same date. Now:', now.toLocaleDateString(), 'ClassDate:', classDate.toLocaleDateString());
+      return false;
+    }
+
+    // Parse start and end hours (format: "HH:mm" or just "HH")
+    const startParts = imageSession.startHour.toString().split(':');
+    const endParts = imageSession.endHour.toString().split(':');
+    const startHour = parseInt(startParts[0]);
+    const startMinute = parseInt(startParts[1] || 0);
+    const endHour = parseInt(endParts[0]);
+    const endMinute = parseInt(endParts[1] || 0);
+
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+
+    const isWithinTime = currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+    console.log('[DEBUG] Time check - Current:', now.getHours() + ':' + now.getMinutes(), 
+                'Range:', imageSession.startHour, '-', imageSession.endHour, 
+                'Result:', isWithinTime);
+
+    return isWithinTime;
   };
+
+  const handleAddImage = () => {
+    if (!canAddImage()) {
+      alert(
+        'Chỉ có thể thêm ảnh trong giờ học\n' +
+        'Ngày: ' + new Date(imageSession?.classDate).toLocaleDateString('vi-VN') + '\n' +
+        'Từ ' + imageSession?.startHour + ' đến ' + imageSession?.endHour
+      );
+      return;
+    }
+    // Navigate đến AttendancePhotoScreen
+    navigation.navigate('AttendancePhoto', {
+      imageSession: imageSession,
+      schedule: schedule,
+    });
+  };
+
+
 
   const formatDateTime = (dateString) => {
     if (!dateString) return '';
@@ -88,37 +113,45 @@ const AttendanceImageScreen = ({ navigation, route }) => {
     setModalVisible(true);
   };
 
-  const renderImageItem = (image, index) => (
-    <TouchableOpacity
-      key={image.id || index}
-      onPress={() => handleImagePress(image)}
-      activeOpacity={0.7}
-      className="mb-3"
-      style={{ width: imageSize }}
-    >
-      <View className="rounded-xl overflow-hidden bg-gray-200" style={{ height: imageSize }}>
-        <Image
-          source={{ uri: image.thumbnailUrl || image.url }}
-          style={{ width: '100%', height: '100%' }}
-          resizeMode="cover"
-        />
+  // console.log('session.classDate:', session?.classDate);
+
+
+  const renderImageItem = (image, index) => {
+    console.log('Rendering image:', index, image.fileUrl);
+    return (
+      <TouchableOpacity
+        key={image.id || index}
+        onPress={() => handleImagePress(image)}
+        activeOpacity={0.7}
+        className="mb-3"
+        style={{ width: imageSize }}
+      >
+        <View className="rounded-xl overflow-hidden bg-gray-200" style={{ height: imageSize }}>
+          <Image
+            source={{ uri: image.thumbnailUrl || image.fileUrl }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+            onError={(error) => console.log('Image load error:', error.nativeEvent.error)}
+            onLoad={() => console.log('Image loaded successfully:', image.fileUrl)}
+          />
+          
+          {/* Student count badge */}
+          {image.studentCountAi && (
+            <View className="absolute top-2 right-2 bg-black/70 rounded-full px-2 py-1 flex-row items-center">
+              <Ionicons name="people" size={12} color="white" />
+              <Text className="text-white text-xs font-bold ml-1">
+                {image.studentCountAi}
+              </Text>
+            </View>
+          )}
+        </View>
         
-        {/* Student count badge */}
-        {image.studentCount && (
-          <View className="absolute top-2 right-2 bg-black/70 rounded-full px-2 py-1 flex-row items-center">
-            <Ionicons name="people" size={12} color="white" />
-            <Text className="text-white text-xs font-bold ml-1">
-              {image.studentCount}
-            </Text>
-          </View>
-        )}
-      </View>
-      
-      <Text className="text-gray-500 text-xs mt-1 text-center">
-        {formatDateTime(image.uploadedAt).split(',')[1]?.trim() || ''}
-      </Text>
-    </TouchableOpacity>
-  );
+        <Text className="text-gray-500 text-xs mt-1 text-center">
+          {formatDateTime(image.takenAt).split(',')[1]?.trim() || ''}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -140,8 +173,12 @@ const AttendanceImageScreen = ({ navigation, route }) => {
             </Text>
           </View>
 
-          <TouchableOpacity className="bg-white/20 rounded-full p-2">
-            <Ionicons name="add" size={24} color="white" />
+          <TouchableOpacity 
+            className={`rounded-full p-2 ${canAddImage() ? 'bg-white/20' : 'bg-white/10'}`}
+            onPress={handleAddImage}
+            disabled={!canAddImage()}
+          >
+            <Ionicons name="add" size={24} color={canAddImage() ? "white" : "rgba(255,255,255,0.3)"} />
           </TouchableOpacity>
         </View>
 
@@ -268,7 +305,7 @@ const AttendanceImageScreen = ({ navigation, route }) => {
             <View className="flex-1 items-center justify-center">
               {selectedImage && (
                 <Image
-                  source={{ uri: selectedImage.url }}
+                  source={{ uri: selectedImage.fileUrl }}
                   style={{ width: width, height: width * 0.75 }}
                   resizeMode="contain"
                 />
@@ -281,15 +318,15 @@ const AttendanceImageScreen = ({ navigation, route }) => {
                   <View className="flex-row items-center">
                     <Ionicons name="time-outline" size={16} color="white" />
                     <Text className="text-white text-sm ml-2">
-                      {formatDateTime(selectedImage.uploadedAt)}
+                      {formatDateTime(selectedImage.takenAt)}
                     </Text>
                   </View>
                   
-                  {selectedImage.studentCount && (
+                  {selectedImage.studentCountAi && (
                     <View className="flex-row items-center bg-white/10 rounded-full px-3 py-1">
                       <Ionicons name="people" size={16} color="white" />
                       <Text className="text-white text-sm font-semibold ml-1">
-                        {selectedImage.studentCount} sinh viên
+                        {selectedImage.studentCountAi} sinh viên
                       </Text>
                     </View>
                   )}

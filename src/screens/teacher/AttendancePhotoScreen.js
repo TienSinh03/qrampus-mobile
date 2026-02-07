@@ -13,22 +13,24 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import { useDispatch, useSelector } from 'react-redux';
+import { uploadAttendanceImage } from '../../features/attendanceImage/attendanceImageThunks';
 
 const { width, height } = Dimensions.get('window');
 
 const AttendancePhotoScreen = ({ navigation, route }) => {
-  const { schedule } = route.params || {};
+  const { imageSession, schedule } = route.params || {};
+  const dispatch = useDispatch();
+  const { uploading } = useSelector(state => state.attendanceImage);
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState('back');
   const [capturedImage, setCapturedImage] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [detectedCount, setDetectedCount] = useState(null);
   const cameraRef = useRef(null);
 
-  //log schedule
   useEffect(() => {
-    console.log('AttendancePhotoScreen for schedule:', schedule.id);
-  }, [schedule]);
+    console.log('[DEBUG] AttendancePhotoScreen imageSession:', imageSession);
+    console.log('[DEBUG] AttendancePhotoScreen schedule:', schedule);
+  }, [imageSession, schedule]);
   
 
   // Chụp ảnh bằng camera
@@ -67,71 +69,35 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
     }
   };
 
-  // Xử lý phân tích ảnh bằng AI
-  const processImage = async () => {
-    if (!capturedImage) return;
 
-    setIsProcessing(true);
-    
-    try {
-      // Gọi API AI để đếm số lượng sinh viên
-      // const formData = new FormData();
-      // formData.append('image', {
-      //   uri: capturedImage,
-      //   type: 'image/jpeg',
-      //   name: 'classroom.jpg',
-      // });
-      // formData.append('schedule_id', schedule.id);
-      
-      // const response = await fetch('/api/ai/count-students', {
-      //   method: 'POST',
-      //   body: formData,
-      // });
-      // const data = await response.json();
-      
-      // Mock response - giả lập AI đếm được số sinh viên
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const mockCount = Math.floor(Math.random() * 10) + 35; // Random 35-44
-      setDetectedCount(mockCount);
-      
-    } catch (error) {
-      console.error('Error processing image:', error);
-      Alert.alert('Lỗi', 'Không thể xử lý ảnh. Vui lòng thử lại.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   // Xử lý chụp lại ảnh
   const handleRetake = () => {
     setCapturedImage(null);
-    setDetectedCount(null);
   };
 
-  const handleConfirm = () => {
-    if (detectedCount !== null) {
-      Alert.alert(
-        'Xác nhận',
-        `Hệ thống phát hiện ${detectedCount} sinh viên. Bạn có muốn lưu kết quả này không?`,
-        [
-          {
-            text: 'Hủy',
-            style: 'cancel',
-          },
-          {
-            text: 'Xác nhận',
-            onPress: () => {
-              // Lưu kết quả vào database
-              Alert.alert('Thành công', 'Đã lưu kết quả điểm danh!', [
-                {
-                  text: 'OK',
-                  onPress: () => navigation.goBack(),
-                },
-              ]);
-            },
-          },
-        ]
+  const handleConfirm = async () => {
+    if (!capturedImage || !imageSession?.id) {
+      return;
+    }
+
+    try {
+      console.log('[DEBUG] Uploading image:', capturedImage);
+      console.log('[DEBUG] Image session ID:', imageSession.id);
+      
+      const resultAction = await dispatch(
+        uploadAttendanceImage({
+          imageSessionId: imageSession.id,
+          imageUri: capturedImage,
+        })
       );
+
+      if (uploadAttendanceImage.fulfilled.match(resultAction)) {
+        // Quay lại màn hình trước, sẽ tự động reload
+        navigation.goBack();
+      }
+    } catch (error) {
+      console.error('[ERROR] Upload failed:', error);
     }
   };
 
@@ -244,32 +210,7 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
               resizeMode="contain"
             />
             
-            {/* Processing overlay */}
-            {isProcessing && (
-              <View className="absolute inset-0 bg-black/70 items-center justify-center">
-                <ActivityIndicator size="large" color="#8b5cf6" />
-                <Text className="text-white mt-4 text-base">Đang phân tích ảnh...</Text>
-                <Text className="text-white/70 mt-2 text-sm">AI đang đếm số lượng sinh viên</Text>
-              </View>
-            )}
 
-            {/* Result display */}
-            {detectedCount !== null && !isProcessing && (
-              <View className="absolute top-4 left-4 right-4">
-                <View className="bg-green-500 rounded-2xl p-4 flex-row items-center">
-                  <View className="w-12 h-12 bg-white/20 rounded-full items-center justify-center mr-3">
-                    <Ionicons name="people" size={28} color="white" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-white font-bold text-lg">
-                      Phát hiện {detectedCount} sinh viên
-                    </Text>
-                    <Text className="text-white/80 text-sm">Hệ thống đã hoàn tất phân tích</Text>
-                  </View>
-                  <Ionicons name="checkmark-circle" size={32} color="white" />
-                </View>
-              </View>
-            )}
           </View>
         )}
       </View>
@@ -310,43 +251,30 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
           </View>
         ) : (
           <View>
-            {!detectedCount && !isProcessing && (
-              <View className="mb-3">
-                <TouchableOpacity
-                  onPress={processImage}
-                  className="bg-purple-600 py-4 rounded-xl flex-row items-center justify-center"
-                  style={{
-                    shadowColor: '#7c3aed',
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 8,
-                  }}
-                >
-                  <Ionicons name="sparkles" size={24} color="white" />
-                  <Text className="text-white font-bold text-base ml-2">Phân tích bằng AI</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
             <View className="flex-row items-center" style={{ gap: 12 }}>
               <TouchableOpacity
                 onPress={handleRetake}
-                disabled={isProcessing}
+                disabled={uploading}
                 className="flex-1 bg-gray-700 py-4 rounded-xl flex-row items-center justify-center"
               >
                 <Ionicons name="refresh" size={20} color="white" />
                 <Text className="text-white font-semibold ml-2">Chụp lại</Text>
               </TouchableOpacity>
 
-              {detectedCount !== null && (
-                <TouchableOpacity
-                  onPress={handleConfirm}
-                  className="flex-1 bg-green-600 py-4 rounded-xl flex-row items-center justify-center"
-                >
-                  <Ionicons name="checkmark-circle" size={20} color="white" />
-                  <Text className="text-white font-semibold ml-2">Xác nhận</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                onPress={handleConfirm}
+                disabled={uploading}
+                className="flex-1 bg-purple-600 py-4 rounded-xl flex-row items-center justify-center"
+              >
+                {uploading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <>
+                    <Ionicons name="cloud-upload" size={20} color="white" />
+                    <Text className="text-white font-semibold ml-2">Lưu ảnh</Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -362,7 +290,7 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
               <Text className="text-white/80 text-xs leading-5">
                 • Đưa camera về phía lớp học{'\n'}
                 • Đảm bảo đủ ánh sáng và rõ nét{'\n'}
-                • AI sẽ tự động đếm số sinh viên
+                • Hệ thống sẽ tự động phân tích sau khi lưu
               </Text>
             </View>
           </View>
