@@ -29,7 +29,8 @@ import TeacherLeaveRequestListScreen from '../screens/teacher/TeacherLeaveReques
 import TeacherLeaveRequestDetailScreen from '../screens/teacher/TeacherLeaveRequestDetailScreen';
 import TeacherScheduleDetailScreen from '../screens/teacher/TeacherScheduleDetailScreen';
 import AttendancePhotoScreen from '../screens/teacher/AttendancePhotoScreen';
-
+import ImageSessionListScreen from '../screens/teacher/ImageSessionListScreen';
+import AttendanceImageScreen from '../screens/teacher/AttendanceImageScreen';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -197,6 +198,22 @@ const AppNavigator = () => {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="ImageSessionList"
+          component={ImageSessionListScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="AttendanceImage"
+          component={AttendanceImageScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
         <Stack.Screen
           name="AttendancePhoto"
           component={AttendancePhotoScreen}

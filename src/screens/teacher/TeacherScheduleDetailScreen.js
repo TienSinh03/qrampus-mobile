@@ -397,7 +397,7 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
 
           {/* AI Photo Attendance */}
           <TouchableOpacity
-            onPress={() => navigation.navigate('AttendancePhoto', { schedule })}
+            onPress={() => navigation.navigate('ImageSessionList', { schedule })}
             activeOpacity={0.7}
             className="bg-white rounded-2xl overflow-hidden mb-3"
             style={{
@@ -414,7 +414,7 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
               </View>
               <View className="flex-1">
                 <View className="flex-row items-center mb-1">
-                  <Text className="text-gray-900 font-bold text-base mr-2">Đếm số lượng sinh viên bằng AI</Text>
+                  <Text className="text-gray-900 font-bold text-base mr-2">Phiên hình điểm danh </Text>
                 </View>
                 <Text className="text-gray-500 text-xs">Chụp ảnh lớp học, AI tự động đếm sinh viên</Text>
               </View>

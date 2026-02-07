@@ -25,10 +25,11 @@ const SessionListScreen = ({ navigation, route }) => {
   useEffect(() => {
     const checkActiveWindow = () => {
       const now = new Date();
-      const [startHour, startMinute] = schedule.startTime.split(':').map(Number);
+      const [startHourNum, startMinute] = schedule.startHour.split(':').map(Number);
+
       
       const classTime = new Date();
-      classTime.setHours(startHour, startMinute, 0, 0);
+      classTime.setHours(startHourNum, startMinute, 0, 0);
       
       const diffMs = classTime - now;
       const diffMinutes = Math.floor(diffMs / 60000);
@@ -42,7 +43,7 @@ const SessionListScreen = ({ navigation, route }) => {
     const interval = setInterval(checkActiveWindow, 30000); // Check every 30s
     
     return () => clearInterval(interval);
-  }, [schedule.startTime]);
+  }, [schedule.startHour]);
 
   // Fetch sessions for this schedule
   useEffect(() => {

@@ -25,6 +25,12 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
   const [detectedCount, setDetectedCount] = useState(null);
   const cameraRef = useRef(null);
 
+  //log schedule
+  useEffect(() => {
+    console.log('AttendancePhotoScreen for schedule:', schedule.id);
+  }, [schedule]);
+  
+
   // Chụp ảnh bằng camera
   const takePicture = async () => {
     if (cameraRef.current) {
