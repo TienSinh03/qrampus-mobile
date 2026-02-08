@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -23,6 +24,7 @@ const ImageSessionListScreen = ({ navigation, route }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
   const [modalMode, setModalMode] = useState('view'); // 'view' or 'create'
+  const [refreshing, setRefreshing] = useState(false);
 
   console.log('ImageSessionListScreen schedule:', schedule);
 
@@ -108,6 +110,27 @@ const ImageSessionListScreen = ({ navigation, route }) => {
     return now <= endDateTime ? 'ACTIVE' : 'EXPIRED';
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      if (schedule?.id) {
+        await Promise.all([
+          dispatch(checkImageSessionStatus(schedule.id)),
+          dispatch(
+            fetchImageSessionsByTeacher({
+              courseSectionId: schedule.courseSectionId,
+              page: 1,
+              limit: 20,
+            })
+          ),
+        ]);
+      }
+    } catch (error) {
+      console.error('Error refreshing:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -179,7 +202,17 @@ const ImageSessionListScreen = ({ navigation, route }) => {
       </LinearGradient>
 
       {/* Image Session List */}
-      <ScrollView className="flex-1 px-6 pt-4">
+      <ScrollView 
+        className="flex-1 px-6 pt-4"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={['#7c3aed']}
+            tintColor="#7c3aed"
+          />
+        }
+      >
         <Text className="text-gray-900 text-lg font-bold mb-3">
           Bộ sưu tập hình ảnh điểm danh
         </Text>
