@@ -84,6 +84,15 @@ const StudentProfileScreen = ({ navigation }) => {
       subtitle: 'Hướng dẫn sử dụng và hỗ trợ',
       onPress: () => console.log('Help'),
     },
+    // khảo sát
+    {
+      id: '8',
+      icon: 'chatbox-ellipses-outline',
+      title: 'Khảo sát',
+      subtitle: 'Tham gia các khảo sát khóa học',
+      onPress: () => navigation.navigate('SurveyList'),
+    }
+    
   ];
 
   return (
@@ -94,6 +103,7 @@ const StudentProfileScreen = ({ navigation }) => {
       stats={stats}
       menuItems={menuItems}
     />
+    
   );
 };
 
