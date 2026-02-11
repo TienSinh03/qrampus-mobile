@@ -22,6 +22,8 @@ import {
   selectSearchKeyword,
   setSearchKeyword,
 } from '../../features/survey/surveySlice';
+import { checkSurveyCompletion } from '../../features/surveyResponse/surveyResponseThunks';
+import { selectCompletionStatuses } from '../../features/surveyResponse/surveyResponseSlice';
 
 const SurveyListScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -30,10 +32,26 @@ const SurveyListScreen = ({ navigation }) => {
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
   const keyword = useSelector(selectSearchKeyword);
+  const completionStatuses = useSelector(selectCompletionStatuses);
 
   useEffect(() => {
     dispatch(getStudentSurveys());
   }, [dispatch]);
+
+  // Kiểm tra completion status cho các survey
+  useEffect(() => {
+    if (items.length > 0) {
+      items.forEach(item => {
+        if (item.hasSurvey && item.surveys && item.surveys.length > 0) {
+          const surveyId = item.surveys[0].id;
+          // Chỉ check nếu chưa có trong cache
+          if (!completionStatuses[surveyId]) {
+            dispatch(checkSurveyCompletion(surveyId));
+          }
+        }
+      });
+    }
+  }, [items, dispatch, completionStatuses]);
 
   /** 🔥 Có khảo sát lên đầu */
   const sortedItems = useMemo(() => {
@@ -111,6 +129,9 @@ const SurveyListScreen = ({ navigation }) => {
           {sortedItems.map((item) => {
             const disabled = !item.hasSurvey;
             const isPractice = item.learningType === 'practice';
+            const surveyId = item.surveys && item.surveys.length > 0 ? item.surveys[0].id : null;
+            const completionStatus = surveyId ? completionStatuses[surveyId] : null;
+            const isCompleted = completionStatus?.isComplete || false;
 
             return (
               <TouchableOpacity
@@ -168,14 +189,31 @@ const SurveyListScreen = ({ navigation }) => {
                   </Text>
                 </View>
 
+                {/* SURVEY ID - DEBUG */}
+                {item.hasSurvey && item.surveys && item.surveys.length > 0 && (
+                  <View className="ml-1 mt-2">
+                    <Text className="text-xs text-gray-400">
+                      ID KS: {item.surveys[0].id}
+                    </Text>
+                  </View>
+                )}
+
                 {/* STATUS */}
                 <View className="flex-row mt-3">
                   {item.hasSurvey ? (
-                    <View className="bg-green-100 px-3 py-1 rounded-full">
-                      <Text className="text-green-700 text-xs font-semibold">
-                        Có khảo sát
-                      </Text>
-                    </View>
+                    isCompleted ? (
+                      <View className="bg-blue-100 px-3 py-1 rounded-full">
+                        <Text className="text-blue-700 text-xs font-semibold">
+                          ✓ Đã hoàn thành khảo sát
+                        </Text>
+                      </View>
+                    ) : (
+                      <View className="bg-green-100 px-3 py-1 rounded-full">
+                        <Text className="text-green-700 text-xs font-semibold">
+                          Có khảo sát - Vui lòng hoàn thành
+                        </Text>
+                      </View>
+                    )
                   ) : (
                     <View className="bg-gray-200 px-3 py-1 rounded-full">
                       <Text className="text-gray-600 text-xs font-semibold">
