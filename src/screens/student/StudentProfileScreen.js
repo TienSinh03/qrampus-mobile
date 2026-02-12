@@ -40,7 +40,8 @@ const StudentProfileScreen = ({ navigation }) => {
       icon: 'person-outline',
       title: 'Thông tin cá nhân',
       subtitle: 'Xem và chỉnh sửa thông tin',
-      onPress: () => console.log('Profile info'),
+      // onPress: () => console.log('Profile info'),
+      onPress: () => navigation.navigate('ProfileDetail'),
     },
     {
       id: '2',

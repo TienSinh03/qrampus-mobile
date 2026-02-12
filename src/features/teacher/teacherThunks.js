@@ -154,4 +154,25 @@ export const getTeacherCoursesThunk = createAsyncThunk(
     }
 );
 
+/**
+ * Update teacher profile
+ * @param {Object} profileData - { full_name, dob, department, phone, email, office_hours }
+ */
+export const updateTeacherProfileThunk = createAsyncThunk(
+    'teacher/updateProfile',
+    async (profileData, { rejectWithValue }) => {
+        try {
+            const response = await instance.put('/personnels/me', profileData);
+            
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Cập nhật thông tin thất bại');
+            }
+            
+            return response?.data?.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Cập nhật thông tin thất bại');
+        }
+    }
+);
+
 // lấy danh sách phiên chụp ảnh của giảng viên với phân trang
