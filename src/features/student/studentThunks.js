@@ -56,7 +56,7 @@ export const getStudentProfileThunk = createAsyncThunk(
             return rejectWithValue(error.response?.data?.message || 'Lấy thông tin sinh viên thất bại');
         }
     }
-);
+);                                                                    
 
 /**
  * Lấy lịch học của sinh viên
