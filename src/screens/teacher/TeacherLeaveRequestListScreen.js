@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,121 +6,102 @@ import {
   ScrollView,
   RefreshControl,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useDispatch, useSelector } from 'react-redux';
+import { getTeacherLeaveRequestsThunk } from '../../features/leave-request/leaveRequestThunk';
+import { reasonTypes } from '../../utils/reason.type';
+import { DAYMAPPING } from '../../utils/day.mapping';
+
+// Helper function to compute hours remaining until class starts
+const computeHoursRemaining = (classDate, startHour) => {
+  if (!classDate || !startHour) return null;
+  try {
+    const [hours, minutes] = startHour.split(':').map(Number);
+    const classDateTime = new Date(classDate);
+    classDateTime.setHours(hours, minutes, 0, 0);
+    const now = new Date();
+    const diffMs = classDateTime - now;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    return diffHours > 0 ? diffHours : 0;
+  } catch (e) {
+    return null;
+  }
+};
+
+// Helper function to format date for display
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  try {
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  } catch (e) {
+    return dateString;
+  }
+};
 
 const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
+  const dispatch = useDispatch();
+  const { teacherLeaves, teacherLeavesLoading, teacherLeavesError } = useSelector((state) => state.leaveRequests);
+  
   const { schedule } = route?.params || {};
-  const [requests, setRequests] = useState([]);
   const [courses, setCourses] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all'); // pending, approved, rejected, all
   const [filterCourse, setFilterCourse] = useState(schedule?.courseCode || 'all');
   const [refreshing, setRefreshing] = useState(false);
   const [showCourseModal, setShowCourseModal] = useState(false);
 
+  // Compute hours remaining for each leave request
+  const leavesWithHours = useMemo(() => {
+    return teacherLeaves.map(leave => ({
+      ...leave,
+      hoursRemaining: computeHoursRemaining(
+        leave.classSession?.class_date,
+        leave.classSession?.start_hour
+      )
+    }));
+  }, [teacherLeaves]);
+  
   useEffect(() => {
     fetchRequests();
-  }, []);
+  }, [filterStatus]);
 
   const fetchRequests = async () => {
-    const mockRequests = [
-      {
-        id: 1,
-        studentName: 'Nguyễn Văn A',
-        studentId: '20210001',
-        studentAvatar: null,
-        courseCode: 'IT4788',
-        schedule: {
-          courseName: 'Lập trình Di động',
-          courseCode: 'IT4788',
-          date: '2025-12-08',
-          dayOfWeek: 'Thứ 2',
-          startTime: '07:00',
-          endTime: '09:00',
-          room: 'D3-201',
-        },
-        reasonType: 'sick',
-        reasonLabel: 'Bệnh',
-        note: 'Em bị sốt cao và đau đầu, đã đi khám bác sĩ và được nghỉ ngơi 2 ngày.',
-        attachments: [
-          { id: 1, uri: 'https://via.placeholder.com/150', name: 'giay_kham_benh.jpg', type: 'image' },
-        ],
-        status: 'pending',
-        createdAt: '2025-12-10 10:30:00',
-        hoursRemaining: 35, // 48h deadline
-      },
-      {
-        id: 2,
-        studentName: 'Trần Thị B',
-        studentId: '20210002',
-        studentAvatar: null,
-        courseCode: 'IT3090',
-        schedule: {
-          courseName: 'Cơ sở dữ liệu',
-          courseCode: 'IT3090',
-          date: '2025-12-09',
-          dayOfWeek: 'Thứ 3',
-          startTime: '13:00',
-          endTime: '15:00',
-          room: 'D5-302',
-        },
-        reasonType: 'family',
-        reasonLabel: 'Việc gia đình',
-        note: 'Em phải về quê gấp vì gia đình có việc khẩn cấp.',
-        attachments: [
-          { id: 2, uri: 'https://via.placeholder.com/150', name: 'giay_xin_phep.jpg', type: 'image' },
-        ],
-        status: 'pending',
-        createdAt: '2025-12-11 08:00:00',
-        hoursRemaining: 11,
-      },
-      {
-        id: 3,
-        studentName: 'Lê Văn C',
-        studentId: '20210003',
-        studentAvatar: null,
-        courseCode: 'IT4788',
-        schedule: {
-          courseName: 'Lập trình Di động',
-          courseCode: 'IT4788',
-          date: '2025-12-10',
-          dayOfWeek: 'Thứ 4',
-          startTime: '07:00',
-          endTime: '09:00',
-          room: 'D3-201',
-        },
-        reasonType: 'school_activity',
-        reasonLabel: 'Hoạt động trường',
-        note: 'Em tham gia cuộc thi Olympic Tin học cấp trường.',
-        attachments: [
-          { id: 3, uri: 'https://via.placeholder.com/150', name: 'giay_moi.pdf', type: 'pdf' },
-        ],
-        status: 'approved',
-        createdAt: '2025-12-09 14:00:00',
-        reviewedAt: '2025-12-09 16:00:00',
-      },
-    ];
-
-    // Extract unique courses
-    const uniqueCourses = [];
-    const courseCodes = new Set();
-    mockRequests.forEach(req => {
-      if (!courseCodes.has(req.courseCode)) {
-        courseCodes.add(req.courseCode);
-        uniqueCourses.push({
-          courseCode: req.schedule.courseCode,
-          name: req.schedule.courseName,
-          pendingCount: mockRequests.filter(r => r.courseCode === req.courseCode && r.status === 'pending').length,
-        });
-      }
-    });
-
-    setRequests(mockRequests);
-    setCourses(uniqueCourses);
+    const params = {};
+    if (filterStatus !== 'all') {
+      params.status = filterStatus;
+      
+    }
+    if (schedule?.id) {
+      params.schedule_id = schedule.id;
+    }
+    dispatch(getTeacherLeaveRequestsThunk(params));
   };
+
+  // Extract unique courses from teacherLeaves
+  useEffect(() => {
+    if (teacherLeaves.length > 0) {
+      const uniqueCourses = [];
+      const courseCodes = new Set();
+      teacherLeaves.forEach(req => {
+        const courseCode = req.classSession?.courseSection?.code || req.code;
+        if (courseCode && !courseCodes.has(courseCode)) {
+          courseCodes.add(courseCode);
+          uniqueCourses.push({
+            courseCode: courseCode,
+            name: req.classSession?.courseSection?.name || req.schedule?.courseName || courseCode,
+            pendingCount: teacherLeaves.filter(r => 
+              (r.classSession?.courseSection?.code ) === courseCode && r.status === 'pending'
+            ).length,
+          });
+        }
+      });
+      setCourses(uniqueCourses);
+    }
+  }, [teacherLeaves]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -167,42 +148,51 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
     }
   };
 
+  const getReasonType = (reasonType) => {
+    const reason = reasonTypes.find(r => r.value === reasonType);
+    return reason ? reason.label : reasonType || 'Không rõ lý do';
+  };
+
   const getReasonIcon = (reasonType) => {
-    switch (reasonType) {
-      case 'sick':
-        return 'medkit';
-      case 'family':
-        return 'home';
-      case 'school_activity':
-        return 'school';
-      default:
-        return 'ellipsis-horizontal';
-    }
+    const reason = reasonTypes.find(r => r.value === reasonType);
+    return reason ? reason.icon : 'help-circle';
   };
 
   const handleViewDetail = (request) => {
-    navigation.navigate('TeacherLeaveRequestDetail', { request });
+    // Add hoursRemaining to request before navigation
+    const requestWithHours = {
+      ...request,
+      hoursRemaining: computeHoursRemaining(
+        request.classSession?.class_date,
+        request.classSession?.start_hour
+      )
+    };
+    navigation.navigate('TeacherLeaveRequestDetail', { request: requestWithHours });
   };
 
-  const filteredRequests = requests.filter((req) => {
+  const filteredRequests = leavesWithHours.filter((req) => {
+    const reqCourseCode = req.classSession?.courseSection?.code || req.courseCode;
     const matchStatus = filterStatus === 'all' || req.status === filterStatus;
-    const matchCourse = filterCourse === 'all' || req.courseCode === filterCourse;
+    const matchCourse = filterCourse === 'all' || reqCourseCode === filterCourse;
     return matchStatus && matchCourse;
   });
 
-  const pendingCount = requests.filter(r => 
-    (filterCourse === 'all' || r.courseCode === filterCourse) && r.status === 'pending'
-  ).length;
-  const approvedCount = requests.filter(r => 
-    (filterCourse === 'all' || r.courseCode === filterCourse) && r.status === 'approved'
-  ).length;
-  const rejectedCount = requests.filter(r => 
-    (filterCourse === 'all' || r.courseCode === filterCourse) && r.status === 'rejected'
-  ).length;
+  const pendingCount = leavesWithHours.filter(r => {
+    const reqCourseCode = r.classSession?.courseSection?.code || r.courseCode;
+    return (filterCourse === 'all' || reqCourseCode === filterCourse) && r.status === 'pending';
+  }).length;
+  const approvedCount = leavesWithHours.filter(r => {
+    const reqCourseCode = r.classSession?.courseSection?.code || r.courseCode;
+    return (filterCourse === 'all' || reqCourseCode === filterCourse) && r.status === 'approved';
+  }).length;
+  const rejectedCount = leavesWithHours.filter(r => {
+    const reqCourseCode = r.classSession?.courseSection?.code || r.courseCode;
+    return (filterCourse === 'all' || reqCourseCode === filterCourse) && r.status === 'rejected';
+  }).length;
 
   // Count urgent requests (< 12h remaining)
-  const urgentCount = requests.filter(r => 
-    r.status === 'pending' && r.hoursRemaining < 12
+  const urgentCount = leavesWithHours.filter(r => 
+    r.status === 'pending' && r.hoursRemaining != null && r.hoursRemaining < 12
   ).length;
 
   return (
@@ -340,7 +330,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
             <Text className={`font-semibold ${
               filterStatus === 'all' ? 'text-purple-600' : 'text-white'
             }`}>
-              Tất cả ({requests.length})
+              Tất cả ({leavesWithHours.length})
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -364,9 +354,9 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
             </Text>
           </View>
         ) : (
-          filteredRequests.map((request) => (
+          filteredRequests.map((request, index) => (
             <TouchableOpacity
-              key={request.id}
+              key={index}
               onPress={() => handleViewDetail(request)}
               className="bg-white rounded-2xl p-4 mb-3"
               style={{
@@ -378,7 +368,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
               }}
             >
               {/* Urgent Badge */}
-              {request.status === 'pending' && request.hoursRemaining < 12 && (
+              {request.status === 'pending' && request.hoursRemaining != null && request.hoursRemaining < 12 && (
                 <View className="absolute top-0.5 right-2 bg-red-500 rounded-full px-2 py-1 z-10">
                   <Text className="text-white text-xs font-bold">
                     Còn {request.hoursRemaining}h
@@ -390,14 +380,14 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
               <View className="flex-row items-center mb-3">
                 <View className="w-12 h-12 bg-purple-100 rounded-full items-center justify-center mr-3">
                   <Text className="text-purple-700 font-bold text-lg">
-                    {request.studentName.charAt(0)}
+                    {(request.student?.full_name || 'S').charAt(0)}
                   </Text>
                 </View>
                 <View className="flex-1">
                   <Text className="text-gray-900 font-bold text-base">
-                    {request.studentName}
+                    {request.student?.full_name || 'Unknown'}
                   </Text>
-                  <Text className="text-gray-500 text-sm">MSV: {request.studentId}</Text>
+                  <Text className="text-gray-500 text-sm">MSSV: {request.student?.student_code || 'N/A'}</Text>
                 </View>
                 <View className={`px-3 py-1 rounded-full border ${getStatusColor(request.status)}`}>
                   <View className="flex-row items-center">
@@ -414,52 +404,52 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
                 <View className="flex-row items-center mb-1">
                   <View className="bg-purple-100 rounded-lg px-2 py-1 mr-2">
                     <Text className="text-purple-700 text-xs font-bold">
-                      {request.schedule.courseCode}
+                      {request.classSession?.courseSection?.code || 'N/A'}
                     </Text>
                   </View>
                   <Text className="text-gray-900 font-semibold flex-1" numberOfLines={1}>
-                    {request.schedule.courseName}
+                    {request.classSession?.courseSection?.name || 'Unknown Course'}
                   </Text>
                 </View>
                 <View className="flex-row items-center">
                   <Ionicons name="calendar-outline" size={12} color="#6b7280" />
-                  <Text className="text-gray-600 text-xs ml-1">
-                    {request.schedule.dayOfWeek}, {request.schedule.date}
+                  <Text className="text-gray-600 text-xs ml-1 mr-1.5">
+                    {request.classSession?.class_date ? DAYMAPPING[new Date(request.classSession.class_date).getDay()] : 'N/A'}, {formatDate(request.classSession?.class_date)}
                   </Text>
                   <Ionicons name="time-outline" size={12} color="#6b7280" className="ml-2" />
                   <Text className="text-gray-600 text-xs ml-1">
-                    {request.schedule.startTime} - {request.schedule.endTime}
+                    {request.classSession?.start_hour || 'N/A'} - {request.classSession?.end_hour || 'N/A'}
                   </Text>
                 </View>
               </View>
 
               {/* Reason */}
               <View className="flex-row items-center mb-2">
-                <Ionicons name={getReasonIcon(request.reasonType)} size={16} color="#7c3aed" />
+                <Ionicons name={getReasonIcon(request.reason_type)} size={16} color="#7c3aed" />
                 <Text className="text-purple-700 font-semibold text-sm ml-2">
-                  {request.reasonLabel}
+                  {getReasonType(request.reason_type) || 'Không rõ lý do'}
                 </Text>
               </View>
 
               {/* Note Preview */}
               <Text className="text-gray-600 text-sm mb-2" numberOfLines={2}>
-                {request.note}
+                {request.note || 'Không có ghi chú'}
               </Text>
 
               {/* Attachments */}
               <View className="flex-row items-center mb-2">
                 <Ionicons name="attach" size={14} color="#6b7280" />
                 <Text className="text-gray-600 text-xs ml-1">
-                  {request.attachments.length} tệp đính kèm
+                  {request.attachments?.length || 0} tệp đính kèm
                 </Text>
               </View>
 
               {/* Footer */}
               <View className="flex-row items-center justify-between pt-2 border-t border-gray-100">
                 <Text className="text-gray-500 text-xs">
-                  Nộp: {new Date(request.createdAt).toLocaleDateString('vi-VN')}
+                  Nộp: {request.created_at ? new Date(request.created_at).toLocaleDateString('vi-VN') : 'N/A'}
                 </Text>
-                {request.status === 'pending' && (
+                {request.status === 'pending' && request.hoursRemaining != null && (
                   <Text className={`text-xs font-semibold ${
                     request.hoursRemaining < 12 ? 'text-red-600' : 'text-orange-600'
                   }`}>
@@ -514,7 +504,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
                       Tất cả môn học
                     </Text>
                     <Text className="text-gray-600 text-sm">
-                      {requests.length} yêu cầu
+                      {leavesWithHours.length} yêu cầu
                     </Text>
                   </View>
                   {filterCourse === 'all' && (
@@ -546,7 +536,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
                         {course.name}
                       </Text>
                       <Text className="text-gray-600 text-sm">
-                        {requests.filter(request => request.courseCode === course.courseCode).length} yêu cầu
+                        {leavesWithHours.filter(request => (request.classSession?.courseSection?.code) === course.courseCode).length} yêu cầu
                       </Text>
                     </View>
                     {filterCourse === course.courseCode && (
