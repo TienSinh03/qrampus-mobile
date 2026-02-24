@@ -161,3 +161,24 @@ export const getStudentCoursesThunk = createAsyncThunk(
         }
     }
 );
+
+/**
+ * Update student profile
+ * @param {Object} profileData - { full_name, dob, class_name, major, phone, email }
+ */
+export const updateStudentProfileThunk = createAsyncThunk(
+    'student/updateProfile',
+    async (profileData, { rejectWithValue }) => {
+        try {
+            const response = await instance.put('/students/me', profileData);
+            
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Cập nhật thông tin thất bại');
+            }
+            
+            return response?.data?.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Cập nhật thông tin thất bại');
+        }
+    }
+);

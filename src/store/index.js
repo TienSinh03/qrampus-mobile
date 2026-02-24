@@ -5,6 +5,8 @@ import teacherReducer from '../features/teacher/teacherSlice';
 import imageSessionReducer from '../features/imageSession/ImageSessionSlice';
 import attendanceImageReducer from '../features/attendanceImage/attendanceImageSlice';
 import leaveRequestReducer from '../features/leave-request/leaveRequestSlice';
+import surveyReducer from '../features/survey/surveySlice';
+import surveyResponseReducer from '../features/surveyResponse/surveyResponseSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +16,8 @@ export const store = configureStore({
     imageSession: imageSessionReducer,
     attendanceImage: attendanceImageReducer,
     leaveRequests: leaveRequestReducer,
+    survey: surveyReducer,
+    surveyResponse: surveyResponseReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

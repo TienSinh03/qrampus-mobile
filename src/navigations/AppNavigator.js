@@ -31,6 +31,9 @@ import TeacherScheduleDetailScreen from '../screens/teacher/TeacherScheduleDetai
 import AttendancePhotoScreen from '../screens/teacher/AttendancePhotoScreen';
 import ImageSessionListScreen from '../screens/teacher/ImageSessionListScreen';
 import AttendanceImageScreen from '../screens/teacher/AttendanceImageScreen';
+import SurveyListScreen from '../screens/student/SurveyListScreen';
+import SurveyQuestionScreen from '../screens/student/SurveyQuestionScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -223,6 +226,31 @@ const AppNavigator = () => {
             animation: 'fade',
           }}
         />
+
+        <Stack.Screen
+          name="SurveyList"
+          component={SurveyListScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="SurveyQuestion"
+          component={SurveyQuestionScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="ProfileDetail"
+          component={ProfileScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );
