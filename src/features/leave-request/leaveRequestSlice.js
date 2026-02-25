@@ -6,6 +6,7 @@ import {
   getLeavesByScheduleThunk,
   approveLeaveRequestThunk,
   rejectLeaveRequestThunk,
+  cancelLeaveRequestThunk,
 } from "./leaveRequestThunk";
 
 const initialState = {
@@ -34,6 +35,11 @@ const initialState = {
   actionError: null,
   actionSuccess: false,
   
+  // Cancel state (student)
+  cancelLoading: false,
+  cancelError: null,
+  cancelSuccess: false,
+  
   // Pagination
   pagination: null,
 };
@@ -53,6 +59,12 @@ const leaveRequestSlice = createSlice({
       state.actionLoading = false;
       state.actionError = null;
       state.actionSuccess = false;
+    },
+    // Reset cancel state
+    resetCancelState: (state) => {
+      state.cancelLoading = false;
+      state.cancelError = null;
+      state.cancelSuccess = false;
     },
     // Reset detail state
     resetDetailState: (state) => {
@@ -203,6 +215,29 @@ const leaveRequestSlice = createSlice({
       .addCase(rejectLeaveRequestThunk.rejected, (state, action) => {
         state.actionLoading = false;
         state.actionError = action.payload || "Tu choi yeu cau nghi that bai";
+      })
+
+      // ==================== CANCEL LEAVE REQUEST (STUDENT) ====================
+      .addCase(cancelLeaveRequestThunk.pending, (state) => {
+        state.cancelLoading = true;
+        state.cancelError = null;
+        state.cancelSuccess = false;
+      })
+      .addCase(cancelLeaveRequestThunk.fulfilled, (state, action) => {
+        state.cancelLoading = false;
+        state.cancelSuccess = true;
+        // Remove deleted leave from student list
+        if (action.payload?.id) {
+          state.studentLeaves = state.studentLeaves.filter(l => l.id !== action.payload.id);
+          // Clear current detail if viewing the deleted request
+          if (state.currentLeaveRequest?.id === action.payload.id) {
+            state.currentLeaveRequest = null;
+          }
+        }
+      })
+      .addCase(cancelLeaveRequestThunk.rejected, (state, action) => {
+        state.cancelLoading = false;
+        state.cancelError = action.payload || "Huy yeu cau nghi that bai";
       });
   },
 });
@@ -210,6 +245,7 @@ const leaveRequestSlice = createSlice({
 export const {
   resetCreateState,
   resetActionState,
+  resetCancelState,
   resetDetailState,
   clearErrors,
   updateLeaveInList,

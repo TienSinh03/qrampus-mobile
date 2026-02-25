@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,18 +7,52 @@ import {
   RefreshControl,
   Modal,
   Image,
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useDispatch, useSelector } from 'react-redux';
+import { getLeaveRequestsOfStudentThunk, cancelLeaveRequestThunk } from '../../features/leave-request/leaveRequestThunk';
+import { resetCancelState } from '../../features/leave-request/leaveRequestSlice';
+import { reasonTypes } from '../../utils/reason.type';
+import { DAYMAPPING } from '../../utils/day.mapping';
 import LeaveRequestDetailModal from '../../components/modal/LeaveRequestDetailModal';
 
-const LeaveRequestListScreen = ({ navigation, route }) => {
-  const [requests, setRequests] = useState([]);
+// Helper function to format date for display
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  try {
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  } catch (e) {
+    return dateString;
+  }
+};
+
+// Helper function to get reason label from type
+const getReasonLabel = (reasonType) => {
+  const reason = reasonTypes.find(r => r.value === reasonType);
+  return reason ? reason.label : reasonType || 'Không rõ';
+};
+
+const LeaveRequestListScreen = ({ navigation, route }) => {  
+  const dispatch = useDispatch();
+  const { 
+    studentLeaves, 
+    studentLeavesLoading, 
+    studentLeavesError,
+    cancelLoading,
+    cancelSuccess,
+    cancelError
+  } = useSelector((state) => state.leaveRequests);
+  
+  const { schedule } = route?.params || {};
+
   const [courses, setCourses] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all'); // all, pending, approved, rejected
-  const [filterCourse, setFilterCourse] = useState(route?.params?.schedule.courseCode || 'all'); // all or course_id
+  const [filterCourse, setFilterCourse] = useState(schedule?.courseCode || 'all'); // all or course_code
   const [refreshing, setRefreshing] = useState(false);
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [showDetailRequestModal, setShowDetailRequestModal] = useState(false);
@@ -26,105 +60,59 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     fetchRequests();
-  }, []);
+  }, [filterStatus]);
+
+  // Handle cancel success/error
+  useEffect(() => {
+    if (cancelSuccess) {
+      Alert.alert(
+        'Thành công',
+        'Đã xóa yêu cầu nghỉ phép thành công.',
+        [{
+          text: 'OK',
+          onPress: () => {
+            setShowDetailRequestModal(false);
+            setSelectedRequest(null);
+            dispatch(resetCancelState());
+          }
+        }]
+      );
+    }
+  }, [cancelSuccess]);
+
+  useEffect(() => {
+    if (cancelError) {
+      Alert.alert('Lỗi', cancelError);
+      dispatch(resetCancelState());
+    }
+  }, [cancelError]);
+
+  // Extract unique courses from studentLeaves
+  useEffect(() => {
+    if (studentLeaves.length > 0) {
+      const uniqueCourses = [];
+      const courseCodes = new Set();
+      studentLeaves.forEach(req => {
+        const courseCode = req.classSession?.courseSection?.code;
+        if (courseCode && !courseCodes.has(courseCode)) {
+          courseCodes.add(courseCode);
+          uniqueCourses.push({
+            courseCode: courseCode,
+            name: req.classSession?.courseSection?.name || courseCode,
+            requestCount: studentLeaves.filter(r => r.classSession?.courseSection?.code === courseCode).length,
+          });
+        }
+      });
+      setCourses(uniqueCourses);
+    }
+  }, [studentLeaves]);
 
   const fetchRequests = async () => {
-    // Call API to get student's leave requests
-
-    const mockRequests = [
-      {
-        id: 1,
-        courseCode: 'IT4788',
-        schedule: {
-          courseName: 'Lập trình Di động',
-          courseCode: 'IT4788',
-          date: '2025-12-08',
-          dayOfWeek: 'Thứ 2',
-          startTime: '07:00',
-          endTime: '09:00',
-          room: 'D3-201',
-          teacherName: 'TS. Nguyễn Văn A',
-        },
-        reasonType: 'sick',
-        reasonLabel: 'Bệnh',
-        note: 'Em bị sốt cao và đau đầu, đã đi khám bác sĩ và được nghỉ ngơi 2 ngày.',
-        attachments: [
-          { id: 1, uri: 'https://via.placeholder.com/150', name: 'giay_kham_benh.jpg' },
-        ],
-        status: 'approved', // pending, approved, rejected
-        rejectedReason: null,
-        createdAt: '2025-12-07 10:30:00',
-        reviewedAt: '2025-12-07 14:00:00',
-        reviewedBy: 'TS. Nguyễn Văn A',
-      },
-      {
-        id: 2,
-        courseCode: 'IT3090',
-        schedule: {
-          courseName: 'Cơ sở dữ liệu',
-          courseCode: 'IT3090',
-          date: '2025-12-09',
-          dayOfWeek: 'Thứ 3',
-          startTime: '13:00',
-          endTime: '15:00',
-          room: 'D5-302',
-          teacherName: 'PGS. Trần Thị B',
-        },
-        reasonType: 'family',
-        reasonLabel: 'Việc gia đình',
-        note: 'Em phải về quê gấp vì gia đình có việc khẩn cấp.',
-        attachments: [
-          { id: 2, uri: 'https://via.placeholder.com/150', name: 'giay_xin_phep.jpg' },
-        ],
-        status: 'pending',
-        rejectedReason: null,
-        createdAt: '2025-12-08 08:00:00',
-        reviewedAt: null,
-        reviewedBy: null,
-      },
-      {
-        id: 3,
-        courseCode: 'IT4060',
-        schedule: {
-          courseName: 'Mạng máy tính',
-          courseCode: 'IT4060',
-          date: '2025-12-05',
-          dayOfWeek: 'Thứ 5',
-          startTime: '09:15',
-          endTime: '11:15',
-          room: 'TC-209',
-          teacherName: 'TS. Lê Văn C',
-        },
-        reasonType: 'other',
-        reasonLabel: 'Khác',
-        note: 'Em bị muộn xe buýt nên không kịp đến lớp.',
-        attachments: [
-          { id: 3, uri: 'https://via.placeholder.com/150', name: 'screenshot.jpg' },
-        ],
-        status: 'rejected',
-        rejectedReason: 'Lý do không hợp lệ. Vui lòng chuẩn bị tốt hơn để không bị muộn.',
-        createdAt: '2025-12-05 10:00:00',
-        reviewedAt: '2025-12-05 15:30:00',
-        reviewedBy: 'TS. Lê Văn C',
-      },
-    ];
-
-    // Tạo danh sách môn học duy nhất từ các yêu cầu
-    const uniqueCourses = [];
-    const courseCodes = new Set();
-    mockRequests.forEach(req => {
-      if (!courseCodes.has(req.courseCode)) {
-        courseCodes.add(req.courseCode);
-        uniqueCourses.push({
-          courseCode: req.schedule.courseCode,
-          name: req.schedule.courseName,
-          requestCount: mockRequests.filter(r => r.courseCode === req.courseCode).length,
-        });
-      }
-    });
-
-    setRequests(mockRequests);
-    setCourses(uniqueCourses);
+    const params = {};
+    if (filterStatus !== 'all') {
+      params.status = filterStatus;
+    }
+    dispatch(getLeaveRequestsOfStudentThunk(params));
   };
 
   const onRefresh = async () => {
@@ -173,35 +161,33 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
   };
 
   const getReasonIcon = (reasonType) => {
-    switch (reasonType) {
-      case 'sick':
-        return 'medkit';
-      case 'family':
-        return 'home';
-      case 'school_activity':
-        return 'school';
-      default:
-        return 'ellipsis-horizontal';
-    }
+    const reason = reasonTypes.find(r => r.value === reasonType);
+    return reason ? reason.icon : 'ellipsis-horizontal';
   };
 
-  const filteredRequests = requests.filter((req) => {
+  // Handle cancel request
+  const handleCancelRequest = (leaveRequestId) => {
+    dispatch(cancelLeaveRequestThunk(leaveRequestId));
+  };
+
+  const filteredRequests = studentLeaves.filter((req) => {
     // Filter by status
     const matchStatus = filterStatus === 'all' || req.status === filterStatus;
     // Filter by course
-    const matchCourse = filterCourse === 'all' || req.courseCode === filterCourse;
+    const reqCourseCode = req.classSession?.courseSection?.code;
+    const matchCourse = filterCourse === 'all' || reqCourseCode === filterCourse;
     return matchStatus && matchCourse;
   });
 
   const currentCourse = courses.find(c => c.courseCode === filterCourse);
-  const pendingCount = requests.filter(r => 
-    (filterCourse === 'all' || r.courseCode === filterCourse) && r.status === 'pending'
+  const pendingCount = studentLeaves.filter(r => 
+    (filterCourse === 'all' || r.classSession?.courseSection?.code === filterCourse) && r.status === 'pending'
   ).length;
-  const approvedCount = requests.filter(r => 
-    (filterCourse === 'all' || r.courseCode === filterCourse) && r.status === 'approved'
+  const approvedCount = studentLeaves.filter(r => 
+    (filterCourse === 'all' || r.classSession?.courseSection?.code === filterCourse) && r.status === 'approved'
   ).length;
-  const rejectedCount = requests.filter(r => 
-    (filterCourse === 'all' || r.courseCode === filterCourse) && r.status === 'rejected'
+  const rejectedCount = studentLeaves.filter(r => 
+    (filterCourse === 'all' || r.classSession?.courseSection?.code === filterCourse) && r.status === 'rejected'
   ).length;
 
   return (
@@ -262,7 +248,7 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
                 filterStatus === 'all' ? 'text-blue-600' : 'text-white'
               }`}
             >
-              Tất cả ({requests.length})
+              Tất cả ({studentLeaves.length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -345,9 +331,9 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
               {/* Header */}
               <View className="flex-row items-center justify-between mb-2">
                 <View className="flex-row items-center flex-1">
-                  <Ionicons name={getReasonIcon(request.reasonType)} size={20} color="#2563eb" />
+                  <Ionicons name={getReasonIcon(request.reason_type)} size={20} color="#2563eb" />
                   <Text className="text-gray-900 font-bold text-base ml-2" numberOfLines={1}>
-                    {request.reasonLabel}
+                    {getReasonLabel(request.reason_type)}
                   </Text>
                 </View>
                 <View className={`px-3 py-1 rounded-full ${getStatusColor(request.status)}`}>
@@ -363,41 +349,41 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
               {/* Schedule Info */}
               <View className="bg-gray-50 rounded-xl p-3 mb-2">
                 <Text className="text-gray-900 font-semibold mb-1">
-                  {request.schedule.courseName}
+                  {request.classSession?.courseSection?.name || 'Unknown Course'}
                 </Text>
                 <View className="flex-row items-center">
                   <Ionicons name="calendar-outline" size={12} color="#6b7280" />
                   <Text className="text-gray-600 text-xs ml-1">
-                    {request.schedule.dayOfWeek}, {request.schedule.date}
+                    {request.classSession?.class_date ? DAYMAPPING[new Date(request.classSession.class_date).getDay()] : 'N/A'}, {formatDate(request.classSession?.class_date)}
                   </Text>
                   <Ionicons name="time-outline" size={12} color="#6b7280" className="ml-2" />
                   <Text className="text-gray-600 text-xs ml-1">
-                    {request.schedule.startTime} - {request.schedule.endTime}
+                    {request.classSession?.start_hour || 'N/A'} - {request.classSession?.end_hour || 'N/A'}
                   </Text>
                 </View>
               </View>
 
               {/* Note Preview */}
               <Text className="text-gray-600 text-sm mb-2" numberOfLines={2}>
-                {request.note}
+                {request.note || 'Không có ghi chú'}
               </Text>
 
               {/* Attachments */}
               <View className="flex-row items-center mb-2">
                 <Ionicons name="attach" size={14} color="#6b7280" />
                 <Text className="text-gray-600 text-xs ml-1">
-                  {request.attachments.length} tệp đính kèm
+                  {request.attachments?.length || 0} tệp đính kèm
                 </Text>
               </View>
 
               {/* Footer */}
               <View className="flex-row items-center justify-between pt-2 border-t border-gray-100">
                 <Text className="text-gray-500 text-xs">
-                  Nộp: {new Date(request.createdAt).toLocaleDateString('vi-VN')}
+                  Nộp: {formatDate(request.created_at)}
                 </Text>
-                {request.reviewedAt && (
+                {request.reviewed_at && (
                   <Text className="text-gray-500 text-xs">
-                    Duyệt: {new Date(request.reviewedAt).toLocaleDateString('vi-VN')}
+                    Duyệt: {formatDate(request.reviewed_at)}
                   </Text>
                 )}
               </View>
@@ -448,7 +434,7 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
                     Tất cả môn học
                   </Text>
                   <Text className="text-gray-600 text-sm">
-                    {requests.length} yêu cầu
+                    {studentLeaves.length} yêu cầu
                   </Text>
                 </View>
                 {filterCourse === 'all' && (
@@ -502,6 +488,8 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
         getStatusIcon={getStatusIcon}
         getStatusText={getStatusText}
         getReasonIcon={getReasonIcon}
+        onCancelRequest={handleCancelRequest}
+        cancelLoading={cancelLoading}
       />
     
     </SafeAreaView>
