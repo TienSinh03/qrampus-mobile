@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -15,11 +16,24 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import * as Device from 'expo-device';
+import { useDispatch, useSelector } from 'react-redux';
 import CreateLeaveRequestModal from '../../components/modal/CreateLeaveRequestModal';
 import ReasonPickerModal from '../../components/modal/ReasonPickerModal';
+import { createLeaveRequestThunk, getLeaveRequestsOfStudentThunk } from '../../features/leave-request/leaveRequestThunk';
+import { resetCreateState } from '../../features/leave-request/leaveRequestSlice';
+import { getStudentSchedulesThunk } from '../../features/student/studentThunks';
+import { selectStudentSchedules, selectSchedulesLoading } from '../../features/student/studentSlice';
+import { reasonTypes } from '../../utils/reason.type';
+import { DAYMAPPING } from '../../utils/day.mapping';
+import { formatDate } from '../../utils/date.helper';
 
-const LeaveRequestScreen = ({ navigation }) => {
-  const [schedules, setSchedules] = useState([]);
+const LeaveRequestScreen = ({ navigation, route }) => {
+  const dispatch = useDispatch();
+  const { createLoading, createError, createSuccess } = useSelector((state) => state.leaveRequests);
+  const schedulesByDate = useSelector(selectStudentSchedules);
+  const schedulesLoading = useSelector(selectSchedulesLoading);
+  const { studentLeaves } = useSelector((state) => state.leaveRequests);
+  
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [reason, setReason] = useState('');
@@ -27,64 +41,70 @@ const LeaveRequestScreen = ({ navigation }) => {
   const [note, setNote] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [showReasonPicker, setShowReasonPicker] = useState(false);
-
-  const reasonTypes = [
-    { value: 'sick', label: 'Bệnh', icon: 'medkit' },
-    { value: 'family', label: 'Việc gia đình', icon: 'home' },
-    { value: 'school_activity', label: 'Hoạt động trường', icon: 'school' },
-    { value: 'other', label: 'Khác', icon: 'ellipsis-horizontal' },
-  ];
-
+  
   useEffect(() => {
     fetchSchedules();
   }, []);
 
+  // Fetch student's leave requests to check which schedules already have requests
+  useEffect(() => {
+    dispatch(getLeaveRequestsOfStudentThunk());
+  }, [dispatch]);
+
+  // Biến đổi lịch học và đánh dấu những lịch đã có yêu cầu nghỉ phép
+  const schedules = useMemo(() => {
+    if (!schedulesByDate || !Array.isArray(schedulesByDate)) return [];
+    
+    // Get set of sessionIds that already have leave requests
+    const sessionsWithLeaveRequests = new Set(
+      (studentLeaves || []).map(leave => leave.classSession?.id || leave.class_session_id)
+    );
+
+    return schedulesByDate.map(schedule => ({
+      ...schedule,
+      hasLeaveRequest: sessionsWithLeaveRequests.has(schedule.sessionId),
+    }));
+  }, [schedulesByDate, studentLeaves]);
+
+  // Handle create success
+  useEffect(() => {
+    if (createSuccess) {
+      Alert.alert(
+        'Thành công',
+        'Đơn xin nghỉ phép đã được gửi. Vui lòng chờ giảng viên phê duyệt.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setShowCreateModal(false);
+              resetForm();
+              dispatch(resetCreateState());
+              navigation.navigate('LeaveRequestList');
+            },
+          },
+        ]
+      );
+    }
+  }, [createSuccess]);
+
+  // Handle create error
+  useEffect(() => {
+    if (createError) {
+      Alert.alert('Lỗi', createError);
+      dispatch(resetCreateState());
+    }
+  }, [createError]);
+
   const fetchSchedules = async () => {
-    // Call API to get student's schedules
+    // Fetch schedules for the next 2 weeks
+    const today = new Date();
+    const twoWeeksLater = new Date();
+    twoWeeksLater.setDate(today.getDate() + 14);
 
-    const mockSchedules = [
-      {
-        id: 1,
-        courseName: 'Lập trình Di động',
-        courseCode: 'IT4788',
-        date: '2025-12-08',
-        dayOfWeek: 'Thứ 2',
-        startTime: '07:00',
-        endTime: '09:00',
-        room: 'D3-201',
-        teacherName: 'TS. Nguyễn Văn A',
-        attendanceStatus: 'absent', // present, absent, excused_absent, null (chưa điểm danh)
-        hasLeaveRequest: false,
-      },
-      {
-        id: 2,
-        courseName: 'Cơ sở dữ liệu',
-        courseCode: 'IT3090',
-        date: '2025-12-09',
-        dayOfWeek: 'Thứ 3',
-        startTime: '13:00',
-        endTime: '15:00',
-        room: 'D5-302',
-        teacherName: 'PGS. Trần Thị B',
-        attendanceStatus: null,
-        hasLeaveRequest: false,
-      },
-      {
-        id: 3,
-        courseName: 'Mạng máy tính',
-        courseCode: 'IT4060',
-        date: '2025-12-10',
-        dayOfWeek: 'Thứ 4',
-        startTime: '09:15',
-        endTime: '11:15',
-        room: 'TC-209',
-        teacherName: 'TS. Lê Văn C',
-        attendanceStatus: 'absent',
-        hasLeaveRequest: true,
-      },
-    ];
+    const startDate = today.toISOString().split('T')[0];
+    const endDate = twoWeeksLater.toISOString().split('T')[0];
 
-    setSchedules(mockSchedules);
+    dispatch(getStudentSchedulesThunk({ startDate, endDate }));
   };
 
   const handleCreateRequest = (schedule) => {
@@ -187,28 +207,26 @@ const LeaveRequestScreen = ({ navigation }) => {
     }
 
     // Get device info
-    const deviceId = await Device.osInternalBuildId;
-    const deviceName = Device.modelName;
+    // const deviceId = await Device.osInternalBuildId;
+    // const deviceName = Device.modelName;
 
-    // Check device ID against registered devices
-    // If device is not recognized, require OTP verification
+    // Build FormData for API
+    const formData = new FormData();
+    formData.append('class_session_id', selectedSchedule.sessionId);
+    formData.append('reason_type', reasonType);
+    formData.append('note', note.trim());
 
-    // Call API to create leave request
+    // Add attachments
+    attachments.forEach((attachment, index) => {
+      formData.append('attachments', {
+        uri: attachment.uri,
+        type: attachment.type === 'image' ? 'image/jpeg' : 'application/pdf',
+        name: attachment.name || `attachment_${index}.jpg`,
+      });
+    });
 
-    Alert.alert(
-      'Thành công',
-      'Đơn xin nghỉ phép đã được gửi. Vui lòng chờ giảng viên phê duyệt.',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            setShowCreateModal(false);
-            resetForm();
-            navigation.navigate('LeaveRequestList');
-          },
-        },
-      ]
-    );
+    // Dispatch create leave request
+    dispatch(createLeaveRequestThunk(formData));
   };
 
   const resetForm = () => {
@@ -220,12 +238,14 @@ const LeaveRequestScreen = ({ navigation }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'present':
+      case 'completed':
         return 'bg-green-100 text-green-700';
-      case 'absent':
-        return 'bg-red-100 text-red-700';
-      case 'excused_absent':
+      case 'ongoing':
         return 'bg-blue-100 text-blue-700';
+      case 'scheduled':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'cancelled':
+        return 'bg-red-100 text-red-700';
       default:
         return 'bg-gray-100 text-gray-700';
     }
@@ -233,14 +253,16 @@ const LeaveRequestScreen = ({ navigation }) => {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'present':
-        return 'Có mặt';
-      case 'absent':
-        return 'Vắng';
-      case 'excused_absent':
-        return 'Vắng có phép';
+      case 'completed':
+        return 'Đã hoàn thành';
+      case 'ongoing':
+        return 'Đang diễn ra';
+      case 'scheduled':
+        return 'Sắp diễn ra';
+      case 'cancelled':
+        return 'Đã hủy';
       default:
-        return 'Chưa điểm danh';
+        return 'Chưa xác định';
     }
   };
 
@@ -269,67 +291,80 @@ const LeaveRequestScreen = ({ navigation }) => {
 
       {/* Schedule List */}
       <ScrollView className="flex-1 px-6 pt-4" showsVerticalScrollIndicator={false}>
-        {schedules.map((schedule) => (
-          <View
-            key={schedule.id}
-            className="bg-white rounded-2xl p-4 mb-3"
-            style={{
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.1,
-              shadowRadius: 2,
-              elevation: 2,
-            }}
-          >
-            {/* Schedule Info */}
-            <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-gray-900 font-bold text-base">
-                {schedule.courseName}
+        {schedulesLoading ? (
+          <View className="flex-1 items-center justify-center py-10">
+            <ActivityIndicator size="large" color="#2563eb" />
+            <Text className="text-gray-500 mt-2">Đang tải lịch học...</Text>
+          </View>
+        ) : schedules.length === 0 ? (
+          <View className="flex-1 items-center justify-center py-10">
+            <Ionicons name="calendar-outline" size={48} color="#9ca3af" />
+            <Text className="text-gray-500 mt-2">Không có lịch học trong 2 tuần tới</Text>
+          </View>
+        ) : (
+          schedules.map((schedule) => (
+            <View
+              key={schedule.sessionId || schedule.id}
+              className="bg-white rounded-2xl p-4 mb-3"
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.1,
+                shadowRadius: 2,
+                elevation: 2,
+              }}
+            >
+              {/* Schedule Info */}
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-gray-900 font-bold text-base flex-1 mr-2" numberOfLines={1}>
+                  {schedule.courseName || 'Unknown Course'}
+                </Text>
+                <View className={`px-3 py-1 rounded-full ${getStatusColor(schedule.sessionStatus)}`}>
+                  <Text className="text-xs font-semibold">
+                    {getStatusText(schedule.sessionStatus)}
+                  </Text>
+                </View>
+              </View>
+
+              <Text className="text-gray-600 text-sm mb-2">
+                {schedule.courseCode || 'N/A'} • {schedule.room || 'N/A'}
               </Text>
-              <View className={`px-3 py-1 rounded-full ${getStatusColor(schedule.attendanceStatus)}`}>
-                <Text className="text-xs font-semibold">
-                  {getStatusText(schedule.attendanceStatus)}
+
+              <View className="flex-row items-center mb-3">
+                <Ionicons name="calendar-outline" size={14} color="#6b7280" />
+                <Text className="text-gray-600 text-sm ml-1">
+                  {schedule.dayOfWeek || (schedule.classDate && DAYMAPPING[new Date(schedule.classDate).getDay()] || 'N/A')}, {formatDate(schedule.classDate)}
+                </Text>
+                <Ionicons name="time-outline" size={14} color="#6b7280" style={{ marginLeft: 12 }} />
+                <Text className="text-gray-600 text-sm ml-1">
+                  {schedule.startHour || 'N/A'} - {schedule.endHour || 'N/A'}
                 </Text>
               </View>
-            </View>
 
-            <Text className="text-gray-600 text-sm mb-2">
-              {schedule.courseCode} • {schedule.room}
-            </Text>
-
-            <View className="flex-row items-center mb-3">
-              <Ionicons name="calendar-outline" size={14} color="#6b7280" />
-              <Text className="text-gray-600 text-sm ml-1">
-                {schedule.dayOfWeek}, {schedule.date}
-              </Text>
-              <Ionicons name="time-outline" size={14} color="#6b7280" className="ml-3" />
-              <Text className="text-gray-600 text-sm ml-1">
-                {schedule.startTime} - {schedule.endTime}
-              </Text>
-            </View>
-
-            <View className="flex-row items-center mb-3">
-              <Ionicons name="person-outline" size={14} color="#6b7280" />
-              <Text className="text-gray-600 text-sm ml-1">{schedule.teacherName}</Text>
-            </View>
-
-            {/* Action Button */}
-            {schedule.hasLeaveRequest ? (
-              <View className="bg-gray-100 rounded-xl py-3 flex-row items-center justify-center">
-                <Ionicons name="checkmark-circle" size={18} color="#6b7280" />
-                <Text className="text-gray-600 text-sm ml-2">Đã nộp đơn</Text>
+              <View className="flex-row items-center mb-3">
+                <Ionicons name="person-outline" size={14} color="#6b7280" />
+                <Text className="text-gray-600 text-sm ml-1">{schedule.teacherName || 'N/A'}</Text>
               </View>
-            ) : (
-              <TouchableOpacity
-                onPress={() => handleCreateRequest(schedule)}
-                className="bg-blue-600 rounded-xl py-3 flex-row items-center justify-center"
-              >
-                <Ionicons name="document-text" size={18} color="white" />
-                <Text className="text-white font-bold text-sm ml-2">Nộp đơn xin nghỉ</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        ))}
+
+              {/* Action Button */}
+              {schedule.hasLeaveRequest ? (
+                <View className="bg-gray-100 rounded-xl py-3 flex-row items-center justify-center">
+                  <Ionicons name="checkmark-circle" size={18} color="#6b7280" />
+                  <Text className="text-gray-600 text-sm ml-2">Đã nộp đơn</Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => handleCreateRequest(schedule)}
+                  className="bg-blue-600 rounded-xl py-3 flex-row items-center justify-center"
+                >
+                  <Ionicons name="document-text" size={18} color="white" />
+                  <Text className="text-white font-bold text-sm ml-2">Nộp đơn xin nghỉ</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))
+        )}
+        <View className="h-4" />
       </ScrollView>
 
       {/* Create Request Modal */}

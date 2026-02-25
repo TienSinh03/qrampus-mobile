@@ -10,7 +10,7 @@ export const createLeaveRequestThunk = createAsyncThunk(
     'leaveRequests/create',
     async (formData, { rejectWithValue }) => {
         try {
-            const response = await instance.post('/leave-requests/create', formData, {
+            const response = await instance.post('/leave-requests/student', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -185,6 +185,34 @@ export const rejectLeaveRequestThunk = createAsyncThunk(
         } catch (error) {
             return rejectWithValue(
                 error.response?.data?.message || error.message || 'Từ chối yêu cầu nghỉ thất bại'
+            );
+        }
+    }
+)
+
+// ==================== STUDENT CANCEL THUNK ====================
+
+/**
+ * Hủy yêu cầu nghỉ phép (Sinh viên)
+ * Chỉ được hủy khi đang ở trạng thái pending
+ */
+export const cancelLeaveRequestThunk = createAsyncThunk(
+    'leaveRequests/student/cancel',
+    async (leaveRequestId, { rejectWithValue }) => {
+        try {
+            const response = await instance.delete(`/leave-requests/student/${leaveRequestId}`);
+
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Hủy yêu cầu nghỉ phép thất bại');
+            }
+
+            return {
+                id: leaveRequestId,
+                ...response.data.data
+            };
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Hủy yêu cầu nghỉ phép thất bại'
             );
         }
     }

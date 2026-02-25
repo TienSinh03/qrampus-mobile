@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { formatDate } from '../../utils/date.helper';
 
 const CreateLeaveRequestModal = ({
   visible,
@@ -54,7 +55,7 @@ const CreateLeaveRequestModal = ({
                 {selectedSchedule.courseName}
               </Text>
               <Text className="text-gray-600 text-sm">
-                {selectedSchedule.dayOfWeek}, {selectedSchedule.date} • {selectedSchedule.startTime} - {selectedSchedule.endTime}
+                {selectedSchedule.dayOfWeek}, {formatDate(selectedSchedule.classDate)} • {selectedSchedule.startHour} - {selectedSchedule.endHour}
               </Text>
             </View>
           )}
@@ -113,13 +114,13 @@ const CreateLeaveRequestModal = ({
               className="bg-gray-50 rounded-xl p-3 flex-row items-center justify-between mb-2"
             >
               <Image
-                source={{ uri: attachment.uri }}
+                source={{ uri: attachment.url }}
                 className="w-16 h-16 rounded-lg"
                 resizeMode="cover"
               />
               <View className="flex-1 ml-3">
                 <Text className="text-gray-900 font-semibold" numberOfLines={1}>
-                  {attachment.name}
+                  {attachment?.originalName}
                 </Text>
                 <Text className="text-gray-500 text-xs">
                   {attachment.size ? `${(attachment.size / 1024).toFixed(0)} KB` : 'N/A'}
