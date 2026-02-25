@@ -352,6 +352,19 @@ const LeaveRequestScreen = ({ navigation, route }) => {
                   <Ionicons name="checkmark-circle" size={18} color="#6b7280" />
                   <Text className="text-gray-600 text-sm ml-2">Đã nộp đơn</Text>
                 </View>
+              ) : schedule.sessionStatus !== 'scheduled' ? (
+                <View className="bg-gray-100 rounded-xl py-3 flex-row items-center justify-center">
+                  <Ionicons name="lock-closed" size={18} color="#9ca3af" />
+                  <Text className="text-gray-400 text-sm ml-2">
+                    {schedule.sessionStatus === 'completed' 
+                      ? 'Buổi học đã kết thúc'
+                      : schedule.sessionStatus === 'ongoing'
+                      ? 'Buổi học đang diễn ra'
+                      : schedule.sessionStatus === 'cancelled'
+                      ? 'Buổi học đã hủy'
+                      : 'Không thể nộp đơn'}
+                  </Text>
+                </View>
               ) : (
                 <TouchableOpacity
                   onPress={() => handleCreateRequest(schedule)}
@@ -382,6 +395,7 @@ const LeaveRequestScreen = ({ navigation, route }) => {
         takePhoto={takePhoto}
         pickImage={pickImage}
         handleSubmit={handleSubmit}
+        createLoading={createLoading}
       />
 
       {/* Reason Picker Modal */}
