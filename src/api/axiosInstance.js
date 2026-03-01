@@ -83,11 +83,11 @@ instance.interceptors.response.use(
         try {
           const response = await axios.post(
             `${API_URL}/auth/refresh`,
-            { refreshToken: refreshToken }
+            { refresh_token: refreshToken }
           );
 
           if (response.status === 200) {
-            const newAccessToken = response.data.response.accessToken;
+            const newAccessToken = response.data?.data?.accessToken;
             await SecureStore.setItemAsync("accessToken", newAccessToken);
 
             // cập nhật access token cho các request tiếp theo
