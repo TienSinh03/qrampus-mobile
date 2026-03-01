@@ -1,6 +1,7 @@
 import { setAccessToken, clearToken, instance } from "../../api/axiosInstance";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as SecureStore from "expo-secure-store";
+import { getDevicePayload } from "../../utils/device.helper";
 
 // Định nghĩa các role hợp lệ cho từng loại đăng nhập
 const ALLOWED_ROLES = {
@@ -45,7 +46,9 @@ export const loginThunk = createAsyncThunk(
   'auth/login',
   async ({ user_name, password, loginRole }, { rejectWithValue }) => {
     try {
-      const res = await instance.post('/auth/login', { user_name, password });
+      const device_payload = loginRole === 'student' ? await getDevicePayload() : null;
+
+      const res = await instance.post('/auth/login', { user_name, password, device_payload });
       const response = res?.data || {};
       
       if (!response.success) {
@@ -85,11 +88,13 @@ export const loginThunk = createAsyncThunk(
       
       return { accessToken, refreshToken, user };
     } catch (err) {
-
       if (err?.response?.data) {
         const errorData = err.response.data;
-        const msg = errorData?.message || 'Đăng nhập thất bại';
-        return rejectWithValue(msg);
+        // Bắt lỗi DEVICE_MISMATCH riêng
+        if (errorData?.error_code === 'DEVICE_MISMATCH') {
+          return rejectWithValue({ message: errorData.message, error_code: 'DEVICE_MISMATCH' });
+        }
+        return rejectWithValue(errorData?.message || 'Đăng nhập thất bại');
       }
       
       const msg = err?.message || 'Đăng nhập thất bại. Vui lòng thử lại.';

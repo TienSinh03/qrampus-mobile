@@ -71,16 +71,32 @@ const LoginScreen = ({ route, navigation }) => {
   // Hiển thị lỗi
   useEffect(() => {
     if (error) {
-      Alert.alert(
-        'Đăng nhập thất bại',
-        error,
-        [
-          {
-            text: 'Đóng',
-            onPress: () => dispatch(clearError()),
-          },
-        ]
-      );
+      const message = typeof error === 'object' ? error.message : error;
+      const errorCode = typeof error === 'object' ? error.error_code : null;
+
+      if (errorCode === 'DEVICE_MISMATCH') {
+        Alert.alert(
+          'Thiết bị không hợp lệ',
+          message,
+          [
+            {
+              text: 'Đóng',
+              onPress: () => dispatch(clearError()),
+            },
+          ]
+        );
+      } else {
+        Alert.alert(
+          'Đăng nhập thất bại',
+          message,
+          [
+            {
+              text: 'Đóng',
+              onPress: () => dispatch(clearError()),
+            },
+          ]
+        );
+      }
     }
   }, [error, dispatch]);
 
