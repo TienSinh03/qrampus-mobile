@@ -7,10 +7,12 @@ import {
   Modal,
   Image,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { formatDate } from '../../utils/date.helper';
 
 const CreateLeaveRequestModal = ({
   visible,
@@ -26,12 +28,13 @@ const CreateLeaveRequestModal = ({
   takePhoto,
   pickImage,
   handleSubmit,
+  createLoading = false,
 }) => {
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={createLoading ? () => {} : onClose}
     >
       <SafeAreaView className="flex-1 bg-white">
         <StatusBar style="dark" />
@@ -40,8 +43,11 @@ const CreateLeaveRequestModal = ({
         <View className="px-6 py-4 border-b border-gray-200">
           <View className="flex-row items-center justify-between">
             <Text className="text-gray-900 text-xl font-bold">Đơn xin nghỉ phép</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#6b7280" />
+            <TouchableOpacity 
+              onPress={onClose}
+              disabled={createLoading}
+            >
+              <Ionicons name="close" size={24} color={createLoading ? "#d1d5db" : "#6b7280"} />
             </TouchableOpacity>
           </View>
         </View>
@@ -54,7 +60,7 @@ const CreateLeaveRequestModal = ({
                 {selectedSchedule.courseName}
               </Text>
               <Text className="text-gray-600 text-sm">
-                {selectedSchedule.dayOfWeek}, {selectedSchedule.date} • {selectedSchedule.startTime} - {selectedSchedule.endTime}
+                {selectedSchedule.dayOfWeek}, {formatDate(selectedSchedule.classDate)} • {selectedSchedule.startHour} - {selectedSchedule.endHour}
               </Text>
             </View>
           )}
@@ -65,7 +71,8 @@ const CreateLeaveRequestModal = ({
           </Text>
           <TouchableOpacity
             onPress={() => setShowReasonPicker(true)}
-            className="bg-gray-50 rounded-xl px-4 py-3 flex-row items-center justify-between mb-4"
+            disabled={createLoading}
+            className={`rounded-xl px-4 py-3 flex-row items-center justify-between mb-4 ${createLoading ? 'bg-gray-200' : 'bg-gray-50'}`}
           >
             <View className="flex-row items-center">
               <Ionicons
@@ -91,7 +98,8 @@ const CreateLeaveRequestModal = ({
             multiline
             numberOfLines={4}
             maxLength={500}
-            className="bg-gray-50 rounded-xl px-4 py-3 text-gray-900 mb-2"
+            editable={!createLoading}
+            className={`rounded-xl px-4 py-3 text-gray-900 mb-2 ${createLoading ? 'bg-gray-200' : 'bg-gray-50'}`}
             style={{ textAlignVertical: 'top' }}
           />
           <Text className="text-gray-500 text-xs text-right mb-4">
@@ -119,14 +127,17 @@ const CreateLeaveRequestModal = ({
               />
               <View className="flex-1 ml-3">
                 <Text className="text-gray-900 font-semibold" numberOfLines={1}>
-                  {attachment.name}
+                  {attachment?.name}
                 </Text>
                 <Text className="text-gray-500 text-xs">
                   {attachment.size ? `${(attachment.size / 1024).toFixed(0)} KB` : 'N/A'}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => removeAttachment(index)}>
-                <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              <TouchableOpacity 
+                onPress={() => removeAttachment(index)}
+                disabled={createLoading}
+              >
+                <Ionicons name="trash-outline" size={20} color={createLoading ? "#d1d5db" : "#ef4444"} />
               </TouchableOpacity>
             </View>
           ))}
@@ -136,14 +147,16 @@ const CreateLeaveRequestModal = ({
             <View className="flex-row gap-2 mb-6">
               <TouchableOpacity
                 onPress={takePhoto}
-                className="flex-1 bg-blue-600 rounded-xl py-3 flex-row items-center justify-center"
+                disabled={createLoading}
+                className={`flex-1 rounded-xl py-3 flex-row items-center justify-center ${createLoading ? 'bg-blue-400' : 'bg-blue-600'}`}
               >
                 <Ionicons name="camera" size={20} color="white" />
                 <Text className="text-white font-bold ml-2">Chụp ảnh</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={pickImage}
-                className="flex-1 bg-blue-600 rounded-xl py-3 flex-row items-center justify-center"
+                disabled={createLoading}
+                className={`flex-1 rounded-xl py-3 flex-row items-center justify-center ${createLoading ? 'bg-blue-400' : 'bg-blue-600'}`}
               >
                 <Ionicons name="images" size={20} color="white" />
                 <Text className="text-white font-bold ml-2">Thư viện</Text>
@@ -156,7 +169,8 @@ const CreateLeaveRequestModal = ({
         <View className="px-6 py-4 border-t border-gray-200">
           <TouchableOpacity
             onPress={handleSubmit}
-            className="bg-blue-600 rounded-xl py-4 flex-row items-center justify-center"
+            disabled={createLoading}
+            className={`rounded-xl py-4 flex-row items-center justify-center ${createLoading ? 'bg-blue-400' : 'bg-blue-600'}`}
             style={{
               shadowColor: '#2563eb',
               shadowOffset: { width: 0, height: 2 },
@@ -165,8 +179,17 @@ const CreateLeaveRequestModal = ({
               elevation: 3,
             }}
           >
-            <Ionicons name="send" size={20} color="white" />
-            <Text className="text-white font-bold text-base ml-2">Gửi đơn</Text>
+            {createLoading ? (
+              <>
+                <ActivityIndicator size="small" color="white" />
+                <Text className="text-white font-bold text-base ml-2">Đang gửi...</Text>
+              </>
+            ) : (
+              <>
+                <Ionicons name="send" size={20} color="white" />
+                <Text className="text-white font-bold text-base ml-2">Gửi đơn</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </SafeAreaView>

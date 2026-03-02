@@ -46,3 +46,12 @@ export const isDateInRange = (date, range) => {
   if (!range || !range.startDate || !range.endDate) return false;
   return date >= range.startDate && date <= range.endDate;
 };
+
+export const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  try {
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  } catch (e) {
+    return dateString;
+  }
+};

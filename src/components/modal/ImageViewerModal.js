@@ -1,13 +1,12 @@
 import React from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
   Modal,
-  Image,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import ImageViewer from 'react-native-image-zoom-viewer';
 
 const ImageViewerModal = ({
   visible,
@@ -15,44 +14,29 @@ const ImageViewerModal = ({
   selectedImage,
   screenWidth,
 }) => {
+  const images = selectedImage ? [{ url: selectedImage.url }] : [];
+
   return (
     <Modal
       visible={visible}
-      animationType="fade"
       transparent={true}
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black">
-        <SafeAreaView className="flex-1">
-          <View className="flex-row items-center justify-between px-6 py-4">
-            <Text className="text-white font-bold text-lg">
-              {selectedImage?.name}
-            </Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={28} color="white" />
-            </TouchableOpacity>
-          </View>
-
-          <View className="flex-1 items-center justify-center">
-            {selectedImage && (
-              <Image
-                source={{ uri: selectedImage.uri }}
-                style={{
-                  width: screenWidth,
-                  height: screenWidth,
-                }}
-                resizeMode="contain"
-              />
-            )}
-          </View>
-
-          <View className="px-6 py-4">
-            <Text className="text-white text-center text-sm">
-              Pinch to zoom • Swipe to dismiss
-            </Text>
-          </View>
-        </SafeAreaView>
-      </View>
+      <SafeAreaView className="flex-1 bg-black">
+        <View className="absolute top-0 right-0 z-10 p-4">
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="close" size={32} color="white" />
+          </TouchableOpacity>
+        </View>
+        <ImageViewer
+          imageUrls={images}
+          enableSwipeDown={true}
+          onSwipeDown={onClose}
+          enableImageZoom={true}
+          saveToLocalByLongPress={false}
+          backgroundColor="black"
+        />
+      </SafeAreaView>
     </Modal>
   );
 };
