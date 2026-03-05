@@ -9,6 +9,8 @@ import {
   selectLoginRole,
   selectIsLoading,
 } from '../features/auth/authSlice';
+import { useNotificationSocket } from '../hooks/useNotificationSocket';
+import { usePushNotification } from '../hooks/usePushNotification';
 
 import IntroCarouselScreen from '../screens/IntroCarouselScreen';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
@@ -42,6 +44,11 @@ const AppNavigator = () => {
   const loginRole = useSelector(selectLoginRole);
   const isLoading = useSelector(selectIsLoading);
   const [isSessionLoaded, setIsSessionLoaded] = React.useState(false);
+
+  // Kích hoạt Socket.IO realtime notification
+  useNotificationSocket();
+  // Kích hoạt Expo Push Notification (đăng ký token + listen)
+  usePushNotification();
 
   // Load session khi app khởi động
   useEffect(() => {

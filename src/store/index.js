@@ -7,6 +7,7 @@ import attendanceImageReducer from '../features/attendanceImage/attendanceImageS
 import leaveRequestReducer from '../features/leave-request/leaveRequestSlice';
 import surveyReducer from '../features/survey/surveySlice';
 import surveyResponseReducer from '../features/surveyResponse/surveyResponseSlice';
+import notificationReducer from '../features/notification/notificationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     leaveRequests: leaveRequestReducer,
     survey: surveyReducer,
     surveyResponse: surveyResponseReducer,
+    notification: notificationReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useSelector } from 'react-redux';
 import Header from './Header';
 import StatsCard from './StatsCard';
 import { Ionicons } from '@expo/vector-icons';
+import { selectUnreadCount } from '../features/notification/notificationSlice';
 
 const BaseHomeScreen = ({
   navigation,
@@ -21,6 +23,7 @@ const BaseHomeScreen = ({
 }) => {
   const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
   const roleLabel = userRole === 'teacher' ? 'Giảng viên' : 'Sinh viên';
+  const unreadCount = useSelector(selectUnreadCount);
 
   const getCurrentDate = () => {
     const days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
@@ -46,6 +49,7 @@ const BaseHomeScreen = ({
         avatarUri={userData?.avatar_url}
         onNotificationPress={onNotificationPress}
         roleColor={roleColor}
+        unreadCount={unreadCount}
       />
 
       {/* Loading Overlay */}
