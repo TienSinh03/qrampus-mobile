@@ -7,7 +7,8 @@ const Header = ({
   avatarUri, 
   onNotificationPress, 
   greeting = 'Xin chào',
-  roleColor = '#2563eb' // blue for student, purple for teacher
+  roleColor = '#2563eb', // blue for student, purple for teacher
+  unreadCount = 0,
 }) => {
   const getGreeting = () => {
     if (greeting !== 'Xin chào') return greeting;
@@ -67,7 +68,13 @@ const Header = ({
       >
         <Ionicons name="notifications-outline" size={22} color={roleColor} />
         {/* Badge for unread notifications */}
-        <View className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+        {unreadCount > 0 && (
+          <View className="absolute -top-1 -right-1 bg-red-500 rounded-full min-w-[18px] h-[18px] items-center justify-center px-1">
+            <Text className="text-white text-[10px] font-bold">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Text>
+          </View>
+        )} 
       </TouchableOpacity>
     </View>
   );

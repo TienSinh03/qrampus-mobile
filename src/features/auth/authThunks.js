@@ -2,6 +2,8 @@ import { setAccessToken, clearToken, instance } from "../../api/axiosInstance";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as SecureStore from "expo-secure-store";
 import { getDevicePayload } from "../../utils/device.helper";
+import { resetNotifications } from "../notification/notificationSlice";
+import { unregisterPushTokenThunk } from "../notification/notificationThunks";
 
 // Định nghĩa các role hợp lệ cho từng loại đăng nhập
 const ALLOWED_ROLES = {
@@ -47,9 +49,10 @@ export const loginThunk = createAsyncThunk(
   async ({ user_name, password, loginRole }, { rejectWithValue }) => {
     try {
       const device_payload = loginRole === 'student' ? await getDevicePayload() : null;
-
+      console.log('Device payload for login:');
       const res = await instance.post('/auth/login', { user_name, password, device_payload });
       const response = res?.data || {};
+      console.log('Login response:', response);
       
       if (!response.success) {
         throw new Error(response.message || 'Đăng nhập thất bại');
@@ -103,11 +106,22 @@ export const loginThunk = createAsyncThunk(
   }
 );
 
-export const logoutThunk = createAsyncThunk('auth/logout', async () => {
+export const logoutThunk = createAsyncThunk('auth/logout', async (_, { dispatch }) => {
+  // Hủy đăng ký push token trước khi xóa session
+  // try {
+  //   await dispatch(unregisterPushTokenThunk()).unwrap();
+  // } catch (_e) {
+  //   // Không block logout nếu unregister fail
+  // }
+
   await SecureStore.deleteItemAsync('accessToken');
   await SecureStore.deleteItemAsync('refreshToken');
   await SecureStore.deleteItemAsync('userLogin');
   await SecureStore.deleteItemAsync('loginRole');
   clearToken();
+
+  // Reset notification state
+  dispatch(resetNotifications());
+
   return true;
 });
