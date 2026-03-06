@@ -74,7 +74,7 @@ const Header = ({
               {unreadCount > 99 ? '99+' : unreadCount}
             </Text>
           </View>
-        )}
+        )} 
       </TouchableOpacity>
     </View>
   );

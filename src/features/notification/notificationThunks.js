@@ -20,6 +20,7 @@ export const fetchNotificationsThunk = createAsyncThunk(
       return {
         notifications: response.data?.data?.notifications || [],
         pagination: response.data?.data?.pagination || null,
+        unreadCount: response.data?.data?.unreadCount || 0,
       };
     } catch (error) {
       return rejectWithValue(

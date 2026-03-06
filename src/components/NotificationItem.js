@@ -98,7 +98,7 @@ const NotificationItem = ({
 
           <View className="flex-row items-center justify-between">
             <Text className="text-gray-400 text-xs">
-              {getTimeAgo(notification.sent_at)}
+              {getTimeAgo(notification?.sent_at)}
             </Text>
             {action === 'create_qr' && (
               <View className={`${configRole.buttonBg} px-3 py-1 rounded-full`}>

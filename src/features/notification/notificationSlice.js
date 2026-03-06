@@ -85,7 +85,7 @@ const notificationSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchNotificationsThunk.fulfilled, (state, action) => {
-        const { notifications, pagination } = action.payload;
+        const { notifications, pagination, unreadCount } = action.payload;
         const isLoadMore = action.meta.arg?.offset > 0;
 
         if (isLoadMore) {
@@ -102,7 +102,7 @@ const notificationSlice = createSlice({
         }
 
         state.total = pagination.total;
-        state.unreadCount = pagination.unreadCount;
+        state.unreadCount = unreadCount;
       })
       .addCase(fetchNotificationsThunk.rejected, (state, action) => {
         state.isLoading = false;
@@ -112,7 +112,7 @@ const notificationSlice = createSlice({
 
       // Unread count
       .addCase(fetchUnreadCountThunk.fulfilled, (state, action) => {
-        state.unreadCount = action.payload.unreadCount;
+        state.unreadCount = action.payload;
       })
 
       // Mark as read
