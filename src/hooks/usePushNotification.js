@@ -20,7 +20,8 @@ if (!_isExpoGo) {
   Notifications = require('expo-notifications');
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
       shouldPlaySound: true,
       shouldSetBadge: true,
     }),
@@ -62,10 +63,10 @@ export function usePushNotification() {
     }
 
     // Chỉ hoạt động trên thiết bị thật (không phải simulator)
-    if (!Device.isDevice) {
-      console.log('[Push] Must use physical device for Push Notifications');
-      return null;
-    }
+    // if (!Device.isDevice) {
+    //   console.log('[Push] Must use physical device for Push Notifications');
+    //   return null;
+    // }
 
     // Kiểm tra permission hiện tại
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -82,14 +83,25 @@ export function usePushNotification() {
       return null;
     }
 
+    console.log('[Push] Permission granted');
+
     // Lấy Expo Push Token
     const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-    const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId,
-    });
 
-    const token = tokenData.data; // "ExponentPushToken[xxxx]"
-    console.log('[Push] Expo Push Token:', token);
+    if (!projectId || projectId === 'YOUR_EAS_PROJECT_ID') {
+      console.warn('[Push] projectId chưa được cấu hình. Chạy: npx eas init');
+      return null;
+    }
+
+    let token;
+    try {
+      const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+      token = tokenData.data; // "ExponentPushToken[xxxx]"
+      console.log('[Push] Expo Push Token:', token);
+    } catch (e) {
+      console.warn('[Push] Không lấy được push token:', e.message);
+      return null;
+    }
 
     // Android: tạo notification channel
     if (Platform.OS === 'android') {
@@ -98,7 +110,7 @@ export function usePushNotification() {
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',
-        sound: 'default',
+        sound: true,
       });
     }
 
@@ -129,7 +141,6 @@ export function usePushNotification() {
       Notifications.addNotificationReceivedListener((notification) => {
         console.log('[Push] Notification received (foreground):', notification);
       });
-
     // Lắng nghe khi user tap vào notification (mở app từ push)
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
@@ -143,12 +154,8 @@ export function usePushNotification() {
 
     return () => {
       isMounted = false;
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
-      }
+      notificationListener.current?.remove();
+      responseListener.current?.remove();
     };
   }, [isAuthenticated, dispatch, registerForPushNotificationsAsync]);
 

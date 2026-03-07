@@ -71,7 +71,6 @@ export const getNotificationAction = (type) => {
 export const getTimeAgo = (timeString) => {
   if (!timeString) return '';
   
-  console.log('Input time string:', timeString);
   const now = new Date();
   const notifTime = new Date(timeString);
 
@@ -80,7 +79,6 @@ export const getTimeAgo = (timeString) => {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMs < 0) return 'Vừa xong';
   if (diffMins < 1) return 'Vừa xong';
   if (diffMins < 60) return `${diffMins} phút trước`;
   if (diffHours < 24) return `${diffHours} giờ trước`;
