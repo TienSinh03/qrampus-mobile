@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import BaseHomeScreen from '../../components/BaseHomeScreen';
 import TeacherScheduleCard from '../../components/TeacherScheduleCard';
 import { useSelector, useDispatch } from 'react-redux';
-import { getTeacherProfileThunk, getMySchedules } from '../../features/teacher/teacherThunks';
-import { selectTeacherProfile, selectTeacherSchedules, selectSchedulesLoading } from '../../features/teacher/teacherSlice';
+import { getTeacherProfileThunk, getMySchedulesToday } from '../../features/teacher/teacherThunks';
+import { selectTeacherProfile, selectTeacherSchedulesToday, selectSchedulesLoading } from '../../features/teacher/teacherSlice';
 
 const TeacherHomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
@@ -13,7 +13,7 @@ const TeacherHomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const profile = useSelector(selectTeacherProfile);
   const isLoading = useSelector(selectSchedulesLoading);
-  const schedules = useSelector(selectTeacherSchedules);
+  const schedules = useSelector(selectTeacherSchedulesToday);
 
 
   //thay bằng API call
@@ -28,7 +28,7 @@ const TeacherHomeScreen = ({ navigation }) => {
     dispatch(getTeacherProfileThunk());
     
     // Load today's schedules on mount
-    dispatch(getMySchedules());
+    dispatch(getMySchedulesToday());
   }, [dispatch]);
 
   // Kiểm tra các lớp học sắp bắt đầu để tạo cảnh báo khẩn cấp
@@ -68,10 +68,42 @@ const TeacherHomeScreen = ({ navigation }) => {
     setRefreshing(true);
     // Call API to refresh data
     dispatch(getTeacherProfileThunk());
+    dispatch(getMySchedulesToday());
     setTimeout(() => {
       setRefreshing(false);
     }, 1500);
   };
+
+  const quickActions = [
+    {
+      id: '1',
+      icon: 'qr-code-outline',
+      label: 'Quản lý QR',
+      // onPress: () => navigation.navigate('CreateQRSession'),
+      onPress: () => console.log('Create QR Session'),
+    },
+    {
+      id: '2',
+      icon: 'calendar-outline',
+      label: 'Phiên học',
+      // onPress: () => navigation.navigate('SessionList'),
+      onPress: () => console.log('Session List'),
+    },
+    {
+      id: '3',
+      icon: 'document-text-outline',
+      label: 'Duyệt nghỉ phép',
+      onPress: () => navigation.navigate('TeacherLeaveRequestList'),
+      badge: 3
+    },
+    {
+      id: '4',
+      icon: 'people-outline',
+      label: 'Danh sách SV',
+      // onPress: () => navigation.navigate('StudentList'),
+      onPress: () => console.log('Student List'),
+    },
+  ];
 
   const renderScheduleCard = (schedule) => (
     <TeacherScheduleCard
@@ -93,6 +125,7 @@ const TeacherHomeScreen = ({ navigation }) => {
       onRefresh={onRefresh}
       renderScheduleCard={renderScheduleCard}
       isLoading={isLoading}
+      quickActions={quickActions}
     />
   );
 };

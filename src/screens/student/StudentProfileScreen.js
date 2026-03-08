@@ -45,53 +45,24 @@ const StudentProfileScreen = ({ navigation }) => {
     },
     {
       id: '2',
-      icon: 'document-text-outline',
-      title: 'Lịch sử điểm danh',
-      subtitle: 'Xem lịch sử điểm danh các môn học',
-      onPress: () => console.log('Attendance history'),
-    },
-    {
-      id: '3',
-      icon: 'clipboard-outline',
-      title: 'Xin nghỉ phép',
-      subtitle: 'Nộp đơn xin nghỉ học có phép',
-      onPress: () => navigation.navigate('LeaveRequest'),
-    },
-    {
-      id: '4',
-      icon: 'list-outline',
-      title: 'Yêu cầu của tôi',
-      subtitle: 'Xem danh sách đơn đã nộp',
-      onPress: () => navigation.navigate('LeaveRequestList'),
-    },
-    {
-      id: '5',
       icon: 'stats-chart-outline',
       title: 'Thống kê',
       subtitle: 'Xem thống kê điểm danh',
       onPress: () => console.log('Statistics'),
     },
     {
-      id: '6',
+      id: '3',
       icon: 'settings-outline',
       title: 'Cài đặt',
       subtitle: 'Cài đặt ứng dụng',
       onPress: () => console.log('Settings'),
     },
     {
-      id: '7',
+      id: '4',
       icon: 'help-circle-outline',
       title: 'Trợ giúp',
       subtitle: 'Hướng dẫn sử dụng và hỗ trợ',
       onPress: () => console.log('Help'),
-    },
-    // khảo sát
-    {
-      id: '8',
-      icon: 'chatbox-ellipses-outline',
-      title: 'Khảo sát',
-      subtitle: 'Tham gia các khảo sát khóa học',
-      onPress: () => navigation.navigate('SurveyList'),
     }
     
   ];

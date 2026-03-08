@@ -95,8 +95,8 @@ export const getTeacherSchedulesThunk = createAsyncThunk(
 /**
  * Lấy lịch giảng dạy cá nhân cho ngày hiện tại
  */
-export const getMySchedules = createAsyncThunk(
-    'teacher/mySchedules',
+export const getMySchedulesToday = createAsyncThunk(
+    'teacher/mySchedulesToday',
     async (_, { rejectWithValue }) => {
         try {
             const response = await instance.get('/teacher/me/schedule/today');

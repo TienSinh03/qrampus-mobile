@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import BaseHomeScreen from '../../components/BaseHomeScreen';
 import ScheduleCard from '../../components/ScheduleCard';
 import { useSelector, useDispatch } from 'react-redux';
-import { getStudentProfileThunk, getMySchedules } from '../../features/student/studentThunks';
-import { selectStudentProfile, selectSchedulesLoading, selectStudentSchedules } from '../../features/student/studentSlice';
+import { getStudentProfileThunk, getMySchedulesToday } from '../../features/student/studentThunks';
+import { selectStudentProfile, selectSchedulesLoading, selectStudentSchedulesToday } from '../../features/student/studentSlice';
 const StudentHomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const userRole = 'student';
@@ -11,20 +11,53 @@ const StudentHomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const profile = useSelector(selectStudentProfile);
   const isLoading = useSelector(selectSchedulesLoading);
-  const schedules = useSelector(selectStudentSchedules);
-  
+  const schedules = useSelector(selectStudentSchedulesToday);
+
+  const quickActions = [
+    {
+      id: '1',
+      icon: 'time-outline',
+      label: 'Lịch sử điểm danh',
+      onPress: () => console.log('Attendance history'),
+    },
+    {
+      id: '2',
+      icon: 'clipboard-outline',
+      label: 'Xin nghỉ phép',
+      onPress: () => navigation.navigate('LeaveRequest'),
+    },
+    {
+      id: '3',
+      icon: 'list-outline',
+      label: 'Đơn y/c nghỉ của tôi',
+      onPress: () => navigation.navigate('LeaveRequestList'),
+    },
+    {
+      id: '4',
+      icon: 'chatbox-ellipses-outline',
+      label: 'Khảo sát',
+      onPress: () => navigation.navigate('SurveyList'),
+    },
+    {
+      id: '5',
+      icon: 'stats-chart-outline',
+      label: 'Thống kê',
+      onPress: () => console.log('Statistics'),
+    }
+  ];
+
   useEffect(() => {
     // Load student profile on mount
     dispatch(getStudentProfileThunk());
 
     // Load today's schedules on mount
-    dispatch(getMySchedules());
+    dispatch(getMySchedulesToday());
   }, [dispatch]);
 
 
   const onRefresh = () => {
     setRefreshing(true);
-    dispatch(getMySchedules());
+    dispatch(getMySchedulesToday());
     setTimeout(() => {
       setRefreshing(false);
     }, 1500);
@@ -48,6 +81,7 @@ const StudentHomeScreen = ({ navigation }) => {
       onRefresh={onRefresh}
       renderScheduleCard={renderScheduleCard}
       isLoading={isLoading}
+      quickActions={quickActions}
     />
   );
 };
