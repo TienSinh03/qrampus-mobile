@@ -7,12 +7,15 @@ import {
   TextInput,
   ActivityIndicator,
   RefreshControl,
+  Animated,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDispatch, useSelector } from 'react-redux';
+import useCollapsibleHeader from '../../hooks/useCollapsibleHeader';
 
 import { getStudentSurveys } from '../../features/survey/surveyThunks';
 import {
@@ -25,9 +28,13 @@ import {
 import { checkSurveyCompletion } from '../../features/surveyResponse/surveyResponseThunks';
 import { selectCompletionStatuses } from '../../features/surveyResponse/surveyResponseSlice';
 
-const SurveyListScreen = ({ navigation }) => {
-  const dispatch = useDispatch();
+const { width } = Dimensions.get('window');
 
+const SurveyListScreen = ({ navigation }) => {
+  
+  const { animatedHeight, animatedOpacity, animatedTranslateY, handleScroll, handleMomentumScrollBegin } = useCollapsibleHeader(width * 0.2);
+  
+  const dispatch = useDispatch();
   const items = useSelector(selectFilteredSurveyItems);
   const loading = useSelector(selectLoading);
   const error = useSelector(selectError);
@@ -88,20 +95,37 @@ const SurveyListScreen = ({ navigation }) => {
       <StatusBar style="light" />
 
       {/* HEADER */}
-      <LinearGradient colors={['#2563eb', '#3b82f6']} className="px-5 pt-5 pb-8">
-        <Text className="text-white text-2xl font-bold mb-4">
-          Khảo sát môn học
-        </Text>
-
-        <View className="flex-row items-center bg-white rounded-2xl px-4 py-3">
-          <Ionicons name="search-outline" size={20} color="#6b7280" />
-          <TextInput
-            className="flex-1 ml-3 text-base"
-            placeholder="Tìm theo tên hoặc mã môn"
-            value={keyword}
-            onChangeText={(t) => dispatch(setSearchKeyword(t))}
-          />
+      <LinearGradient colors={['#2563eb', '#3b82f6']} className="px-5 pt-5">
+        {/* Title row với back button */}
+        <View className="flex-row items-center mb-4">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="mr-3 w-9 h-9 items-center justify-center rounded-full bg-white/20"
+          >
+            <Ionicons name="arrow-back" size={22} color="white" />
+          </TouchableOpacity>
+          <Text className="text-white text-xl font-bold flex-1">Khảo sát môn học</Text>
         </View>
+
+        {/* Search bar - thu gọn khi scroll */}
+        <Animated.View
+          style={{
+            height: animatedHeight,
+            opacity: animatedOpacity,
+            transform: [{ translateY: animatedTranslateY }],
+            overflow: 'hidden',
+          }}
+        >
+          <View className="flex-row items-center bg-white rounded-2xl px-4 py-3">
+            <Ionicons name="search-outline" size={20} color="#6b7280" />
+            <TextInput
+              className="flex-1 ml-3 text-base py-1"
+              placeholder="Tìm theo tên hoặc mã môn"
+              value={keyword}
+              onChangeText={(t) => dispatch(setSearchKeyword(t))}
+            />
+          </View>
+        </Animated.View>
       </LinearGradient>
 
       {/* ERROR */}
@@ -125,6 +149,9 @@ const SurveyListScreen = ({ navigation }) => {
               onRefresh={() => dispatch(getStudentSurveys())}
             />
           }
+          onScroll={handleScroll}
+          onMomentumScrollBegin={handleMomentumScrollBegin}
+          scrollEventThrottle={16}
         >
           {sortedItems.map((item) => {
             const disabled = !item.hasSurvey;

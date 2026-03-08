@@ -5,8 +5,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Dimensions
+  Dimensions,
+  Animated,
 } from 'react-native';
+import useCollapsibleHeader from '../../hooks/useCollapsibleHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +16,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 const ScheduleDetailScreen = ({ navigation, route }) => {
+  
+  const { animatedHeight, animatedOpacity, animatedTranslateY, handleScroll, handleMomentumScrollBegin } = useCollapsibleHeader(width * 0.25);
+  
   const { schedule } = route.params;
   const [attendanceStats, setAttendanceStats] = useState({
     present: 8,
@@ -145,7 +150,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
       >
-        <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center justify-between">
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
@@ -153,18 +158,32 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
           <View style={{ width: width*0.05 }} />
         </View>
 
-        <View className="items-center mb-2">
-          <View className="bg-white/20 px-4 py-2 rounded-full mb-3">
-            <Text className="text-white font-bold text-base">{courseCode}</Text>
-          </View>
-          <Text className="text-white text-2xl font-bold text-center mb-1">
-            {courseName}
-          </Text>
-        </View>
+          <Animated.View
+            style={{
+              height: animatedHeight,
+              opacity: animatedOpacity,
+              transform: [{ translateY: animatedTranslateY }],
+              overflow: 'hidden',
+              alignItems: 'center',
+            }}
+          >
+            <View className="bg-white/20 px-4 py-2 rounded-full mt-3 mb-3">
+              <Text className="text-white font-bold text-base">{courseCode}</Text>
+            </View>
+            <Text className="text-white text-2xl font-bold text-center mb-1">
+              {courseName}
+            </Text>
+          </Animated.View>
       </LinearGradient>
 
       {/* Content */}
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        onMomentumScrollBegin={handleMomentumScrollBegin}
+        scrollEventThrottle={16}
+      >
         <View className="px-6 pt-6 pb-4">
           <Text className="text-gray-900 font-bold text-lg mb-3">Thao tác nhanh</Text>
           

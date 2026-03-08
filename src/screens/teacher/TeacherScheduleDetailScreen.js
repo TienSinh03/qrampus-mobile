@@ -4,7 +4,8 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Dimensions
+  Dimensions,
+  Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -12,15 +13,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AttendanceStatistics from '../../components/statistics/AttendanceStatistics';
 import SurveyStatistics from '../../components/statistics/SurveyStatistics';
+import useCollapsibleHeader from '../../hooks/useCollapsibleHeader';
 
 const { width } = Dimensions.get('window');
 
 const TeacherScheduleDetailScreen = ({ navigation, route }) => {
+
+  
   const { schedule } = route.params;
   const [timeRemaining, setTimeRemaining] = useState('');
   const [isInActiveWindow, setIsInActiveWindow] = useState(false);
   const [isUrgent, setIsUrgent] = useState(false);
-
+  
   const {
     id,
     courseName = 'Tên môn học',
@@ -35,6 +39,8 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
     credits = 3,
     practiceGroup = null,
   } = schedule || {};
+  
+  const { animatedHeight, animatedOpacity, animatedTranslateY, handleScroll } = useCollapsibleHeader(!practiceGroup ? width * 0.25: width * 0.35);
 
   // Thống kê điểm danh (thay bằng API call - hôm nay)
   const [attendanceStats, setAttendanceStats] = useState({
@@ -162,33 +168,48 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
       >
-        <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center justify-between">
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text className="text-white text-lg font-bold">Chi tiết lịch giảng dạy</Text>
           <View style={{ width: width*0.05 }} />
         </View>
+        <Animated.View
+          style={{
+              height: animatedHeight,
+              opacity: animatedOpacity,
+              transform: [{ translateY: animatedTranslateY }],
+              overflow: 'hidden',
+              alignItems: 'center',
+            }}
+        >
 
-        <View className="items-center mb-2">
-          <View className="bg-white/20 px-4 py-2 rounded-full mb-3">
-            <Text className="text-white font-bold text-base">{courseCode}</Text>
-          </View>
-          <Text className="text-white text-2xl font-bold text-center mb-1">
-            {courseName}
-          </Text>
-          {practiceGroup && (
-            <View className="bg-white/30 px-3 py-1 rounded-full mt-2">
-              <Text className="text-white text-sm font-semibold">
-                Nhóm {practiceGroup.group_name}
-              </Text>
+          <View className="items-center mt-3 mb-2">
+            <View className="bg-white/20 px-4 py-2 rounded-full mb-3">
+              <Text className="text-white font-bold text-base">{courseCode}</Text>
             </View>
-          )}
-        </View>
+            <Text className="text-white text-2xl font-bold text-center mb-1">
+              {courseName}
+            </Text>
+            {practiceGroup && (
+              <View className="bg-white/30 px-3 py-1 rounded-full mt-2">
+                <Text className="text-white text-sm font-semibold">
+                  Nhóm {practiceGroup.group_name}
+                </Text>
+              </View>
+            )}
+          </View>
+        </Animated.View>
       </LinearGradient>
 
       {/* Content */}
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <Animated.ScrollView 
+        className="flex-1" 
+        showsVerticalScrollIndicator={false} 
+        onScroll={handleScroll} 
+        scrollEventThrottle={16}
+      >
         {/* Quick Status Card */}
         {timeRemaining && (
           <View className="px-6 pt-6 pb-2">
@@ -524,7 +545,7 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
         <SurveyStatistics surveyStats={surveyStats} />
 
         <View className="h-8" />
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 };
