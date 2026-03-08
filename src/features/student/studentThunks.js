@@ -103,8 +103,8 @@ export const getStudentSchedulesThunk = createAsyncThunk(
 /**
  * Lấy lịch học cá nhân cho ngày hiện tại
  */
-export const getMySchedules = createAsyncThunk(
-    'student/mySchedules',
+export const getMySchedulesToday = createAsyncThunk(
+    'student/mySchedulesToday',
     async (_, { rejectWithValue }) => {
         try {
             const response = await instance.get('/students/me/schedules/today')

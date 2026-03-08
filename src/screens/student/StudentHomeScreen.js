@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import BaseHomeScreen from '../../components/BaseHomeScreen';
 import ScheduleCard from '../../components/ScheduleCard';
 import { useSelector, useDispatch } from 'react-redux';
-import { getStudentProfileThunk, getMySchedules } from '../../features/student/studentThunks';
-import { selectStudentProfile, selectSchedulesLoading, selectStudentSchedules } from '../../features/student/studentSlice';
+import { getStudentProfileThunk, getMySchedulesToday } from '../../features/student/studentThunks';
+import { selectStudentProfile, selectSchedulesLoading, selectStudentSchedulesToday } from '../../features/student/studentSlice';
 const StudentHomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const userRole = 'student';
@@ -11,20 +11,20 @@ const StudentHomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const profile = useSelector(selectStudentProfile);
   const isLoading = useSelector(selectSchedulesLoading);
-  const schedules = useSelector(selectStudentSchedules);
-  
+  const schedules = useSelector(selectStudentSchedulesToday);
+
   useEffect(() => {
     // Load student profile on mount
     dispatch(getStudentProfileThunk());
 
     // Load today's schedules on mount
-    dispatch(getMySchedules());
+    dispatch(getMySchedulesToday());
   }, [dispatch]);
 
 
   const onRefresh = () => {
     setRefreshing(true);
-    dispatch(getMySchedules());
+    dispatch(getMySchedulesToday());
     setTimeout(() => {
       setRefreshing(false);
     }, 1500);

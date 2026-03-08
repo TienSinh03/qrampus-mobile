@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getTeacherProfileThunk, getTeacherSchedulesThunk, getMySchedules, getTeacherCoursesThunk, updateTeacherProfileThunk } from "./teacherThunks";
+import { getTeacherProfileThunk, getTeacherSchedulesThunk, getMySchedulesToday, getTeacherCoursesThunk, updateTeacherProfileThunk } from "./teacherThunks";
 
 const initialState = {
     profile: null,
@@ -8,6 +8,7 @@ const initialState = {
 
     // schedule
     schedules: [], // Raw schedules từ API
+    schedulesToday: [], // Lịch học hôm nay riêng biệt để dễ truy cập
     schedulesByDate: {}, // Schedules được group theo ngày { '2025-01-15': [...] }
     schedulesLoading: false,
     schedulesError: null,
@@ -90,17 +91,17 @@ const teacherSlice = createSlice({
                 state.schedulesError = action.payload;
             })
             // Get my schedules for today
-            .addCase(getMySchedules.pending, (state) => {
+            .addCase(getMySchedulesToday.pending, (state) => {
                 state.schedulesLoading = true;
                 state.schedulesError = null;
             })
-            .addCase(getMySchedules.fulfilled, (state, action) => {
+            .addCase(getMySchedulesToday.fulfilled, (state, action) => {
                 state.schedulesLoading = false;
-                state.schedules = action.payload.schedules;
+                state.schedulesToday = action.payload.schedules;
                 state.schedulesByDate = groupSchedulesByDate(action.payload.schedules);
                 state.schedulesError = null;
             })
-            .addCase(getMySchedules.rejected, (state, action) => {
+            .addCase(getMySchedulesToday.rejected, (state, action) => {
                 state.schedulesLoading = false;
                 state.schedulesError = action.payload;
             })
@@ -144,6 +145,7 @@ export const selectTeacherError = (state) => state.teacher.error;
 
 // Schedule selectors
 export const selectTeacherSchedules = (state) => state.teacher.schedules;
+export const selectTeacherSchedulesToday = (state) => state.teacher.schedulesToday;
 export const selectSchedulesByDate = (state) => state.teacher.schedulesByDate;
 export const selectSchedulesLoading = (state) => state.teacher.schedulesLoading;
 export const selectSchedulesError = (state) => state.teacher.schedulesError;
