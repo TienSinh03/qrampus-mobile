@@ -89,7 +89,9 @@ instance.interceptors.response.use(
           if (response.status === 200) {
             const newAccessToken = response.data?.data?.accessToken;
             await SecureStore.setItemAsync("accessToken", newAccessToken);
-
+            // Lazy require tránh circular dependency: axiosInstance ← authThunks ← authSlice
+            const { store } = require('../store');
+            store.dispatch({ type: 'auth/updateTokens', payload: { accessToken: newAccessToken } });
             // cập nhật access token cho các request tiếp theo
             instance.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`;
             // thử lại request ban đầu với access token mới

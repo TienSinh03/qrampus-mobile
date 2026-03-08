@@ -2,7 +2,10 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { io } from 'socket.io-client';
 import Constants from 'expo-constants';
+import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
 import { selectAuth } from '../features/auth/authSlice';
+import { updateTokens } from '../features/auth/authSlice';
 import {
   receiveNotification,
   updateReadStatus,
@@ -68,8 +71,33 @@ export function useNotificationSocket() {
       console.log('[Socket] Disconnected:', reason);
     });
 
-    socket.on('connect_error', (error) => {
+    socket.on('connect_error', async (error) => {
       console.error('[Socket] Connection error:', error.message);
+
+      // Token hết hạn → thử refresh và reconnect
+      if (error.message.includes('jwt expired') || error.message.includes('Invalid token')) {
+        try {
+          const storedRefreshToken = await SecureStore.getItemAsync('refreshToken');
+          if (!storedRefreshToken) return;
+
+          const { API_URL } = Constants.expoConfig?.extra || {};
+          const response = await axios.post(`${API_URL}/auth/refresh`, {
+            refresh_token: storedRefreshToken,
+          });
+
+          const newAccessToken = response.data?.data?.accessToken;
+          if (newAccessToken) {
+            await SecureStore.setItemAsync('accessToken', newAccessToken);
+            dispatch(updateTokens({ accessToken: newAccessToken }));
+            // Cập nhật token cho socket và reconnect
+            socket.auth = { token: newAccessToken };
+            socket.connect();
+            console.log('[Socket] Token refreshed, reconnecting...');
+          }
+        } catch (refreshError) {
+          console.error('[Socket] Token refresh failed:', refreshError.message);
+        }
+      }
     });
 
     socket.on('reconnect', (attemptNumber) => {
