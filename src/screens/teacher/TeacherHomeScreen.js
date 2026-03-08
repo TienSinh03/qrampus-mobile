@@ -74,6 +74,37 @@ const TeacherHomeScreen = ({ navigation }) => {
     }, 1500);
   };
 
+  const quickActions = [
+    {
+      id: '1',
+      icon: 'qr-code-outline',
+      label: 'Quản lý QR',
+      // onPress: () => navigation.navigate('CreateQRSession'),
+      onPress: () => console.log('Create QR Session'),
+    },
+    {
+      id: '2',
+      icon: 'calendar-outline',
+      label: 'Phiên học',
+      // onPress: () => navigation.navigate('SessionList'),
+      onPress: () => console.log('Session List'),
+    },
+    {
+      id: '3',
+      icon: 'document-text-outline',
+      label: 'Duyệt nghỉ phép',
+      onPress: () => navigation.navigate('TeacherLeaveRequestList'),
+      badge: 3
+    },
+    {
+      id: '4',
+      icon: 'people-outline',
+      label: 'Danh sách SV',
+      // onPress: () => navigation.navigate('StudentList'),
+      onPress: () => console.log('Student List'),
+    },
+  ];
+
   const renderScheduleCard = (schedule) => (
     <TeacherScheduleCard
       key={schedule.id}
@@ -94,6 +125,7 @@ const TeacherHomeScreen = ({ navigation }) => {
       onRefresh={onRefresh}
       renderScheduleCard={renderScheduleCard}
       isLoading={isLoading}
+      quickActions={quickActions}
     />
   );
 };

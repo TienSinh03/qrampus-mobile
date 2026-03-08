@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useSelector } from 'react-redux';
 import Header from './Header';
 import StatsCard from './StatsCard';
 import { Ionicons } from '@expo/vector-icons';
+import QuickActions from './QuickActions';
 import { selectUnreadCount } from '../features/notification/notificationSlice';
 
 const BaseHomeScreen = ({
@@ -20,8 +21,10 @@ const BaseHomeScreen = ({
   renderScheduleCard,
   customSections = null, // Additional custom sections
   isLoading = false,
+  quickActions = [], // Array of { id, icon, label, onPress }
 }) => {
   const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
+  const roleBgColor = userRole === 'teacher' ? '#f5f3ff' : '#eff6ff';
   const roleLabel = userRole === 'teacher' ? 'Giảng viên' : 'Sinh viên';
   const unreadCount = useSelector(selectUnreadCount);
 
@@ -103,6 +106,13 @@ const BaseHomeScreen = ({
 
         {/* Stats Card */}
         {stats && <StatsCard stats={stats} userRole={userRole} />}
+
+        {/* Quick Actions */}
+        <QuickActions
+          actions={quickActions}
+          roleColor={roleColor}
+          roleBgColor={roleBgColor}
+        />
 
         {/* Custom Sections */}
         {customSections}
