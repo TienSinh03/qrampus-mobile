@@ -71,10 +71,15 @@ export const getNotificationAction = (type) => {
 export const getTimeAgo = (timeString) => {
   if (!timeString) return '';
   
-  const now = new Date();
-  const notifTime = new Date(timeString);
+  const safeTimeString = timeString.includes('T') ? timeString : timeString.replace(' ', 'T');
+  const notifTime = new Date(safeTimeString);
 
-  const diffMs = now.getTime() - notifTime.getTime();
+  
+  if (isNaN(notifTime.getTime())) return '';
+  
+  const now = new Date();
+  const diffMs = Math.max(0, now.getTime() - notifTime.getTime());
+
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
