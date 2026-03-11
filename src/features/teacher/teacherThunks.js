@@ -71,7 +71,7 @@ export const getTeacherSchedulesThunk = createAsyncThunk(
             if (classDate) queryParams.append('classDate', classDate);
 
             const queryString = queryParams.toString();
-            const url = `/teacher/me/schedule${queryString ? `?${queryString}` : ''}`;
+            const url = `/teachers/me/schedule${queryString ? `?${queryString}` : ''}`;
 
             const response = await instance.get(url);
             
@@ -99,13 +99,13 @@ export const getMySchedulesToday = createAsyncThunk(
     'teacher/mySchedulesToday',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await instance.get('/teacher/me/schedule/today');
-            console.log('Fetched teacher today schedules:', response?.data);
+            const response = await instance.get('/teachers/me/schedule/today');
             if (!response?.data?.success) {
                 throw new Error(response?.data?.message || 'Lấy lịch giảng dạy hôm nay thất bại');
             }
             const rawSchedules = response?.data?.data?.schedules || [];
             const schedules = rawSchedules.map(transformScheduleToUI);
+            console.log('Fetched teacher today schedules:', schedules);
             return {
                 schedules
             }
@@ -132,17 +132,17 @@ export const getTeacherCoursesThunk = createAsyncThunk(
             if (status) queryParams.append('status', status);
 
             const queryString = queryParams.toString();
-            const url = `/teacher/me/courses${queryString ? `?${queryString}` : ''}`;
+            const url = `/teachers/me/courses${queryString ? `?${queryString}` : ''}`;
             
             const response = await instance.get(url);
-            console.log('Fetched teacher courses:', response?.data);
             
             if (!response?.data?.success) {
                 throw new Error(response?.data?.message || 'Lấy danh sách khóa học thất bại');
             }
-
+            
             const rawCourses = response?.data?.data?.courses || response?.data?.data || [];
             const courses = rawCourses.map(transformCourseToUI);
+            console.log('Fetched teacher courses:', courses);
 
             return {
                 courses,
