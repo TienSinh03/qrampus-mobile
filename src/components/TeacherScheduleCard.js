@@ -14,7 +14,13 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
     studentCount = 0,
     hasActiveSession = false,
     courseSectionId = 1,
+    isTheory = false,
+    isPractice = false,
   } = schedule || {};
+
+  const isPracticeSchedule = isPractice && !isTheory;
+  const scheduleTypeLabel = isPracticeSchedule ? 'Thực hành' : 'Lý thuyết';
+  const scheduleTypeIcon = isPracticeSchedule ? 'construct-outline' : 'book-outline';
 
   const [timeRemaining, setTimeRemaining] = useState('');
   const [isInActiveWindow, setIsInActiveWindow] = useState(false);
@@ -79,12 +85,12 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
       className="mb-4"
     >
       <LinearGradient
-        colors={isUrgent && !hasActiveSession ? ['#dc2626', '#ef4444'] : ['#7c3aed', '#8b5cf6']}
+        colors={isUrgent && !hasActiveSession ? ['#dc2626', '#ef4444'] : isPracticeSchedule ? ['#0891b2', '#06b6d4'] : ['#7c3aed', '#8b5cf6']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="rounded-2xl p-4"
         style={{
-          shadowColor: isUrgent ? '#dc2626' : '#7c3aed',
+          shadowColor: isUrgent ? '#dc2626' : isPracticeSchedule ? '#0891b2' : '#7c3aed',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,
@@ -101,6 +107,18 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
           </View>
           <View className="bg-white/20 px-3 py-1 rounded-full">
             <Text className="text-white text-xs font-semibold">{courseCode}</Text>
+          </View>
+        </View>
+
+        {/* Schedule Type Badge */}
+        <View className="flex-row items-center mb-2">
+          <View
+            style={{ backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center' }}
+          >
+            <Ionicons name={scheduleTypeIcon} size={13} color="white" />
+            <Text style={{ color: 'white', fontSize: 12, fontWeight: '700', marginLeft: 4 }}>
+              {scheduleTypeLabel}
+            </Text>
           </View>
         </View>
 

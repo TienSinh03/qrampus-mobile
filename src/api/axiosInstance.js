@@ -79,6 +79,7 @@ instance.interceptors.response.use(
       originalRequest._retry = true; // đánh dấu request này đã được thử lại
       // có thể gọi hàm refresh token ở đây và thử lại request
       const refreshToken = await SecureStore.getItemAsync("refreshToken");
+      console.log('Refresh token: ', refreshToken);
       if (refreshToken) {
         try {
           const response = await axios.post(
@@ -101,15 +102,15 @@ instance.interceptors.response.use(
             return instance(originalRequest);
           }
         } catch (refreshError) {
-          console.error("Error refreshing token:", refreshError);
-          processQueue(refreshError, null);
-
           // Clear tất cả token khi refresh thất bại
           await SecureStore.deleteItemAsync("accessToken");
           await SecureStore.deleteItemAsync("refreshToken");
           await SecureStore.deleteItemAsync("userLogin");
           await SecureStore.deleteItemAsync("loginRole");
           clearToken();
+
+          console.error("Error refreshing token:", refreshError);
+          processQueue(refreshError, null);
           return Promise.reject(refreshError);
         }
       }

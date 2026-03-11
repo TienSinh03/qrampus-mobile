@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,7 +13,41 @@ const ScheduleCard = ({ schedule, navigation }) => {
     endHour = '09:00',
     teacherName = 'Giảng viên',
     hasQR = false,
+    isTheory = false,
+    isPractice = false,
+    sessionStatus = '',
   } = schedule || {};
+  
+  const isCompleted = sessionStatus === 'completed';
+  const isPracticeSchedule = isPractice && !isTheory;
+  const gradientColors = isPracticeSchedule ? ['#059669', '#10b981'] : ['#2563eb', '#3b82f6'];
+  const shadowColor = isPracticeSchedule ? '#059669' : '#2563eb';
+  const accentColor = isPracticeSchedule ? '#059669' : '#2563eb';
+  const scheduleTypeLabel = isPracticeSchedule ? 'Thực hành' : 'Lý thuyết';
+  const scheduleTypeIcon = isPracticeSchedule ? 'construct-outline' : 'book-outline';
+  
+  const [isClassTime, setIsClassTime] = useState(false);
+
+  useEffect(() => {
+    const checkClassTime = () => {
+
+      const now = new Date();
+      const [startH, startM] = startHour.split(':').map(Number);
+      const [endH, endM] = endHour.split(':').map(Number);
+
+      const classStart = new Date();
+      classStart.setHours(startH, startM, 0, 0);
+
+      const classEnd = new Date();
+      classEnd.setHours(endH, endM, 0, 0);
+
+      setIsClassTime(now >= classStart && now <= classEnd);
+    };
+    checkClassTime();
+    const interval = setInterval(checkClassTime, 30000);
+    return () => clearInterval(interval);
+  }, [startHour, endHour]);
+
 
   // xử lý khi nhấn vào nút QR
   const handleQRPress = (schedule) => {
@@ -40,12 +74,12 @@ const ScheduleCard = ({ schedule, navigation }) => {
       className="mb-4"
     >
       <LinearGradient
-        colors={['#2563eb', '#3b82f6']}
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="rounded-2xl p-4"
         style={{
-          shadowColor: '#2563eb',
+          shadowColor: shadowColor,
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,
@@ -62,6 +96,18 @@ const ScheduleCard = ({ schedule, navigation }) => {
           </View>
           <View className="bg-white/20 px-3 py-1 rounded-full">
             <Text className="text-white text-xs font-semibold">{courseCode}</Text>
+          </View>
+        </View>
+
+        {/* Schedule Type Badge */}
+        <View className="flex-row items-center mb-2">
+          <View
+            style={{ backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, flexDirection: 'row', alignItems: 'center' }}
+          >
+            <Ionicons name={scheduleTypeIcon} size={13} color="white" />
+            <Text style={{ color: 'white', fontSize: 12, fontWeight: '700', marginLeft: 4 }}>
+              {scheduleTypeLabel}
+            </Text>
           </View>
         </View>
 
@@ -97,18 +143,39 @@ const ScheduleCard = ({ schedule, navigation }) => {
               elevation: 3,
             }}
           >
-            <Ionicons name="qr-code" size={20} color="#2563eb" />
-            <Text className="text-blue-600 font-bold text-base ml-2">
+            <Ionicons name="qr-code" size={20} color={accentColor} />
+            <Text style={{ color: accentColor, fontWeight: 'bold', fontSize: 16, marginLeft: 8 }}>
               Quét mã điểm danh
             </Text>
           </TouchableOpacity>
         )}
 
-        {!hasQR && (
+        {/* Trong giờ học nhưng GV chưa mở phiên */}
+        {!hasQR && isClassTime && !isCompleted && (
+          <View className="bg-white/10 rounded-xl py-3 flex-row items-center justify-center">
+            <Ionicons name="hourglass-outline" size={18} color="white" />
+            <Text className="text-white/70 text-sm ml-2">
+              Giảng viên chưa mở phiên điểm danh
+            </Text>
+          </View>
+        )}
+
+        {/* Chưa đến giờ học */}
+        {!hasQR && !isClassTime && !isCompleted && (
           <View className="bg-white/10 rounded-xl py-3 flex-row items-center justify-center">
             <Ionicons name="lock-closed-outline" size={18} color="white" />
             <Text className="text-white/70 text-sm ml-2">
               Chưa đến giờ điểm danh
+            </Text>
+          </View>
+        )}
+
+        {/* Buổi học đã kết thúc */}
+        {isCompleted && (
+          <View className="bg-white/10 rounded-xl py-3 flex-row items-center justify-center">
+            <Ionicons name="checkmark-done-circle-outline" size={18} color="white" />
+            <Text className="text-white/70 text-sm ml-2">
+              Buổi học đã kết thúc
             </Text>
           </View>
         )}
