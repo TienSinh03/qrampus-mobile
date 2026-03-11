@@ -7,6 +7,7 @@ import Header from './Header';
 import StatsCard from './StatsCard';
 import { Ionicons } from '@expo/vector-icons';
 import QuickActions from './QuickActions';
+import ScheduleCarousel from './ScheduleCarousel';
 import { selectUnreadCount } from '../features/notification/notificationSlice';
 
 const BaseHomeScreen = ({
@@ -27,6 +28,8 @@ const BaseHomeScreen = ({
   const roleBgColor = userRole === 'teacher' ? '#f5f3ff' : '#eff6ff';
   const roleLabel = userRole === 'teacher' ? 'Giảng viên' : 'Sinh viên';
   const unreadCount = useSelector(selectUnreadCount);
+
+  const useCarousel = todaySchedules.length >= 2;
 
   const getCurrentDate = () => {
     const days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
@@ -114,9 +117,6 @@ const BaseHomeScreen = ({
           roleBgColor={roleBgColor}
         />
 
-        {/* Custom Sections */}
-        {customSections}
-
         {/* Today's Schedule */}
         <View className="px-6 pb-6">
           <View className="flex-row items-center justify-between mb-4">
@@ -132,7 +132,15 @@ const BaseHomeScreen = ({
           </View>
 
           {todaySchedules.length > 0 ? (
-            todaySchedules.map((schedule) => renderScheduleCard(schedule))
+            useCarousel ? (
+              <ScheduleCarousel
+                data={todaySchedules}
+                renderCard={renderScheduleCard}
+                accentColor={roleColor}
+              />
+            ) : (
+              todaySchedules.map((schedule) => renderScheduleCard(schedule))
+            )
           ) : (
             <View className="bg-white rounded-2xl p-8 items-center justify-center">
               <Text className="text-6xl mb-3">📅</Text>
