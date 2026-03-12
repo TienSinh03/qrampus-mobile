@@ -8,6 +8,7 @@ import leaveRequestReducer from '../features/leave-request/leaveRequestSlice';
 import surveyReducer from '../features/survey/surveySlice';
 import surveyResponseReducer from '../features/surveyResponse/surveyResponseSlice';
 import notificationReducer from '../features/notification/notificationSlice';
+import classSessionReducer from '../features/classSession/classSessionSlice';
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     survey: surveyReducer,
     surveyResponse: surveyResponseReducer,
     notification: notificationReducer,
+    classSession: classSessionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

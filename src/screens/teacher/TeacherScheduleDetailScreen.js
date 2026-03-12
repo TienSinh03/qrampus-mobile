@@ -14,17 +14,27 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AttendanceStatistics from '../../components/statistics/AttendanceStatistics';
 import SurveyStatistics from '../../components/statistics/SurveyStatistics';
 import useCollapsibleHeader from '../../hooks/useCollapsibleHeader';
+import { useDispatch, useSelector } from 'react-redux';
+import { getStudentsByClassSessionThunk } from '../../features/classSession/classSessionThunks';
+import {
+  clearStudents,
+  selectStudents,
+  selectTotalStudents,
+  selectPracticeGroupBreakdown,
+  selectApiPracticeGroup,
+  selectStudentsLoading,
+} from '../../features/classSession/classSessionSlice';
 
 const { width } = Dimensions.get('window');
 
 const TeacherScheduleDetailScreen = ({ navigation, route }) => {
-
-  
+  const dispatch = useDispatch();
   const { schedule } = route.params;
   const [timeRemaining, setTimeRemaining] = useState('');
   const [isInActiveWindow, setIsInActiveWindow] = useState(false);
   const [isUrgent, setIsUrgent] = useState(false);
-  
+  const studentCount = useSelector(selectTotalStudents);
+
   const {
     id,
     courseName = 'Tên môn học',
@@ -32,15 +42,23 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
     roomName = 'A101',
     startHour = '07:00',
     endHour = '09:00',
-    studentCount = 0,
     hasActiveSession = false,
     classDate,
     dayOfWeek,
     credits = 3,
     practiceGroup = null,
+    isTheory = false,
+    isPractice = false,
   } = schedule || {};
   
+  const isPracticeSchedule = isPractice && !isTheory;
+
   const { animatedHeight, animatedOpacity, animatedTranslateY, handleScroll } = useCollapsibleHeader(!practiceGroup ? width * 0.25: width * 0.35);
+
+  useEffect(() => {
+    dispatch(getStudentsByClassSessionThunk(schedule.id));
+    return () => { dispatch(clearStudents()); };
+  }, []);
 
   // Thống kê điểm danh (thay bằng API call - hôm nay)
   const [attendanceStats, setAttendanceStats] = useState({
@@ -163,7 +181,7 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
 
       {/* Header */}
       <LinearGradient
-        colors={isUrgent && !hasActiveSession ? ['#dc2626', '#ef4444'] : ['#7c3aed', '#8b5cf6']}
+        colors={isUrgent && !hasActiveSession ? ['#dc2626', '#ef4444'] : isPracticeSchedule ? ['#0891b2', '#06b6d4'] : ['#7c3aed', '#8b5cf6']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
