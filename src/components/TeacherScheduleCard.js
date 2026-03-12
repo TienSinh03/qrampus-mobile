@@ -11,7 +11,6 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
     room = 'A101',
     startHour = '07:00',
     endHour = '09:00',
-    studentCount = 0,
     hasActiveSession = false,
     courseSectionId = 1,
     isTheory = false,
@@ -132,12 +131,6 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
           <View className="flex-row items-center flex-1 mr-2">
             <Ionicons name="location-outline" size={16} color="white" />
             <Text className="text-white/90 text-sm ml-1">{room}</Text>
-          </View>
-          <View className="flex-row items-center flex-1">
-            <Ionicons name="people-outline" size={16} color="white" />
-            <Text className="text-white/90 text-sm ml-1">
-              {studentCount} sinh viên
-            </Text>
           </View>
         </View>
 
