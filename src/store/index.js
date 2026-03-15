@@ -9,6 +9,7 @@ import surveyReducer from '../features/survey/surveySlice';
 import surveyResponseReducer from '../features/surveyResponse/surveyResponseSlice';
 import notificationReducer from '../features/notification/notificationSlice';
 import classSessionReducer from '../features/classSession/classSessionSlice';
+import attendanceSessionReducer from '../features/attendanceSession/attendanceSessionSlice';
 
 export const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ export const store = configureStore({
     surveyResponse: surveyResponseReducer,
     notification: notificationReducer,
     classSession: classSessionReducer,
+    attendanceSession: attendanceSessionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -25,7 +25,7 @@ import {
 import StudentDetailModal from '../../components/modal/StudentDetailModal';
 
 const StudentListScreen = ({ navigation, route }) => {
-  const { schedule } = route.params;
+  const { schedule } = route.params || {};
 
   const dispatch = useDispatch();
   const students = useSelector(selectStudents);
@@ -41,14 +41,14 @@ const StudentListScreen = ({ navigation, route }) => {
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   useEffect(() => {
-    if (loadedForSessionId !== schedule.id) {
-      dispatch(getStudentsByClassSessionThunk(schedule.id));
+    if (loadedForSessionId !== schedule?.id) {
+      dispatch(getStudentsByClassSessionThunk(schedule?.id));
     }
   }, []);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await dispatch(getStudentsByClassSessionThunk(schedule.id));
+    await dispatch(getStudentsByClassSessionThunk(schedule?.id));
     setRefreshing(false);
   };
 
@@ -68,7 +68,7 @@ const StudentListScreen = ({ navigation, route }) => {
     setShowDetailModal(true);
   };
 
-  const isPracticeSchedule = schedule.isPractice;
+  const isPracticeSchedule = schedule?.isPractice;
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -86,9 +86,9 @@ const StudentListScreen = ({ navigation, route }) => {
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <View className="flex-1">
-            <Text className="text-white text-lg font-bold">{schedule.courseName}</Text>
+            <Text className="text-white text-lg font-bold">{schedule?.courseName}</Text>
             <Text className="text-white/80 text-sm">
-              {schedule.courseCode} • {schedule.room}
+              {schedule?.courseCode} • {schedule?.room}
             </Text>
           </View>
         </View>
