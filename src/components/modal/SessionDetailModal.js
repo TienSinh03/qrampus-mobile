@@ -79,7 +79,7 @@ const SessionDetailModal = ({
                 <View className="flex-row items-center justify-between mb-2">
                   <Text className="text-gray-600 text-sm">Giảng viên tạo</Text>
                   <Text className="text-gray-900 font-semibold">
-                    {session.created_by_name}
+                    {session.creator_name}
                   </Text>
                 </View>
                 <View className="flex-row items-center justify-between mb-2">
@@ -104,19 +104,19 @@ const SessionDetailModal = ({
                 <View className="flex-row justify-between mb-3">
                   <View className="flex-1 items-center">
                     <Text className="text-2xl font-bold text-purple-600">
-                      {session.total_attended}
+                      {session?.stats?.attended || 0}
                     </Text>
                     <Text className="text-gray-500 text-xs">Đã điểm danh</Text>
                   </View>
                   <View className="flex-1 items-center">
                     <Text className="text-2xl font-bold text-gray-400">
-                      {session.total_students - session.total_attended}
+                      {session?.stats?.total - session?.stats?.attended || 0}
                     </Text>
                     <Text className="text-gray-500 text-xs">Vắng</Text>
                   </View>
                   <View className="flex-1 items-center">
                     <Text className="text-2xl font-bold text-blue-600">
-                      {session.attendance_rate.toFixed(1)}%
+                      {session?.stats?.rate?.toFixed(1) || 0}%
                     </Text>
                     <Text className="text-gray-500 text-xs">Tỷ lệ</Text>
                   </View>
@@ -143,7 +143,7 @@ const SessionDetailModal = ({
               </View>
 
               {/* Attendance List */}
-              {session.attendances && session.attendances.length > 0 && (
+              {session?.attendances && session.attendances.length > 0 && (
                 <View>
                   <Text className="text-gray-900 font-bold mb-3">
                     Danh sách điểm danh ({session.attendances.length})

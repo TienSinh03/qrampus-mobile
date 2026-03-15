@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,29 +15,54 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import QRHistoryModal from '../../components/modal/QRHistoryModal';
+import { useDispatch, useSelector } from 'react-redux';
+
+import {
+  createAttendanceSessionThunk,
+  closeAttendanceSessionThunk,
+  getNextQRThunk,
+  getAttendanceHistoryThunk,
+} from '../../features/attendanceSession/attendanceSessionThunks';
+
+import {
+  selectActiveSession,
+  selectCurrentQR,
+  selectClassInfo,
+  selectCreateLoading,
+  selectCreateError,
+  selectCloseLoading,
+  clearActiveSession,
+  selectSessions,
+  setActiveSession,
+} from '../../features/attendanceSession/attendanceSessionSlice';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const CreateQRSessionScreen = ({ navigation, route }) => {
+  const dispatch = useDispatch();
   const { schedule, isNewSession = true, sessionId: existingSessionId = null } = route.params;
+
+  // Redux state
+  const activeSession = useSelector(selectActiveSession);
+  const currentQR = useSelector(selectCurrentQR);
+  const classInfo = useSelector(selectClassInfo);
+  const createLoading = useSelector(selectCreateLoading);
+  const createError = useSelector(selectCreateError);
+  const closeLoading = useSelector(selectCloseLoading);
+  const qrHistory = useSelector(selectSessions);
 
   // Session state
   const [sessionActive, setSessionActive] = useState(false);
-  const [selectedDuration, setSelectedDuration] = useState(null); // 2, 3, 5 minutes
-  const [currentQRToken, setCurrentQRToken] = useState(null);
-  const [sessionId, setSessionId] = useState(null);
-  const [qrInstanceId, setQrInstanceId] = useState(null);
+  const [selectedDuration, setSelectedDuration] = useState(null);
   
   // Timing state
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [qrTimeRemaining, setQrTimeRemaining] = useState(10); // QR expires every 10s
-  const [sessionStartTime, setSessionStartTime] = useState(null);
+  const [qrTimeRemaining, setQrTimeRemaining] = useState(10);
   
   // Attendance state
   const [attendedStudents, setAttendedStudents] = useState([]);
   const [totalStudents, setTotalStudents] = useState(0);
   const [frequentAbsentees, setFrequentAbsentees] = useState([]);
-  const [qrHistory, setQrHistory] = useState([]);
   
   // UI state
   const [showDurationModal, setShowDurationModal] = useState(isNewSession);
@@ -47,72 +72,74 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
   const qrScaleAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
 
-  //  Replace with API
+  // Cleanup on unmount
   useEffect(() => {
-    // Fetch total students and frequent absentees
-    setTotalStudents(45);
-    setFrequentAbsentees([
-      { id: 1, name: 'Nguyễn Văn A', studentId: '20200001', absenceRate: 35 },
-      { id: 2, name: 'Trần Thị B', studentId: '20200002', absenceRate: 28 },
-      { id: 3, name: 'Lê Văn C', studentId: '20200003', absenceRate: 25 },
-    ]);
-
-    // get api qr history khi sinh viên quét qr
-    setQrHistory([
-      {
-        id: 1,
-        date: '2025-12-03',
-        time: '07:00',
-        createdBy: 'TS. Nguyễn Văn A',
-        duration: 5,
-        attendanceCount: 42,
-        totalStudents: 45,
-      },
-      {
-        id: 2,
-        date: '2025-12-02',
-        time: '07:00',
-        createdBy: 'PGS. Trần Thị B', // Co-teacher
-        duration: 3,
-        attendanceCount: 40,
-        totalStudents: 45,
-      },
-    ]);
+    return () => { dispatch(clearActiveSession()); };
   }, []);
 
+  // Load QR history for this course
+  useEffect(() => {
+    if (schedule.courseSectionId) {
+      dispatch(getAttendanceHistoryThunk({ course_section_id: schedule.courseSectionId, limit: 20 }));
+    }
+  }, [schedule.courseSectionId]);
+
+  // Show error alert
+  useEffect(() => {
+    if (createError) {
+      Alert.alert('Lỗi', createError);
+    }
+  }, [createError]);
+
+  // Restore state khi xem lại phiên đang hoạt động
+  useEffect(() => {
+    if (isNewSession || !existingSessionId) return;
+
+    // Chờ đến khi history được load
+    const existingSession = qrHistory.find(s => s.id === existingSessionId);
+    if (!existingSession || existingSession.status !== 'active') return;
+
+    // Tính thời gian còn lại
+    const expiresAt = new Date(existingSession.expires_at);
+    const now = new Date();
+    const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+
+    if (remaining <= 0) return;
+
+    // Khôi phục session vào Redux
+    dispatch(setActiveSession({ id: existingSession.id }));
+    setSelectedDuration(existingSession.session_duration_minutes);
+    setTimeRemaining(remaining);
+    setQrTimeRemaining(10);
+    setSessionActive(true);
+
+    // Lấy QR mới ngay lập tức
+    dispatch(getNextQRThunk(existingSessionId)).catch(() => {});
+  }, [isNewSession, existingSessionId, qrHistory]);
+
   // Bắt đầu phiên điểm danh với thời gian đã chọn
-  const handleStartSession = (duration) => {
+  const handleStartSession = async (duration) => {
     setSelectedDuration(duration);
     setShowDurationModal(false);
-    setSessionActive(true);
-    setTimeRemaining(duration * 60); // Convert to seconds
-    setSessionStartTime(new Date());
 
-    // Create attendance session
-    createAttendanceSession(duration);
+    try {
+      const result = await dispatch(createAttendanceSessionThunk({
+        class_session_id: schedule.id,
+        session_duration_minutes: duration,
+        qr_interval: 10,
+      })).unwrap();
+
+      setSessionActive(true);
+      setTimeRemaining(duration * 60);
+      setQrTimeRemaining(10);
+      animateQR();
+    } catch (err) {
+      // Error handled by createError useEffect
+      setShowDurationModal(true);
+    }
   };
 
-  // Tạo phiên điểm danh mới và lấy session ID
-  const createAttendanceSession = async (duration) => {
-    //  Call API to create attendance_session
-    const mockSessionId = Math.floor(Math.random() * 10000);
-    setSessionId(mockSessionId);
-
-    // Generate first QR
-    generateNewQR(mockSessionId);
-  };
-
-  const generateNewQR = async (sessId) => {
-    // Generate unique QR token (using course_section_id as part of token)
-    const token = parseInt(`${schedule.courseSectionId}${Date.now().toString().slice(-6)}`);
-    const mockQrInstanceId = Math.floor(Math.random() * 10000);
-
-    // Call API to create qr_instance
-    setCurrentQRToken(token);
-    setQrInstanceId(mockQrInstanceId);
-    setQrTimeRemaining(10);
-
-    // Animate QR code
+  const animateQR = () => {
     Animated.sequence([
       Animated.timing(qrScaleAnim, {
         toValue: 0.9,
@@ -128,9 +155,23 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
     ]).start();
   };
 
+  // Fetch next QR
+  const fetchNextQR = useCallback(async () => {
+    if (!activeSession?.id) return;
+    try {
+      await dispatch(getNextQRThunk(activeSession.id)).unwrap();
+      animateQR();
+    } catch (err) {
+      // Session may have expired on server
+      if (err?.includes?.('hết hạn') || err?.includes?.('expired')) {
+        endSession();
+      }
+    }
+  }, [activeSession?.id]);
+
   // Thời gian đếm ngược cho phiên và QR
   useEffect(() => {
-    if (!sessionActive) return;
+    if (!sessionActive || !activeSession?.id) return;
 
     const interval = setInterval(() => {
       // Phiên kết thúc
@@ -142,10 +183,10 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
         return prev - 1;
       });
 
-      // QR hết hạn, tạo QR mới
+      // QR hết hạn, gọi API lấy QR mới
       setQrTimeRemaining((prev) => {
         if (prev <= 1) {
-          generateNewQR(sessionId);
+          fetchNextQR();
           return 10;
         }
         return prev - 1;
@@ -153,7 +194,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [sessionActive, sessionId]);
+  }, [sessionActive, activeSession?.id, fetchNextQR]);
 
   // Cập nhật thanh tiến trình
   useEffect(() => {
@@ -171,11 +212,15 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
     setSessionActive(false);
     setSessionEnded(true);
     
-    // Call API to mark session as expired and save quorum_met status
-    const quorumMet = isQuorumMet();
-    console.log('Session ended. Quorum met:', quorumMet);
-    
-    // Note: Chung ta có thể lưu trạng thái quorum_met vào cơ sở dữ liệu tại đây
+    if (activeSession?.id) {
+      try {
+        console.log('Closing session with ID:', activeSession.id);
+        await dispatch(closeAttendanceSessionThunk(activeSession.id)).unwrap();
+        console.log('Session closed successfully');
+      } catch (err) {
+        console.log('Close session error:', err);
+      }
+    }
   };
 
   const handleManualStop = () => {
@@ -203,28 +248,6 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
   const isQuorumMet = () => {
     return attendedStudents.length >= (totalStudents * 2) / 3;
   };
-
-  // Tính mô phỏng sinh viên quét mã QR trong phiên điểm danh
-  useEffect(() => {
-    if (!sessionActive) return;
-
-    const mockScanInterval = setInterval(() => {
-      const randomStudent = {
-        id: Date.now() + Math.random(),
-        name: `Sinh viên ${Math.floor(Math.random() * 100)}`,
-        studentId: `2020${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-        scanTime: new Date().toISOString(),
-      };
-
-      setAttendedStudents((prev) => {
-        if (prev.length >= totalStudents) return prev;
-        if (prev.some(s => s.studentId === randomStudent.studentId)) return prev;
-        return [...prev, randomStudent];
-      });
-    }, 8000);
-
-    return () => clearInterval(mockScanInterval);
-  }, [sessionActive, totalStudents]);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -303,7 +326,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
         )}
 
         {/* QR Code Display */}
-        {currentQRToken && (
+        {currentQR?.qr_token && (
           <View className="px-6">
             <View className="bg-white rounded-3xl p-6 items-center mb-4" style={{ elevation: 5 }}>
               <Text className="text-gray-900 text-xl font-bold mb-2">
@@ -325,9 +348,9 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
                 >
                   <QRCode
                     value={JSON.stringify({
-                      qr_token: currentQRToken,
-                      attendance_session_id: sessionId,
-                      qr_instance_id: qrInstanceId,
+                      qr_token: currentQR.qr_token,
+                      attendance_session_id: activeSession?.id,
+                      qr_instance_id: currentQR.id,
                       course_section_id: schedule.courseSectionId,
                       status: sessionEnded ? 'invalid' : 'active',
                     })}
@@ -378,7 +401,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
               <Text className={`text-xs mt-2 ${
                 sessionEnded ? 'text-red-400' : 'text-gray-400'
               }`}>
-                Token: {currentQRToken} {sessionEnded ? '(Không hợp lệ)' : ''}
+                Token: {currentQR.qr_token?.substring(0, 8)}... {sessionEnded ? '(Không hợp lệ)' : ''}
               </Text>
             </View>
           </View>
@@ -588,7 +611,15 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
       <QRHistoryModal
         visible={showHistoryModal}
         onClose={() => setShowHistoryModal(false)}
-        qrHistory={qrHistory}
+        qrHistory={qrHistory.map(s => ({
+          id: s.id,
+          date: s.class_date,
+          time: s.start_hour,
+          createdBy: s.creator_name,
+          duration: s.session_duration_minutes,
+          attendanceCount: s.stats?.attended || 0,
+          totalStudents: s.stats?.total || 0,
+        }))}
       />
     </SafeAreaView>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   RefreshControl,
   Dimensions,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -14,13 +15,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import SessionDetailModal from '../../components/modal/SessionDetailModal';
 import useCollapsibleHeader from '../../hooks/useCollapsibleHeader';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAttendanceHistoryThunk } from '../../features/attendanceSession/attendanceSessionThunks';
+import {
+  selectSessions,
+  selectHistoryLoading,
+  clearHistory,
+} from '../../features/attendanceSession/attendanceSessionSlice';
 
 const { width } = Dimensions.get('window');
 const SessionListScreen = ({ navigation, route }) => {
+  const dispatch = useDispatch();
   const { animatedHeight, animatedOpacity, animatedTranslateY, handleScroll, handleMomentumScrollBegin } = useCollapsibleHeader(width * 0.45);
   const { schedule } = route.params;
 
-  const [sessions, setSessions] = useState([]);
+  const sessions = useSelector(selectSessions);
+  const historyLoading = useSelector(selectHistoryLoading);
   const [refreshing, setRefreshing] = useState(false);
   const [isInActiveWindow, setIsInActiveWindow] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -51,103 +61,18 @@ const SessionListScreen = ({ navigation, route }) => {
   }, [schedule.startHour]);
 
   // Fetch sessions for this schedule
+  const fetchSessions = useCallback(() => {
+    dispatch(getAttendanceHistoryThunk({ course_section_id: schedule.courseSectionId }));
+  }, [dispatch, schedule.courseSectionId]);
+
   useEffect(() => {
     fetchSessions();
+    return () => { dispatch(clearHistory()); };
   }, []);
-
-  const fetchSessions = async () => {
-    // Call API to get attendance_sessions for this teaching_schedule_id
-    const mockSessions = [
-      {
-        id: 1,
-        created_at: '2025-12-03 07:02:00',
-        created_by_name: 'TS. Nguyễn Văn A',
-        created_by_id: 101,
-        session_duration_minutes: 5,
-        status: 'expired',
-        quorum_met: true,
-        total_attended: 42,
-        total_students: 45,
-        attendance_rate: 93.3,
-        attendances: [
-          { id: 1, student_name: 'Nguyễn Văn A', student_id: '20200001', scan_time: '2025-12-03 07:02:15', valid: true },
-          { id: 2, student_name: 'Trần Thị B', student_id: '20200002', scan_time: '2025-12-03 07:02:30', valid: true },
-          { id: 3, student_name: 'Lê Văn C', student_id: '20200003', scan_time: '2025-12-03 07:03:45', valid: true },
-        ],
-      },
-      {
-        id: 2,
-        created_at: '2025-11-26 07:01:00',
-        created_by_name: 'PGS. Trần Thị B',
-        created_by_id: 102,
-        session_duration_minutes: 3,
-        status: 'expired',
-        quorum_met: true,
-        total_attended: 40,
-        total_students: 45,
-        attendance_rate: 88.9,
-        attendances: [],
-      },
-      {
-        id: 3,
-        created_at: '2025-11-19 07:03:00',
-        created_by_name: 'TS. Nguyễn Văn A',
-        created_by_id: 101,
-        session_duration_minutes: 5,
-        status: 'expired',
-        quorum_met: false,
-        total_attended: 28,
-        total_students: 45,
-        attendance_rate: 62.2,
-        attendances: [],
-      },
-      {
-        id: 4,
-        created_at: '2025-11-19 07:03:00',
-        created_by_name: 'TS. Nguyễn Văn A',
-        created_by_id: 101,
-        session_duration_minutes: 5,
-        status: 'expired',
-        quorum_met: false,
-        total_attended: 28,
-        total_students: 45,
-        attendance_rate: 62.2,
-        attendances: [],
-      },
-      {
-        id: 4,
-        created_at: '2025-11-19 07:03:00',
-        created_by_name: 'TS. Nguyễn Văn A',
-        created_by_id: 101,
-        session_duration_minutes: 5,
-        status: 'expired',
-        quorum_met: false,
-        total_attended: 28,
-        total_students: 45,
-        attendance_rate: 62.2,
-        attendances: [],
-      },
-      {
-        id: 4,
-        created_at: '2025-11-19 07:03:00',
-        created_by_name: 'TS. Nguyễn Văn A',
-        created_by_id: 101,
-        session_duration_minutes: 5,
-        status: 'expired',
-        quorum_met: false,
-        total_attended: 28,
-        total_students: 45,
-        attendance_rate: 62.2,
-        attendances: [],
-      },
-    ];
-
-    setSessions(mockSessions);
-  };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchSessions();
+    await dispatch(getAttendanceHistoryThunk({ course_section_id: schedule.courseSectionId })).unwrap().catch(() => {});
     setRefreshing(false);
   };
 
@@ -367,7 +292,12 @@ const SessionListScreen = ({ navigation, route }) => {
           Lịch sử phiên điểm danh
         </Text>
 
-        {sessions.length === 0 ? (
+        {historyLoading && sessions.length === 0 ? (
+          <View className="bg-white rounded-2xl p-8 items-center justify-center">
+            <ActivityIndicator size="large" color="#7c3aed" />
+            <Text className="text-gray-500 text-sm mt-3">Đang tải...</Text>
+          </View>
+        ) : sessions.length === 0 ? (
           <View className="bg-white rounded-2xl p-8 items-center justify-center">
             <Text className="text-gray-900 font-bold text-lg mb-1">
               Chưa có phiên điểm danh
@@ -399,7 +329,7 @@ const SessionListScreen = ({ navigation, route }) => {
                     {formatDateTime(session.created_at)}
                   </Text>
                   <Text className="text-gray-600 text-sm">
-                    Tạo bởi: {session.created_by_name}
+                    Tạo bởi: {session.creator_name}
                   </Text>
                 </View>
                 <View className={`px-3 py-1 rounded-full ${getStatusColor(session.status)}`}>
@@ -420,17 +350,17 @@ const SessionListScreen = ({ navigation, route }) => {
                 <View className="flex-row items-center mr-4">
                   <Ionicons name="people-outline" size={14} color="#6b7280" />
                   <Text className="text-gray-600 text-xs ml-1">
-                    {session.total_attended}/{session.total_students}
+                    {session.stats?.attended || 0}/{session.stats?.total || 0}
                   </Text>
                 </View>
                 <View className="flex-1" />
                 <Text
                   className={`font-bold ${
-                    session.attendance_rate >= 80 ? 'text-green-600'
-                      : session.attendance_rate >= 60 ? 'text-orange-600' : 'text-red-600'
+                    (session.stats?.rate || 0) >= 80 ? 'text-green-600'
+                      : (session.stats?.rate || 0) >= 60 ? 'text-orange-600' : 'text-red-600'
                   }`}
                 >
-                  {session.attendance_rate.toFixed(1)}%
+                  {(session.stats?.rate || 0).toFixed(1)}%
                 </Text>
               </View>
 

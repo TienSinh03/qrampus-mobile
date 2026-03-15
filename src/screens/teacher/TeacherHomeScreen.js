@@ -96,13 +96,13 @@ const TeacherHomeScreen = ({ navigation }) => {
       onPress: () => navigation.navigate('TeacherLeaveRequestList'),
       badge: 3
     },
-    {
-      id: '4',
-      icon: 'people-outline',
-      label: 'Danh sách SV',
-      // onPress: () => navigation.navigate('StudentList'),
-      onPress: () => console.log('Student List'),
-    },
+    // {
+    //   id: '4',
+    //   icon: 'people-outline',
+    //   label: 'Danh sách SV',
+    //   onPress: () => navigation.navigate('StudentList'),
+    //   // onPress: () => console.log('Student List'),
+    // },
   ];
 
   const renderScheduleCard = (schedule) => (
