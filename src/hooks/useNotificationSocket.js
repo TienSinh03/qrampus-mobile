@@ -14,6 +14,7 @@ import {
   fetchNotificationsThunk,
   fetchUnreadCountThunk,
 } from '../features/notification/notificationThunks';
+import { setScheduleHasQR } from '../features/student/studentSlice';
 
 const { SOCKET_URL } = Constants.expoConfig?.extra || {};
 
@@ -117,6 +118,10 @@ export function useNotificationSocket() {
     socket.on('notification:new', (payload) => {
       console.log('[Socket] New notification:', payload.id, payload.type);
       dispatch(receiveNotification(payload));
+      // Khi GV tạo phiên → cập nhật nút Scan QR realtime trên lịch học sinh viên
+      if (payload.type === 'attendance_success' && payload.class_session_id) {
+        dispatch(setScheduleHasQR({ classSessionId: payload.class_session_id, hasQR: true }));
+      }
     });
 
     /**
