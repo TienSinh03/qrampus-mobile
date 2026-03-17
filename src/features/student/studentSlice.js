@@ -55,6 +55,20 @@ const studentSlice = createSlice({
             state.schedulesByDate = {};
             state.currentScheduleRange = null;
         },
+        // Cập nhật hasQR realtime khi GV tạo phiên điểm danh
+        setScheduleHasQR: (state, action) => {
+            const { classSessionId, hasQR } = action.payload;
+            const updateInArray = (arr) => {
+                const idx = arr.findIndex(s => s.id === classSessionId);
+                if (idx !== -1) arr[idx] = { ...arr[idx], hasQR };
+            };
+            updateInArray(state.schedules);
+            updateInArray(state.schedulesToday);
+            // Cập nhật trong schedulesByDate
+            Object.keys(state.schedulesByDate).forEach(date => {
+                updateInArray(state.schedulesByDate[date]);
+            });
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -134,7 +148,7 @@ const studentSlice = createSlice({
     },
 });
 
-export const { resetStudentState, clearScheduleError, clearSchedules } = studentSlice.actions;
+export const { resetStudentState, clearScheduleError, clearSchedules, setScheduleHasQR } = studentSlice.actions;
 
 // Selectors
 export const selectStudentProfile = (state) => state.student.profile;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSelector } from 'react-redux';
 
 const ScheduleCard = ({ schedule, navigation }) => {
   const {
@@ -12,12 +13,24 @@ const ScheduleCard = ({ schedule, navigation }) => {
     startHour = '07:00',
     endHour = '09:00',
     teacherName = 'Giảng viên',
-    hasQR = false,
+    hasQR: hasQRProp = false,
     isTheory = false,
     isPractice = false,
     sessionStatus = '',
   } = schedule || {};
-  
+
+  // Lắng nghe realtime từ Redux khi GV tạo phiên
+  const realtimeHasQR = useSelector(state => {
+    const all = [
+      ...(state.student?.schedules || []),
+      ...(state.student?.schedulesToday || []),
+    ];
+    const found = all.find(s => s.id === id);
+    return found ? found.hasQR : false;
+  });
+
+  const hasQR = hasQRProp || realtimeHasQR;
+  console.log('ScheduleCard render - hasQR:', hasQR, 'for schedule ID:', id);
   const isCompleted = sessionStatus === 'completed';
   const isPracticeSchedule = isPractice && !isTheory;
   const gradientColors = isPracticeSchedule ? ['#059669', '#10b981'] : ['#2563eb', '#3b82f6'];
