@@ -36,6 +36,8 @@ import {
   setActiveSession,
 } from '../../features/attendanceSession/attendanceSessionSlice';
 
+import { setScheduleHasActiveSession } from '../../features/teacher/teacherSlice';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const CreateQRSessionScreen = ({ navigation, route }) => {
@@ -133,6 +135,12 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
       setTimeRemaining(duration * 60);
       setQrTimeRemaining(10);
       animateQR();
+
+      // Cập nhật hasActiveSession trong Redux để TeacherScheduleCard hiển thị realtime
+      dispatch(setScheduleHasActiveSession({
+        classSessionId: schedule.id,
+        hasActiveSession: true
+      }));
     } catch (err) {
       // Error handled by createError useEffect
       setShowDurationModal(true);
@@ -211,12 +219,18 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
   const endSession = async () => {
     setSessionActive(false);
     setSessionEnded(true);
-    
+
     if (activeSession?.id) {
       try {
         console.log('Closing session with ID:', activeSession.id);
         await dispatch(closeAttendanceSessionThunk(activeSession.id)).unwrap();
         console.log('Session closed successfully');
+
+        // Cập nhật hasActiveSession = false khi đóng phiên
+        dispatch(setScheduleHasActiveSession({
+          classSessionId: schedule.id,
+          hasActiveSession: false
+        }));
       } catch (err) {
         console.log('Close session error:', err);
       }

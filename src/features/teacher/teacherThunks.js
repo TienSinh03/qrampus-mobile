@@ -15,6 +15,7 @@ export const transformScheduleToUI = (schedule) => {
         endHour: schedule.end_hour?.slice(0, 5) || '',
         scheduleType: schedule.schedule_type, // 'theory' | 'practice'
         sessionNumber: schedule.session_number,
+        hasActiveSession: schedule.has_active_session || false, // Trạng thái có phiên điểm danh đang hoạt động
         // Course info
         courseName: schedule.courseSection?.name || '',
         courseCode: schedule.courseSection?.code || '',
