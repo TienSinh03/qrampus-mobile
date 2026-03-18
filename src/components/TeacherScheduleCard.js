@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSelector } from 'react-redux';
 
 const TeacherScheduleCard = ({ schedule, navigation }) => {
   const {
@@ -11,11 +12,24 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
     room = 'A101',
     startHour = '07:00',
     endHour = '09:00',
-    hasActiveSession = false,
+    hasActiveSession: hasActiveSessionProp = false,
     courseSectionId = 1,
     isTheory = false,
     isPractice = false,
   } = schedule || {};
+
+  // Lắng nghe realtime từ Redux khi GV tạo phiên điểm danh
+  const realtimeHasActiveSession = useSelector(state => {
+    const all = [
+      ...(state.teacher?.schedules || []),
+      ...(state.teacher?.schedulesToday || []),
+    ];
+    const found = all.find(s => s.id === id);
+    return found ? found.hasActiveSession : false;
+  });
+
+  const hasActiveSession = hasActiveSessionProp || realtimeHasActiveSession;
+  console.log('TeacherScheduleCard render - hasActiveSession:', hasActiveSession, 'for schedule ID:', id);
 
   const isPracticeSchedule = isPractice && !isTheory;
   const scheduleTypeLabel = isPracticeSchedule ? 'Thực hành' : 'Lý thuyết';

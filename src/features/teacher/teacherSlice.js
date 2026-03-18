@@ -57,6 +57,20 @@ const teacherSlice = createSlice({
             state.schedulesByDate = {};
             state.currentScheduleRange = null;
         },
+        // Cập nhật hasActiveSession realtime khi GV tạo phiên điểm danh
+        setScheduleHasActiveSession: (state, action) => {
+            const { classSessionId, hasActiveSession } = action.payload;
+            const updateInArray = (arr) => {
+                const idx = arr.findIndex(s => s.id === classSessionId);
+                if (idx !== -1) arr[idx] = { ...arr[idx], hasActiveSession };
+            };
+            updateInArray(state.schedules);
+            updateInArray(state.schedulesToday);
+            // Cập nhật trong schedulesByDate
+            Object.keys(state.schedulesByDate).forEach(date => {
+                updateInArray(state.schedulesByDate[date]);
+            });
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -136,7 +150,7 @@ const teacherSlice = createSlice({
     },
 });
 
-export const { resetTeacherState, clearScheduleError, clearSchedules } = teacherSlice.actions;
+export const { resetTeacherState, clearScheduleError, clearSchedules, setScheduleHasActiveSession } = teacherSlice.actions;
 
 // Selectors
 export const selectTeacherProfile = (state) => state.teacher.profile;
