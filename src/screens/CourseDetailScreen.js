@@ -27,6 +27,7 @@ const CourseDetailScreen = ({ navigation, route }) => {
     status = 'active',
     teacherName = 'Giảng viên',
     studentCount = 0,
+    classSessions = [],
   } = course;
 
   // Màu sắc dựa theo role
@@ -130,7 +131,7 @@ const CourseDetailScreen = ({ navigation, route }) => {
               >
                 <Ionicons name="calendar" size={20} color={accentColor} />
               </View>
-              <Text className="text-2xl font-bold text-gray-900">{stats.totalSessions}</Text>
+              <Text className="text-2xl font-bold text-gray-900">{classSessions.length}</Text>
               <Text className="text-gray-500 text-xs">Tổng số buổi</Text>
             </View>
 
@@ -149,7 +150,7 @@ const CourseDetailScreen = ({ navigation, route }) => {
               <View className="w-10 h-10 rounded-full items-center justify-center mb-2 bg-green-100">
                 <Ionicons name="checkmark-circle" size={20} color="#10b981" />
               </View>
-              <Text className="text-2xl font-bold text-gray-900">{stats.completedSessions}</Text>
+              <Text className="text-2xl font-bold text-gray-900">{classSessions.filter(session => session.status === 'completed').length}</Text>
               <Text className="text-gray-500 text-xs">Đã hoàn thành</Text>
             </View>
 
@@ -197,7 +198,7 @@ const CourseDetailScreen = ({ navigation, route }) => {
                 />
               </View>
               <Text className="text-2xl font-bold text-gray-900">
-                {isTeacher ? studentCount : stats.upcomingSessions}
+                {isTeacher ? studentCount : classSessions.filter(session => session.status === 'scheduled').length}
               </Text>
               <Text className="text-gray-500 text-xs">
                 {isTeacher ? 'Sinh viên' : 'Buổi sắp tới'}

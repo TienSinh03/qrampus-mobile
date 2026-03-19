@@ -12,6 +12,7 @@ const CourseCard = ({ course, onPress, userRole = 'student' }) => {
     status = 'active',
     teacherName = '',
     studentCount = 0,
+    classSessions = [],
   } = course || {};
 
   // Màu sắc dựa theo role
