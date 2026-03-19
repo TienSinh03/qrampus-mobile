@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, TextInput, TouchableOpacity, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,7 @@ const BaseCoursesScreen = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('all');
+  const [showSemesterSelector, setShowSemesterSelector] = useState(false);
 
   const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
   const roleLabel = userRole === 'teacher' ? 'Giảng viên' : 'Sinh viên';
@@ -46,34 +47,70 @@ const BaseCoursesScreen = ({
 
   // Render semester filters
   const renderSemesterFilters = () => (
-    <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false}
-      className="mb-4"
-      contentContainerStyle={{ paddingHorizontal: 4 }}
-    >
-      {semesters.map((semester, index) => {
-        const isSelected = selectedSemester === semester;
-        return (
-          <View
-            key={index}
-            className={`mr-2 px-4 py-2 rounded-full ${
-              isSelected ? 'bg-opacity-100' : 'bg-gray-200'
-            }`}
-            style={isSelected ? { backgroundColor: roleColor } : {}}
-          >
-            <Text
-              onPress={() => setSelectedSemester(semester)}
-              className={`text-sm font-medium ${
-                isSelected ? 'text-white' : 'text-gray-600'
-              }`}
-            >
-              {semester === 'all' ? 'Tất cả' : semester}
-            </Text>
+    <View className="mb-4">
+      <TouchableOpacity
+        onPress={() => setShowSemesterSelector(true)}
+        className="bg-white rounded-xl px-4 py-3 flex-row items-center justify-between"
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.08,
+          shadowRadius: 3,
+          elevation: 2,
+        }}
+      >
+        <View className="flex-row items-center">
+          <Ionicons name="funnel-outline" size={18} color="#6b7280" />
+          <Text className="text-gray-900 font-medium ml-2">
+            {selectedSemester === 'all' ? 'Tất cả học kỳ' : selectedSemester}
+          </Text>
+        </View>
+        <Ionicons name="chevron-down" size={18} color="#6b7280" />
+      </TouchableOpacity>
+
+      <Modal
+        visible={showSemesterSelector}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSemesterSelector(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowSemesterSelector(false)}
+          className="flex-1 bg-black/40 justify-end"
+        >
+          <View className="bg-white rounded-t-3xl p-6">
+            <Text className="text-gray-900 text-lg font-bold mb-4">Chọn học kỳ</Text>
+            {semesters.map((semester, index) => {
+              const isSelected = selectedSemester === semester;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    setSelectedSemester(semester);
+                    setShowSemesterSelector(false);
+                  }}
+                  className={`flex-row items-center justify-between p-4 rounded-xl mb-2 ${
+                    isSelected ? 'bg-blue-50' : 'bg-gray-50'
+                  }`}
+                >
+                  <Text
+                    className={`text-base ${
+                      isSelected ? 'text-blue-600 font-bold' : 'text-gray-900'
+                    }`}
+                  >
+                    {semester === 'all' ? 'Tất cả' : semester}
+                  </Text>
+                  {isSelected && (
+                    <Ionicons name="checkmark-circle" size={20} color={roleColor} />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        );
-      })}
-    </ScrollView>
+        </TouchableOpacity>
+      </Modal>
+    </View>
   );
 
   return (
