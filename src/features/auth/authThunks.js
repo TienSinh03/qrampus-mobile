@@ -49,8 +49,8 @@ export const loginThunk = createAsyncThunk(
   async ({ user_name, password, loginRole }, { rejectWithValue }) => {
     try {
       const device_payload = loginRole === 'student' ? await getDevicePayload() : null;
-      console.log('Device payload for login:');
-      const res = await instance.post('/auth/login', { user_name, password, device_payload });
+      console.log('Device payload for login: ', device_payload);
+      const res = await instance.post('/auth/login', { user_name, password, device_payload: device_payload });
       const response = res?.data || {};
       console.log('Login response:', response);
       
