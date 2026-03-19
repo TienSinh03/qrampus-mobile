@@ -73,7 +73,7 @@ export function useNotificationSocket() {
     });
 
     socket.on('connect_error', async (error) => {
-      console.error('[Socket] Connection error:', error.message);
+      // console.error('[Socket] Connection error:', error.message);
 
       // Token hết hạn → thử refresh và reconnect
       if (error.message.includes('jwt expired') || error.message.includes('Invalid token')) {
