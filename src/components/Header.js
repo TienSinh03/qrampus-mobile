@@ -9,6 +9,7 @@ const Header = ({
   greeting = 'Xin chào',
   roleColor = '#2563eb', // blue for student, purple for teacher
   unreadCount = 0,
+  navigation
 }) => {
   const getGreeting = () => {
     if (greeting !== 'Xin chào') return greeting;
@@ -22,7 +23,9 @@ const Header = ({
   return (
     <View className="flex-row items-center justify-between px-6 pt-4 pb-3">
       {/* Avatar and User Info */}
-      <View className="flex-row items-center flex-1">
+      <TouchableOpacity className="flex-row items-center flex-1"
+        onPress={() => navigation.navigate('ProfileDetail')}      
+      >
         <View 
           className="w-12 h-12 rounded-full items-center justify-center mr-3"
           style={{
@@ -51,7 +54,7 @@ const Header = ({
             {userName || 'Người dùng'}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Notification Button */}
       <TouchableOpacity

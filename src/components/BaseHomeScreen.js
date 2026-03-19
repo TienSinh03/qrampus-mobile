@@ -56,6 +56,7 @@ const BaseHomeScreen = ({
         onNotificationPress={onNotificationPress}
         roleColor={roleColor}
         unreadCount={unreadCount}
+        navigation={navigation}
       />
 
       {/* Loading Overlay */}
