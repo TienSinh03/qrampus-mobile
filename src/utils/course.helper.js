@@ -12,5 +12,6 @@ export const transformCourseToUI = (course) => {
         description: course.description || '',
         maxStudents: course.maxStudents || course.max_students || 0,
         practiceGroup: course.practiceGroup || course.practice_group || {},
+        classSessions: course.classSessions || course.class_sessions || [],
     };
 };
