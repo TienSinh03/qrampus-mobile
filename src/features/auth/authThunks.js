@@ -52,7 +52,7 @@ export const loginThunk = createAsyncThunk(
       console.log('Device payload for login: ', device_payload);
       const res = await instance.post('/auth/login', { user_name, password, device_payload: device_payload });
       const response = res?.data || {};
-      console.log('Login response:', response);
+      // console.log('Login response:', response);
       
       if (!response.success) {
         throw new Error(response.message || 'Đăng nhập thất bại');

@@ -11,9 +11,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { CameraView, Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
-import * as Device from 'expo-device';
+import { useDispatch } from 'react-redux';
+import { scanAttendanceByQRThunk } from '../../features/attendanceSession/attendanceSessionThunks';
+import { getDevicePayload } from '../../utils/device.helper';
 
 const QRScanScreen = ({ route, navigation }) => {
+  const dispatch = useDispatch();
   const { scheduleId, courseName, courseCode, room } = route.params || {};
   
   const [hasPermission, setHasPermission] = useState(null);
@@ -48,15 +51,14 @@ const QRScanScreen = ({ route, navigation }) => {
         throw new Error('QR code không hợp lệ');
       }
 
-      // Lấy device ID
-      const deviceId = Device.osInternalBuildId || Device.modelId || 'unknown';
+      // Lấy payload thiết bị để backend kiểm tra chống chia sẻ thiết bị
+      const deviceInfo = await getDevicePayload();
 
       // Gọi API điểm danh
       await submitAttendance({
         qr_token,
-        attendance_session_id,
-        device_id_used: deviceId,
-        scan_time: new Date().toISOString(),
+        class_session_id: scheduleId,
+        device_info: deviceInfo,
       });
 
       // Thành công
@@ -75,7 +77,7 @@ const QRScanScreen = ({ route, navigation }) => {
       
       Alert.alert(
         ' Điểm danh thất bại',
-        error.message || 'Có lỗi xảy ra. Vui lòng thử lại.',
+        error?.message || error || 'Có lỗi xảy ra. Vui lòng thử lại.',
         [
           {
             text: 'Quét lại',
@@ -96,46 +98,8 @@ const QRScanScreen = ({ route, navigation }) => {
 
   // Hàm giả lập gọi API điểm danh
   const submitAttendance = async (attendanceData) => {
-    //  Gọi API thực tế
-    // const response = await fetch('/attendance/scan', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${userToken}`,
-    //   },
-    //   body: JSON.stringify(attendanceData),
-    // });
-
-    // if (!response.ok) {
-    //   const error = await response.json();
-    //   throw new Error(error.message || 'Không thể điểm danh');
-    // }
-
-    // return await response.json();
-
-    // Mock API call
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Giả lập các trường hợp lỗi
-        const random = Math.random();
-        
-        if (random < 0.1) {
-          reject(new Error('Mã QR đã hết hạn'));
-        } else if (random < 0.2) {
-          reject(new Error('Bạn chưa đăng ký lớp học này'));
-        } else if (random < 0.3) {
-          reject(new Error('Bạn đã điểm danh rồi'));
-        } else if (random < 0.4) {
-          reject(new Error('Thiết bị này đã được sử dụng bởi sinh viên khác'));
-        } else {
-          resolve({
-            success: true,
-            message: 'Điểm danh thành công',
-            attendance_id: Math.floor(Math.random() * 1000),
-          });
-        }
-      }, 1500);
-    });
+    const result = await dispatch(scanAttendanceByQRThunk(attendanceData)).unwrap();
+    return result;
   };
 
   if (hasPermission === null) {
@@ -229,11 +193,22 @@ const QRScanScreen = ({ route, navigation }) => {
 
             {/* Processing overlay */}
             {isProcessing && (
-              <View className="absolute inset-0 bg-black/60 rounded-2xl items-center justify-center">
-                <ActivityIndicator size="large" color="#3b82f6" />
-                <Text className="text-white mt-3 font-semibold">
-                  Đang xử lý...
-                </Text>
+              <View className="absolute inset-0 rounded-2xl">
+                <View className="absolute inset-0 bg-black/70" />
+
+                <View className="absolute inset-0 items-center justify-center px-6">
+                  <View className="w-full max-w-[240px] bg-slate-900/90 border border-blue-400/40 rounded-2xl px-5 py-6 items-center">
+                    <ActivityIndicator size="large" color="#60a5fa" />
+
+                    <Text className="text-white text-base font-bold mt-3 text-center">
+                      Đang xử lý mã QR
+                    </Text>
+
+                    <Text className="text-slate-300 text-xs text-center mt-1 leading-5">
+                      Vui lòng giữ yên điện thoại trong giây lát
+                    </Text>
+                  </View>
+                </View>
               </View>
             )}
           </View>

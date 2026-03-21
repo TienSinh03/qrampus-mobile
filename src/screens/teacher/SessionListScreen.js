@@ -62,8 +62,8 @@ const SessionListScreen = ({ navigation, route }) => {
 
   // Fetch sessions for this schedule
   const fetchSessions = useCallback(() => {
-    dispatch(getAttendanceHistoryThunk({ course_section_id: schedule.courseSectionId }));
-  }, [dispatch, schedule.courseSectionId]);
+    dispatch(getAttendanceHistoryThunk({ course_section_id: schedule.courseSectionId, practice_group_id: schedule.practiceGroup?.id })).unwrap().catch(() => {});
+  }, [dispatch, schedule.courseSectionId, schedule.practiceGroup?.id]);
 
   useEffect(() => {
     fetchSessions();
@@ -72,7 +72,7 @@ const SessionListScreen = ({ navigation, route }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await dispatch(getAttendanceHistoryThunk({ course_section_id: schedule.courseSectionId })).unwrap().catch(() => {});
+    await dispatch(getAttendanceHistoryThunk({ course_section_id: schedule.courseSectionId, practice_group_id: schedule.practiceGroup?.id })).unwrap().catch(() => {});
     setRefreshing(false);
   };
 
