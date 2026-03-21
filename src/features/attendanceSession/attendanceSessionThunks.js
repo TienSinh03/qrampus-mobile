@@ -34,10 +34,10 @@ export const createAttendanceSessionThunk = createAsyncThunk(
  */
 export const getAttendanceHistoryThunk = createAsyncThunk(
     'attendanceSession/getHistory',
-    async ({ course_section_id, page = 1, limit = 10 }, { rejectWithValue }) => {
+    async ({ course_section_id, practice_group_id, page = 1, limit = 10 }, { rejectWithValue }) => {
         try {
             const response = await instance.get('/attendance-sessions/history', {
-                params: { course_section_id, page, limit },
+                params: { course_section_id, practice_group_id, page, limit },
             });
 
             if (!response?.data?.success) {
@@ -98,3 +98,31 @@ export const getNextQRThunk = createAsyncThunk(
         }
     }
 );
+
+/**
+ * Sinh viên quét QR để điểm danh
+ * POST /attendance-sessions/scan
+ */
+export const scanAttendanceByQRThunk = createAsyncThunk(
+    'attendanceSession/scanByQr',
+    async ({ qr_token, class_session_id, device_info }, { rejectWithValue }) => {
+        try {
+            const response = await instance.post('/attendance-sessions/scan', {
+                qr_token,
+                class_session_id,
+                device_info,
+            });
+
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Điểm danh thất bại');
+            }
+
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Điểm danh thất bại'
+            );
+        }
+    }
+);
+

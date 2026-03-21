@@ -4,6 +4,7 @@ import {
     getAttendanceHistoryThunk,
     closeAttendanceSessionThunk,
     getNextQRThunk,
+    scanAttendanceByQRThunk,
 } from "./attendanceSessionThunks";
 
 const initialState = {
@@ -25,6 +26,17 @@ const initialState = {
     closeError: null,
     nextQRLoading: false,
     nextQRError: null,
+
+    // Student scan
+    scanLoading: false,
+    scanError: null,
+    scanResult: null,
+
+    // Session live stats for teacher
+    sessionStatsLoading: false,
+    sessionStatsError: null,
+    sessionStats: null,
+    // liveScanEvent: null,
 };
 
 const attendanceSessionSlice = createSlice({
@@ -47,6 +59,8 @@ const attendanceSessionSlice = createSlice({
             state.historyError = null;
             state.closeError = null;
             state.nextQRError = null;
+            state.scanError = null;
+            state.sessionStatsError = null;
         },
         updateCurrentQR: (state, action) => {
             state.currentQR = action.payload;
@@ -54,6 +68,12 @@ const attendanceSessionSlice = createSlice({
         setActiveSession: (state, action) => {
             state.activeSession = action.payload;
         },
+        // pushLiveScanEvent: (state, action) => {
+        //     state.liveScanEvent = {
+        //         ...action.payload,
+        //         receivedAt: Date.now(),
+        //     };
+        // },
     },
     extraReducers: (builder) => {
         builder
@@ -125,6 +145,20 @@ const attendanceSessionSlice = createSlice({
             .addCase(getNextQRThunk.rejected, (state, action) => {
                 state.nextQRLoading = false;
                 state.nextQRError = action.payload;
+            })
+
+            // Student scan QR
+            .addCase(scanAttendanceByQRThunk.pending, (state) => {
+                state.scanLoading = true;
+                state.scanError = null;
+            })
+            .addCase(scanAttendanceByQRThunk.fulfilled, (state, action) => {
+                state.scanLoading = false;
+                state.scanResult = action.payload;
+            })
+            .addCase(scanAttendanceByQRThunk.rejected, (state, action) => {
+                state.scanLoading = false;
+                state.scanError = action.payload;
             });
     },
 });
@@ -148,5 +182,7 @@ export const selectCreateError = (state) => state.attendanceSession.createError;
 export const selectHistoryLoading = (state) => state.attendanceSession.historyLoading;
 export const selectCloseLoading = (state) => state.attendanceSession.closeLoading;
 export const selectNextQRLoading = (state) => state.attendanceSession.nextQRLoading;
+export const selectScanLoading = (state) => state.attendanceSession.scanLoading;
+export const selectScanError = (state) => state.attendanceSession.scanError;
 
 export default attendanceSessionSlice.reducer;
