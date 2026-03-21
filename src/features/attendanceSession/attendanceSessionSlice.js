@@ -5,6 +5,7 @@ import {
     closeAttendanceSessionThunk,
     getNextQRThunk,
     scanAttendanceByQRThunk,
+    getAttendanceSessionStatsThunk,
 } from "./attendanceSessionThunks";
 
 const initialState = {
@@ -68,12 +69,12 @@ const attendanceSessionSlice = createSlice({
         setActiveSession: (state, action) => {
             state.activeSession = action.payload;
         },
-        // pushLiveScanEvent: (state, action) => {
-        //     state.liveScanEvent = {
-        //         ...action.payload,
-        //         receivedAt: Date.now(),
-        //     };
-        // },
+        pushLiveScanEvent: (state, action) => {
+            state.liveScanEvent = {
+                ...action.payload,
+                receivedAt: Date.now(),
+            };
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -159,6 +160,20 @@ const attendanceSessionSlice = createSlice({
             .addCase(scanAttendanceByQRThunk.rejected, (state, action) => {
                 state.scanLoading = false;
                 state.scanError = action.payload;
+            })
+
+            // Teacher session stats
+            .addCase(getAttendanceSessionStatsThunk.pending, (state) => {
+                state.sessionStatsLoading = true;
+                state.sessionStatsError = null;
+            })
+            .addCase(getAttendanceSessionStatsThunk.fulfilled, (state, action) => {
+                state.sessionStatsLoading = false;
+                state.sessionStats = action.payload;
+            })
+            .addCase(getAttendanceSessionStatsThunk.rejected, (state, action) => {
+                state.sessionStatsLoading = false;
+                state.sessionStatsError = action.payload;
             });
     },
 });
@@ -169,6 +184,7 @@ export const {
     clearErrors,
     updateCurrentQR,
     setActiveSession,
+    pushLiveScanEvent,
 } = attendanceSessionSlice.actions;
 
 // Selectors
@@ -184,5 +200,7 @@ export const selectCloseLoading = (state) => state.attendanceSession.closeLoadin
 export const selectNextQRLoading = (state) => state.attendanceSession.nextQRLoading;
 export const selectScanLoading = (state) => state.attendanceSession.scanLoading;
 export const selectScanError = (state) => state.attendanceSession.scanError;
+export const selectSessionStats = (state) => state.attendanceSession.sessionStats;
+export const selectLiveScanEvent = (state) => state.attendanceSession.liveScanEvent;
 
 export default attendanceSessionSlice.reducer;

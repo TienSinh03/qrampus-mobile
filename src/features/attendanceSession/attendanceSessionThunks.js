@@ -126,3 +126,25 @@ export const scanAttendanceByQRThunk = createAsyncThunk(
     }
 );
 
+/**
+ * Lấy thống kê chi tiết 1 phiên điểm danh (dành cho GV)
+ * GET /attendance-sessions/:id/stats
+ */
+export const getAttendanceSessionStatsThunk = createAsyncThunk(
+    'attendanceSession/getSessionStats',
+    async (sessionId, { rejectWithValue }) => {
+        try {
+            const response = await instance.get(`/attendance-sessions/${sessionId}/stats`);
+
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Lấy thống kê phiên điểm danh thất bại');
+            }
+
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Lấy thống kê phiên điểm danh thất bại'
+            );
+        }
+    }
+);
