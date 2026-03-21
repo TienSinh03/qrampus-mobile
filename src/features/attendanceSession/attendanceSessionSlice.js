@@ -69,12 +69,12 @@ const attendanceSessionSlice = createSlice({
         setActiveSession: (state, action) => {
             state.activeSession = action.payload;
         },
-        // pushLiveScanEvent: (state, action) => {
-        //     state.liveScanEvent = {
-        //         ...action.payload,
-        //         receivedAt: Date.now(),
-        //     };
-        // },
+        pushLiveScanEvent: (state, action) => {
+            state.liveScanEvent = {
+                ...action.payload,
+                receivedAt: Date.now(),
+            };
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -184,6 +184,7 @@ export const {
     clearErrors,
     updateCurrentQR,
     setActiveSession,
+    pushLiveScanEvent,
 } = attendanceSessionSlice.actions;
 
 // Selectors
@@ -199,5 +200,7 @@ export const selectCloseLoading = (state) => state.attendanceSession.closeLoadin
 export const selectNextQRLoading = (state) => state.attendanceSession.nextQRLoading;
 export const selectScanLoading = (state) => state.attendanceSession.scanLoading;
 export const selectScanError = (state) => state.attendanceSession.scanError;
+export const selectSessionStats = (state) => state.attendanceSession.sessionStats;
+export const selectLiveScanEvent = (state) => state.attendanceSession.liveScanEvent;
 
 export default attendanceSessionSlice.reducer;

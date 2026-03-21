@@ -22,6 +22,7 @@ import {
   closeAttendanceSessionThunk,
   getNextQRThunk,
   getAttendanceHistoryThunk,
+  getAttendanceSessionStatsThunk,
 } from '../../features/attendanceSession/attendanceSessionThunks';
 
 import {
@@ -34,6 +35,7 @@ import {
   clearActiveSession,
   selectSessions,
   setActiveSession,
+  selectLiveScanEvent,
 } from '../../features/attendanceSession/attendanceSessionSlice';
 
 import { setScheduleHasActiveSession } from '../../features/teacher/teacherSlice';
@@ -52,6 +54,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
   const createError = useSelector(selectCreateError);
   const closeLoading = useSelector(selectCloseLoading);
   const qrHistory = useSelector(selectSessions);
+  const liveScanEvent = useSelector(selectLiveScanEvent);
 
   // Session state
   const [sessionActive, setSessionActive] = useState(false);
@@ -197,6 +200,32 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
     }
   }, [activeSession?.id, dispatch]);
 
+  // Áp dụng event get stats attendance realtime từ socket
+  const applyRealtimeScanEvent = useCallback((eventPayload) => {
+    const meta = eventPayload?.metadata;
+    const student = meta?.student;
+    if (!student) return;
+
+    const nextItem = {
+      id: student.id || meta?.attendance_id,
+      name: student.full_name || 'Sinh viên',
+      studentId: student.student_code || 'N/A',
+      scanTime: meta?.scan_time || new Date().toISOString(),
+    };
+
+    setAttendedStudents((prev) => {
+      const exists = prev.some((item) => item.studentId === nextItem.studentId);
+      if (exists) {
+        return prev;
+      }
+      return [nextItem, ...prev];
+    });
+
+    if (typeof meta?.stats?.total === 'number') {
+      setTotalStudents(meta.stats.total);
+    }
+  }, []);
+
   // Thời gian đếm ngược cho phiên và QR
   useEffect(() => {
     if (!sessionActive || !activeSession?.id) return;
@@ -229,10 +258,20 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
     if (!sessionActive || !activeSession?.id) return;
 
     syncAttendanceStats();
-    const interval = setInterval(syncAttendanceStats, 3000);
+    const interval = setInterval(syncAttendanceStats, 15000);
 
     return () => clearInterval(interval);
   }, [sessionActive, activeSession?.id, syncAttendanceStats]);
+
+  // Realtime: khi có event sinh viên quét thành công thì refresh ngay
+  useEffect(() => {
+    const eventSessionId = liveScanEvent?.metadata?.attendance_session_id;
+    if (!eventSessionId || !activeSession?.id) return;
+
+    if (eventSessionId === activeSession.id) {
+      applyRealtimeScanEvent(liveScanEvent);
+    }
+  }, [liveScanEvent, activeSession?.id, applyRealtimeScanEvent]);
 
   // Cập nhật thanh tiến trình
   useEffect(() => {
@@ -265,6 +304,9 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
         console.log('Close session error:', err);
       }
     }
+
+    // Đồng bộ lần cuối để hiển thị danh sách điểm danh đầy đủ
+    syncAttendanceStats();
   };
 
   const handleManualStop = () => {
