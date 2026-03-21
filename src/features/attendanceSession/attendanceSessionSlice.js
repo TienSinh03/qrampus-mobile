@@ -5,6 +5,7 @@ import {
     closeAttendanceSessionThunk,
     getNextQRThunk,
     scanAttendanceByQRThunk,
+    getAttendanceSessionStatsThunk,
 } from "./attendanceSessionThunks";
 
 const initialState = {
@@ -159,6 +160,20 @@ const attendanceSessionSlice = createSlice({
             .addCase(scanAttendanceByQRThunk.rejected, (state, action) => {
                 state.scanLoading = false;
                 state.scanError = action.payload;
+            })
+
+            // Teacher session stats
+            .addCase(getAttendanceSessionStatsThunk.pending, (state) => {
+                state.sessionStatsLoading = true;
+                state.sessionStatsError = null;
+            })
+            .addCase(getAttendanceSessionStatsThunk.fulfilled, (state, action) => {
+                state.sessionStatsLoading = false;
+                state.sessionStats = action.payload;
+            })
+            .addCase(getAttendanceSessionStatsThunk.rejected, (state, action) => {
+                state.sessionStatsLoading = false;
+                state.sessionStatsError = action.payload;
             });
     },
 });

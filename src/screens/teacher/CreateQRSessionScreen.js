@@ -177,6 +177,26 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
     }
   }, [activeSession?.id]);
 
+  // Đồng bộ thống kê điểm danh realtime từ server
+  const syncAttendanceStats = useCallback(async () => {
+    if (!activeSession?.id) return;
+
+    try {
+      const data = await dispatch(getAttendanceSessionStatsThunk(activeSession.id)).unwrap();
+      const attendedList = (data?.attendances || []).map((item) => ({
+        id: item.student?.id || item.id,
+        name: item.student?.full_name || 'Sinh viên',
+        studentId: item.student?.student_code || 'N/A',
+        scanTime: item.scan_time,
+      }));
+
+      setAttendedStudents(attendedList);
+      setTotalStudents(data?.stats?.total || 0);
+    } catch (err) {
+      // Khi phiên đã hết hạn hoặc không đủ quyền thì bỏ qua để không làm gián đoạn UI
+    }
+  }, [activeSession?.id, dispatch]);
+
   // Thời gian đếm ngược cho phiên và QR
   useEffect(() => {
     if (!sessionActive || !activeSession?.id) return;
@@ -203,6 +223,16 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
 
     return () => clearInterval(interval);
   }, [sessionActive, activeSession?.id, fetchNextQR]);
+
+  // Fallback polling thưa để đồng bộ khi mất event socket (tiết kiệm request)
+  useEffect(() => {
+    if (!sessionActive || !activeSession?.id) return;
+
+    syncAttendanceStats();
+    const interval = setInterval(syncAttendanceStats, 3000);
+
+    return () => clearInterval(interval);
+  }, [sessionActive, activeSession?.id, syncAttendanceStats]);
 
   // Cập nhật thanh tiến trình
   useEffect(() => {
