@@ -41,6 +41,8 @@ export const transformScheduleToUI = (schedule) => {
         practiceGroup: schedule.practiceGroup,
         // UI helpers
         hasQR: schedule.hasQR || false,
+        isAttended: schedule.isAttended || false,
+        attendedAt: schedule.attendedAt || null,
         isTheory: schedule.scheduleType === 'theory',
         isPractice: schedule.scheduleType === 'practice',
     };
