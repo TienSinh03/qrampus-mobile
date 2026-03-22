@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getStudentProfileThunk, getStudentSchedulesThunk, getMySchedulesToday, getStudentCoursesThunk, transformScheduleToUI, updateStudentProfileThunk } from "./studentThunks";
+import { getStudentProfileThunk, getStudentSchedulesThunk, getMySchedulesToday, getStudentCoursesThunk, transformScheduleToUI, updateStudentProfileThunk, fetchScheduleDetailThunk } from "./studentThunks";
 
 const initialState = {
     profile: null,
@@ -9,7 +9,9 @@ const initialState = {
     schedules: [], // Raw schedules từ API
     schedulesToday: [], // Lịch học cá nhân cho ngày hiện tại
     schedulesByDate: {}, // Schedules được group theo ngày { '2025-01-15': [...] }
+    scheduleDetail: null, // Chi tiết lịch học cho phiên được chọn
     schedulesLoading: false,
+    scheduleDetailLoading: false,
     schedulesError: null,
     currentScheduleRange: null, // { startDate, endDate } - range đang fetch
     // Courses state
@@ -164,7 +166,24 @@ const studentSlice = createSlice({
             .addCase(updateStudentProfileThunk.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload;
-            });
+            })
+
+            // Fetch schedule detail
+            .addCase(fetchScheduleDetailThunk.pending, (state) => {
+                state.scheduleDetailLoading = true;
+                state.schedulesError = null;
+            })
+            .addCase(fetchScheduleDetailThunk.fulfilled, (state, action) => {
+                state.scheduleDetailLoading = false;
+                state.scheduleDetail = action.payload.schedule;
+                state.schedulesError = null;
+            })
+            .addCase(fetchScheduleDetailThunk.rejected, (state, action) => {
+                state.scheduleDetailLoading = false;
+                state.schedulesError = action.payload;
+                state.scheduleDetail = null;
+            })
+            
     },
 });
 
@@ -182,6 +201,7 @@ export const selectSchedulesByDate = (state) => state.student.schedulesByDate;
 export const selectSchedulesLoading = (state) => state.student.schedulesLoading;
 export const selectSchedulesError = (state) => state.student.schedulesError;
 export const selectCurrentScheduleRange = (state) => state.student.currentScheduleRange;
+export const selectScheduleDetail = (state) => state.student.scheduleDetail;
 
 // Courses selectors
 export const selectStudentCourses = (state) => state.student.courses;
