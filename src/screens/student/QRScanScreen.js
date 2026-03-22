@@ -13,6 +13,7 @@ import { CameraView, Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch } from 'react-redux';
 import { scanAttendanceByQRThunk } from '../../features/attendanceSession/attendanceSessionThunks';
+import { setScheduleAttended } from '../../features/student/studentSlice';
 import { getDevicePayload } from '../../utils/device.helper';
 
 const QRScanScreen = ({ route, navigation }) => {
@@ -55,11 +56,18 @@ const QRScanScreen = ({ route, navigation }) => {
       const deviceInfo = await getDevicePayload();
 
       // Gọi API điểm danh
-      await submitAttendance({
+      const result = await submitAttendance({
         qr_token,
         class_session_id: scheduleId,
         device_info: deviceInfo,
       });
+
+      dispatch(
+        setScheduleAttended({
+          classSessionId: scheduleId,
+          attendedAt: result?.attendance?.scan_time,
+        })
+      );
 
       // Thành công
       Alert.alert(

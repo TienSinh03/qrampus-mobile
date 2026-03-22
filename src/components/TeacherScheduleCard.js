@@ -51,7 +51,8 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
       const diffMinutes = Math.floor(diffMs / 60000);
       
       // Kiểm tra nếu trong khoảng thời gian tạo phiên (5 phút trước đến 30 phút sau giờ bắt đầu)
-      const inWindow = diffMinutes >= -5 && diffMinutes <= 30;
+      const inWindow = diffMinutes >= -30 && diffMinutes <= 5;
+
       setIsInActiveWindow(inWindow);
       
       // Kiểm tra nếu trong khoảng thời gian khẩn cấp (5 phút trước đến 5 phút sau giờ bắt đầu)
@@ -173,9 +174,9 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
               elevation: 3,
             }}
           >
-            <Ionicons name="qr-code" size={22} color={isUrgent ? '#dc2626' : '#7c3aed'} />
+            <Ionicons name="qr-code" size={22} color={isUrgent ? '#dc2626' : isPracticeSchedule ? '#06b6d4' : '#7c3aed'} />
             <Text 
-              className={`font-bold text-base ml-2 ${isUrgent ? 'text-red-600' : 'text-purple-600'}`}
+              className={`font-bold text-base ml-2 ${isUrgent ? 'text-red-600' : isPracticeSchedule ? 'text-cyan-500' : 'text-purple-600'}`}
             >
               {isUrgent ? 'Tạo QR điểm danh ngay' : 'Tạo QR điểm danh'}
             </Text>

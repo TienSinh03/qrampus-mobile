@@ -14,6 +14,7 @@ const ScheduleCard = ({ schedule, navigation }) => {
     endHour = '09:00',
     teacherName = 'Giảng viên',
     hasQR: hasQRProp = false,
+    isAttended: isAttendedProp = false,
     isTheory = false,
     isPractice = false,
     sessionStatus = '',
@@ -29,7 +30,17 @@ const ScheduleCard = ({ schedule, navigation }) => {
     return found ? found.hasQR : false;
   });
 
+  const realtimeIsAttended = useSelector(state => {
+    const all = [
+      ...(state.student?.schedules || []),
+      ...(state.student?.schedulesToday || []),
+    ];
+    const found = all.find(s => s.id === id);
+    return found ? !!found.isAttended : false;
+  });
+
   const hasQR = hasQRProp || realtimeHasQR;
+  const isAttended = isAttendedProp || realtimeIsAttended;
   console.log('ScheduleCard render - hasQR:', hasQR, 'for schedule ID:', id);
   const isCompleted = sessionStatus === 'completed';
   const isPracticeSchedule = isPractice && !isTheory;
@@ -144,7 +155,16 @@ const ScheduleCard = ({ schedule, navigation }) => {
         </View>
 
         {/* QR Code Button */}
-        {hasQR && (
+        {isAttended && (
+          <View className="bg-emerald-500/20 border border-emerald-300/50 rounded-xl py-3 px-3 flex-row items-center justify-center">
+            <Ionicons name="checkmark-circle" size={18} color="#d1fae5" />
+            <Text className="text-emerald-100 text-sm font-semibold ml-2">
+              Bạn đã điểm danh buổi học này
+            </Text>
+          </View>
+        )}
+
+        {!isAttended && hasQR && (
           <TouchableOpacity
             onPress={() => handleQRPress(schedule)}
             className="bg-white rounded-xl py-3 flex-row items-center justify-center"
@@ -164,7 +184,7 @@ const ScheduleCard = ({ schedule, navigation }) => {
         )}
 
         {/* Trong giờ học nhưng GV chưa mở phiên */}
-        {!hasQR && isClassTime && !isCompleted && (
+        {!isAttended && !hasQR && isClassTime && !isCompleted && (
           <View className="bg-white/10 rounded-xl py-3 flex-row items-center justify-center">
             <Ionicons name="hourglass-outline" size={18} color="white" />
             <Text className="text-white/70 text-sm ml-2">
@@ -174,7 +194,7 @@ const ScheduleCard = ({ schedule, navigation }) => {
         )}
 
         {/* Chưa đến giờ học */}
-        {!hasQR && !isClassTime && !isCompleted && (
+        {!isAttended && !hasQR && !isClassTime && !isCompleted && (
           <View className="bg-white/10 rounded-xl py-3 flex-row items-center justify-center">
             <Ionicons name="lock-closed-outline" size={18} color="white" />
             <Text className="text-white/70 text-sm ml-2">
