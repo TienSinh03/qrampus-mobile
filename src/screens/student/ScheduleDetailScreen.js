@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,33 @@ import {
   Alert,
   Dimensions,
   Animated,
+  RefreshControl,
 } from 'react-native';
 import useCollapsibleHeader from '../../hooks/useCollapsibleHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchScheduleDetailThunk } from '../../features/student/studentThunks';
+import { selectScheduleDetail } from '../../features/student/studentSlice';
+import { formatDate } from '../../utils/date.helper';
 
 const { width } = Dimensions.get('window');
 const ScheduleDetailScreen = ({ navigation, route }) => {
-  
+  const dispatch = useDispatch();
   const { animatedHeight, animatedOpacity, animatedTranslateY, handleScroll, handleMomentumScrollBegin } = useCollapsibleHeader(width * 0.25);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { schedule: initialSchedule } = route.params;
+  const scheduleDetail = useSelector(selectScheduleDetail);
+  const schedule = useMemo(() => {
+    if (scheduleDetail?.id === initialSchedule?.id) {
+      return scheduleDetail;
+    }
+    return initialSchedule || {};
+  }, [scheduleDetail, initialSchedule]);
   
-  const { schedule } = route.params;
   const [attendanceStats, setAttendanceStats] = useState({
     present: 8,
     absent: 2,
@@ -40,9 +54,16 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
     teacherEmail = 'teacher@example.com',
     date,
     dayOfWeek,
-    hasQR = false,
+    hasQR: hasQRProp = false,
     credits = 3,
+    isAttended: isAttendedProp = false,
+    isTheory = false,
+    isPractice = false,
+    sessionStatus = '',
   } = schedule || {};
+
+  const isPracticeSchedule = isPractice && !isTheory;
+
 
   // Load trạng thái khảo sát từ API khi vào trang
   useEffect(() => {
@@ -90,6 +111,21 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
     
     return () => clearInterval(interval);
   }, [endHour, hasCompletedSurvey]);
+
+  const onRefresh = async () => {
+    if (!schedule?.id) {
+      return;
+    }
+
+    setRefreshing(true);
+    try {
+      await dispatch(fetchScheduleDetailThunk(schedule.id)).unwrap();
+    } catch (error) {
+      Alert.alert('Không thể làm mới', error || 'Có lỗi xảy ra khi tải chi tiết lịch học');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // xử lý khi nhấn vào nút QR                 
   const handleQRPress = () => {
@@ -145,7 +181,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
 
       {/* Header */}
       <LinearGradient
-        colors={['#2563eb', '#3b82f6']}
+        colors={isPracticeSchedule ? ['#059669', '#10b981'] : ['#2563eb', '#3b82f6']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
@@ -183,15 +219,28 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
         onScroll={handleScroll}
         onMomentumScrollBegin={handleMomentumScrollBegin}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         <View className="px-6 pt-6 pb-4">
+          {/** View notification small */}
+          {isAttendedProp && (
+            <View className=" rounded-xl mb-3 flex-row items-center justify-center">
+                <Ionicons name="checkmark-circle" size={18} color="#10b981" />
+                <Text className="text-emerald-800 text-sm font-semibold ml-2">
+                  Bạn đã điểm danh buổi học này
+                </Text>
+            </View>
+          )}
+
           <Text className="text-gray-900 font-bold text-lg mb-3">Thao tác nhanh</Text>
           
           {/* QR Scan Button */}
-          {hasQR ? (
+          {hasQRProp && (
             <TouchableOpacity
               onPress={handleQRPress}
-              className="bg-blue-600 rounded-xl py-4 mb-3 flex-row items-center justify-center"
+              className={`${isAttendedProp ? 'bg-gray-400' : 'bg-blue-600'} rounded-xl py-4 mb-3 flex-row items-center justify-center`}
               style={{
                 shadowColor: '#2563eb',
                 shadowOffset: { width: 0, height: 4 },
@@ -199,15 +248,11 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
                 shadowRadius: 8,
                 elevation: 5,
               }}
+              disabled={isAttendedProp}
             >
               <Ionicons name="qr-code" size={24} color="white" />
               <Text className="text-white font-bold text-base ml-2">Quét mã điểm danh</Text>
             </TouchableOpacity>
-          ) : (
-            <View className="bg-gray-200 rounded-xl py-4 mb-3 flex-row items-center justify-center">
-              <Ionicons name="lock-closed-outline" size={20} color="#6b7280" />
-              <Text className="text-gray-500 text-base ml-2">Chưa đến giờ điểm danh</Text>
-            </View>
           )}
 
           {/* Survey Button - Show when near end time */}
@@ -323,7 +368,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
               <View className="flex-1">
                 <Text className="text-gray-500 text-xs mb-1">Thời gian</Text>
                 <Text className="text-gray-900 font-bold text-base">
-                  {dayOfWeek}, {date}
+                  {dayOfWeek}, {formatDate(date || schedule?.classDate)}
                 </Text>
                 <Text className="text-gray-600 text-sm">
                   {startHour} - {endHour}

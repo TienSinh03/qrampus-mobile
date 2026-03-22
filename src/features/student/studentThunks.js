@@ -184,3 +184,30 @@ export const updateStudentProfileThunk = createAsyncThunk(
         }
     }
 );
+
+export const fetchScheduleDetailThunk = createAsyncThunk(
+    'student/scheduleDetail',
+    async (sessionId, { rejectWithValue }) => {
+        try {
+            const response = await instance.get(`/students/me/schedules/${sessionId}`);
+            
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Lấy chi tiết lịch học thất bại');
+            }
+
+            const rawSchedule = response?.data?.data || null;
+
+            if (!rawSchedule) {
+                throw new Error('Không tìm thấy chi tiết lịch học');
+            }
+
+            const schedule = transformScheduleToUI(rawSchedule);
+
+            return {
+                schedule,
+            }
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Lấy chi tiết lịch học thất bại');
+        }
+    }
+)
