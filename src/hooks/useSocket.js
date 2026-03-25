@@ -37,7 +37,7 @@ const { SOCKET_URL } = Constants.expoConfig?.extra || {};
  * - Lắng nghe event `notification:read` → sync trạng thái đã đọc
  * - Khi disconnect/reconnect → sync lại từ REST API
  */
-export function useNotificationSocket() {
+export function useSocket() {
   const dispatch = useDispatch();
   const { accessToken, isAuthenticated } = useSelector(selectAuth);
   const socketRef = useRef(null);
@@ -119,12 +119,6 @@ export function useNotificationSocket() {
     socket.on('notification:new', (payload) => {
       console.log('[Socket] New notification:', payload.id, payload.type);
 
-      // Event realtime nội bộ cho màn hình điểm danh GV, không đưa vào inbox notifications
-      if (payload?.type === 'attendance_scanned_realtime' && payload?.metadata?.realtime_only) {
-        dispatch(pushLiveScanEvent(payload));
-        return;
-      }
-
       dispatch(receiveNotification(payload));
       // Khi GV tạo phiên → cập nhật nút Scan QR realtime trên lịch học sinh viên
       if (payload.type === 'attendance_success' && payload.class_session_id) {
@@ -132,13 +126,28 @@ export function useNotificationSocket() {
       }
     });
 
+    
     /**
      * Event: notification:read
      * Server gửi khi có thông báo được đánh dấu đã đọc (đồng bộ giữa các thiết bị)
      * Payload: { notification_id, is_read }
+    */
+   socket.on('notification:read', (payload) => {
+     dispatch(updateReadStatus(payload));
+    });
+
+    // Attendance events
+    /**
+     * Event: attendance:scan
+     * Server gửi khi có sinh viên quét QR điểm danh thành công (dành cho GV)
+     * Payload: { id, type, message, target_role, target_user_id, course_section_id,
      */
-    socket.on('notification:read', (payload) => {
-      dispatch(updateReadStatus(payload));
+    socket.on('attendance:scan', (payload) => {
+       // Event realtime nội bộ cho màn hình điểm danh GV, không đưa vào inbox notifications
+      if (payload?.type === 'attendance_scanned_realtime' && payload?.metadata?.realtime_only) {
+        dispatch(pushLiveScanEvent(payload));
+        return;
+      }
     });
   }, [isAuthenticated, accessToken, dispatch]);
 
@@ -163,4 +172,4 @@ export function useNotificationSocket() {
   };
 }
 
-export default useNotificationSocket;
+export default useSocket;

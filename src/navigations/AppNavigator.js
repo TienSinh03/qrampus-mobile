@@ -9,7 +9,7 @@ import {
   selectLoginRole,
   selectIsLoading,
 } from '../features/auth/authSlice';
-import { useNotificationSocket } from '../hooks/useNotificationSocket';
+import { useSocket } from '../hooks/useSocket';
 import { usePushNotification } from '../hooks/usePushNotification';
 
 import IntroCarouselScreen from '../screens/IntroCarouselScreen';
@@ -45,8 +45,8 @@ const AppNavigator = () => {
   const isLoading = useSelector(selectIsLoading);
   const [isSessionLoaded, setIsSessionLoaded] = React.useState(false);
 
-  // Kích hoạt Socket.IO realtime notification
-  useNotificationSocket();
+  // Kích hoạt Socket.IO realtime 
+  useSocket();
   // Kích hoạt Expo Push Notification (đăng ký token + listen)
   usePushNotification();
 
