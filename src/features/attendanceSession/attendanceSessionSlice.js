@@ -37,7 +37,7 @@ const initialState = {
     sessionStatsLoading: false,
     sessionStatsError: null,
     sessionStats: null,
-    // liveScanEvent: null,
+    liveScanEvent: null,
 };
 
 const attendanceSessionSlice = createSlice({
