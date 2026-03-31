@@ -22,6 +22,7 @@ import QRScanScreen from '../screens/student/QRScanScreen';
 import ScheduleDetailScreen from '../screens/student/ScheduleDetailScreen';
 import LeaveRequestScreen from '../screens/student/LeaveRequestScreen';
 import LeaveRequestListScreen from '../screens/student/LeaveRequestListScreen';
+import AttendanceHistoryScreen from '../screens/student/AttendanceHistoryScreen';
 import SurveyScreen from '../screens/student/SurveyScreen';
 import CourseDetailScreen from '../screens/CourseDetailScreen';
 import CreateQRSessionScreen from '../screens/teacher/CreateQRSessionScreen';
@@ -147,6 +148,13 @@ const AppNavigator = () => {
         <Stack.Screen
           name="LeaveRequestList"
           component={LeaveRequestListScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="AttendanceHistory"
+          component={AttendanceHistoryScreen}
           options={{
             headerShown: false,
           }}

@@ -18,7 +18,7 @@ const StudentHomeScreen = ({ navigation }) => {
       id: '1',
       icon: 'time-outline',
       label: 'Lịch sử điểm danh',
-      onPress: () => console.log('Attendance history'),
+      onPress: () => navigation.navigate('AttendanceHistory'),
     },
     {
       id: '2',
