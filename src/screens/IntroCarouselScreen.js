@@ -6,6 +6,7 @@ import {
   Dimensions,
   TouchableOpacity,
   Animated,
+  Image
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -88,7 +89,7 @@ const IntroCarouselScreen = ({ navigation }) => {
             className="flex-1 justify-center items-center px-8"
           >
             <View className="items-center justify-center flex-1">
-              <Text className="text-8xl mb-8">{slide.icon}</Text>
+              <Image source={slide.image} className="w-64 h-64 mb-8" />
               <Text className="text-white text-3xl font-bold text-center mb-4">{slide.title}</Text>
               <Text className="text-white/90 text-lg text-center leading-6">{slide.description}</Text>
 
@@ -106,7 +107,7 @@ const IntroCarouselScreen = ({ navigation }) => {
                     }}
                   >
                     <View className="flex-row items-center justify-center">
-                      <Text className="text-2xl mr-3">🎓</Text>
+                      <Image source={require('../../assets/images/student.png')} className="w-9 h-9" />
                       <Text className="text-xl font-bold" style={{ color: '#16476A' }}> Tôi là Sinh viên</Text>
                     </View>
                   </TouchableOpacity>
@@ -124,7 +125,7 @@ const IntroCarouselScreen = ({ navigation }) => {
                     }}
                   >
                     <View className="flex-row items-center justify-center">
-                      <Text className="text-2xl mr-3">👨‍🏫</Text>
+                      <Image source={require('../../assets/images/teacher.png')} className="w-9 h-9" />
                       <Text className="text-white text-xl font-bold">Tôi là Giảng viên</Text>
                     </View>
                   </TouchableOpacity>

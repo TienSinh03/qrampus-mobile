@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useSelector } from 'react-redux';
@@ -144,7 +144,7 @@ const BaseHomeScreen = ({
             )
           ) : (
             <View className="bg-white rounded-2xl p-8 items-center justify-center">
-              <Text className="text-6xl mb-3">📅</Text>
+              <Image source={require('../../assets/images/calendar.png')} className="w-16 h-16" />
               <Text className="text-gray-900 font-bold text-lg mb-1">
                 Không có lịch {userRole === 'teacher' ? 'giảng' : 'học'}
               </Text>
