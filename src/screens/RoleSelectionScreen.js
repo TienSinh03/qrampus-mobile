@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity,Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,7 +21,6 @@ const RoleSelectionScreen = ({ navigation }) => {
         <View className="flex-1 justify-center items-center px-8">
           {/* Header */}
           <View className="items-center mb-12">
-            <Text className="text-6xl mb-6">🎯</Text>
             <Text className="text-white text-4xl font-bold text-center mb-4">Chọn vai trò</Text>
             <Text className="text-white/90 text-lg text-center">Vui lòng chọn vai trò của bạn để tiếp tục</Text>
           </View>
@@ -42,7 +41,7 @@ const RoleSelectionScreen = ({ navigation }) => {
             >
               <View className="items-center">
                 <View className="bg-blue-100 w-20 h-20 rounded-full items-center justify-center mb-4">
-                  <Text className="text-5xl">🎓</Text>
+                  <Image source={require('../../assets/images/student.png')} className="w-16 h-16" />
                 </View>
                 <Text className="text-blue-600 text-2xl font-bold mb-2">Sinh viên</Text>
                 <Text className="text-gray-600 text-center text-base">Quét QR code để điểm danh và xem lịch học của bạn</Text>
@@ -63,7 +62,7 @@ const RoleSelectionScreen = ({ navigation }) => {
             >
               <View className="items-center">
                 <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-4">
-                  <Text className="text-5xl">👨‍🏫</Text>
+                  <Image source={require('../../assets/images/teacher.png')} className="w-16 h-16" />
                 </View>
                 <Text className="text-purple-600 text-2xl font-bold mb-2">Giảng viên</Text>
                 <Text className="text-gray-600 text-center text-base">Tạo QR code điểm danh và quản lý lớp học</Text>
