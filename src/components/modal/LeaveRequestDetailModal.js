@@ -52,7 +52,9 @@ const LeaveRequestDetailModal = ({
   getStatusText,
   getReasonIcon,
   onCancelRequest,
+  onUpdateRequest,
   cancelLoading = false,
+  updateLoading = false,
 }) => {
   // Helper to get class session data (handles both API and legacy structures)
   const getClassSession = () => selectedRequest?.classSession || {};
@@ -105,6 +107,12 @@ const LeaveRequestDetailModal = ({
       ],
       { cancelable: true }
     );
+  };
+
+  const handleUpdateRequest = () => {
+    if (onUpdateRequest && selectedRequest?.id) {
+      onUpdateRequest(selectedRequest);
+    }
   };
 
   return (
@@ -312,11 +320,13 @@ const LeaveRequestDetailModal = ({
 
             {/* Cancel Request (if pending) */}
             {selectedRequest.status === 'pending' && (
-              <View className="px-6 py-4 border-t border-gray-200">
+              <View className="flex px-6 py-4 border-t border-gray-200">
+                <View className="flex-row items-center justify-around gap-4">
+
                 <TouchableOpacity
                   onPress={handleCancelRequest}
-                  disabled={cancelLoading}
-                  className={`rounded-xl py-3 items-center flex-row justify-center ${cancelLoading ? 'bg-gray-400' : 'bg-red-500'}`}
+                  disabled={cancelLoading || updateLoading}
+                  className={`rounded-xl py-3 px-5 items-center flex-row justify-center ${cancelLoading ? 'bg-gray-400' : 'bg-red-500'}`}
                 >
                   {cancelLoading ? (
                     <>
@@ -330,6 +340,24 @@ const LeaveRequestDetailModal = ({
                     </>
                   )}
                 </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleUpdateRequest}
+                  disabled={cancelLoading || updateLoading}
+                  className={`rounded-xl py-3 px-5 items-center flex-row justify-center ${updateLoading ? 'bg-gray-400' : 'bg-blue-600'}`}
+                >
+                  {updateLoading ? (
+                    <>
+                      <ActivityIndicator size="small" color="white" />
+                      <Text className="text-white font-bold text-base ml-2">Đang cập nhật...</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Ionicons name="create" size={20} color="white" />
+                      <Text className="text-white font-bold text-base ml-2">Cập nhật đơn</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+                </View>
               </View>
             )}
           </>

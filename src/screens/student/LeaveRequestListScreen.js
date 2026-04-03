@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   RefreshControl,
   Modal,
-  Image,
   ActivityIndicator,
   Alert
 } from 'react-native';
@@ -14,11 +13,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLeaveRequestsOfStudentThunk, cancelLeaveRequestThunk } from '../../features/leave-request/leaveRequestThunk';
-import { resetCancelState } from '../../features/leave-request/leaveRequestSlice';
+import { getLeaveRequestsOfStudentThunk, cancelLeaveRequestThunk, updateLeaveRequestThunk } from '../../features/leave-request/leaveRequestThunk';
+import { resetCancelState, resetUpdateState } from '../../features/leave-request/leaveRequestSlice';
 import { reasonTypes } from '../../utils/reason.type';
 import { DAYMAPPING } from '../../utils/day.mapping';
+import CreateLeaveRequestModal from '../../components/modal/CreateLeaveRequestModal';
+import ReasonPickerModal from '../../components/modal/ReasonPickerModal';
 import LeaveRequestDetailModal from '../../components/modal/LeaveRequestDetailModal';
 
 // Helper function to format date for display
@@ -45,7 +47,11 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
     studentLeavesError,
     cancelLoading,
     cancelSuccess,
-    cancelError
+    cancelError,
+
+    updateLoading,
+    updateSuccess,
+    updateError,
   } = useSelector((state) => state.leaveRequests);
   
   const { schedule } = route?.params || {};
@@ -56,7 +62,13 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [showDetailRequestModal, setShowDetailRequestModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showReasonPicker, setShowReasonPicker] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [updateReasonType, setUpdateReasonType] = useState('sick');
+  const [updateNote, setUpdateNote] = useState('');
+  const [updateAttachments, setUpdateAttachments] = useState([]);
+  const [removeAttachmentPublicIds, setRemoveAttachmentPublicIds] = useState([]);
 
   useEffect(() => {
     fetchRequests();
@@ -86,6 +98,31 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
       dispatch(resetCancelState());
     }
   }, [cancelError]);
+
+  useEffect(() => {
+    if (updateSuccess) {
+      Alert.alert('Thành công', 'Đã cập nhật yêu cầu nghỉ phép thành công.', [
+        {
+          text: 'OK',
+          onPress: () => {
+            setShowUpdateModal(false);
+            setSelectedRequest(null);
+            setShowDetailRequestModal(false);
+            setUpdateAttachments([]);
+            setRemoveAttachmentPublicIds([]);
+            dispatch(resetUpdateState());
+          }
+        }
+      ]);
+    }
+  }, [updateSuccess, dispatch]);
+
+  useEffect(() => {
+    if (updateError) {
+      Alert.alert('Lỗi', updateError);
+      dispatch(resetUpdateState());
+    }
+  }, [updateError, dispatch]);
 
   // Extract unique courses from studentLeaves
   useEffect(() => {
@@ -168,6 +205,187 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
   // Handle cancel request
   const handleCancelRequest = (leaveRequestId) => {
     dispatch(cancelLeaveRequestThunk(leaveRequestId));
+  };
+
+  const normalizeExistingAttachments = (attachments = []) => {
+    return attachments.map((attachment) => ({
+      ...attachment,
+      uri: attachment.uri || attachment.url,
+      name: attachment.name || attachment.originalName || 'attachment.jpg',
+      isLocal: false,
+    }));
+  };
+
+  const openUpdateModal = (request) => {
+    if (!request || request.status !== 'pending') {
+      Alert.alert('Thông báo', 'Chỉ có thể cập nhật đơn đang chờ duyệt.');
+      return;
+    }
+
+    setSelectedRequest(request);
+    setUpdateReasonType(request.reason_type || 'sick');
+    setUpdateNote(request.note || '');
+    setUpdateAttachments(normalizeExistingAttachments(request.attachments || []));
+    setRemoveAttachmentPublicIds([]);
+    setShowDetailRequestModal(false);
+    setShowUpdateModal(true);
+  };
+
+  const pickUpdateImage = async () => {
+    if (updateAttachments.length >= 3) {
+      Alert.alert('Giới hạn', 'Chỉ được tải lên tối đa 3 tệp minh chứng');
+      return;
+    }
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Lỗi', 'Cần cấp quyền truy cập thư viện ảnh');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+      allowsMultipleSelection: false,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
+        Alert.alert('Lỗi', 'Kích thước tệp không được vượt quá 5MB');
+        return;
+      }
+
+      setUpdateAttachments((prev) => ([
+        ...prev,
+        {
+          uri: asset.uri,
+          type: asset.type || 'image',
+          name: asset.fileName || `attachment_${Date.now()}.jpg`,
+          size: asset.fileSize,
+          isLocal: true,
+        }
+      ]));
+    }
+  };
+
+  const takeUpdatePhoto = async () => {
+    if (updateAttachments.length >= 3) {
+      Alert.alert('Giới hạn', 'Chỉ được tải lên tối đa 3 tệp minh chứng');
+      return;
+    }
+
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Lỗi', 'Cần cấp quyền truy cập camera');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      setUpdateAttachments((prev) => ([
+        ...prev,
+        {
+          uri: asset.uri,
+          type: 'image',
+          name: `photo_${Date.now()}.jpg`,
+          size: asset.fileSize,
+          isLocal: true,
+        }
+      ]));
+    }
+  };
+
+  const removeUpdateAttachment = (index) => {
+    setUpdateAttachments((prev) => {
+      const removedAttachment = prev[index];
+      const publicId = removedAttachment?.public_id || removedAttachment?.publicId;
+      if (publicId) {
+        setRemoveAttachmentPublicIds((oldIds) => [...new Set([...oldIds, publicId])]);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const handleUpdateRequest = (request) => {
+    openUpdateModal(request);
+  };
+
+  const getSelectedScheduleForUpdate = () => {
+    if (!selectedRequest?.classSession) {
+      return null;
+    }
+
+    return {
+      courseName: selectedRequest.classSession?.courseSection?.name,
+      dayOfWeek: selectedRequest.classSession?.class_date
+        ? DAYMAPPING[new Date(selectedRequest.classSession.class_date).getDay()]
+        : 'N/A',
+      classDate: selectedRequest.classSession?.class_date,
+      startHour: selectedRequest.classSession?.start_hour,
+      endHour: selectedRequest.classSession?.end_hour,
+    };
+  };
+
+  const handleSubmitUpdate = () => {
+    if (!selectedRequest?.id) {
+      Alert.alert('Lỗi', 'Không tìm thấy yêu cầu nghỉ cần cập nhật');
+      return;
+    }
+
+    if (!updateReasonType) {
+      Alert.alert('Lỗi', 'Vui lòng chọn lý do nghỉ');
+      return;
+    }
+
+    if (updateNote.trim().length < 10) {
+      Alert.alert('Lỗi', 'Ghi chú phải có ít nhất 10 ký tự');
+      return;
+    }
+
+    if (updateNote.length > 500) {
+      Alert.alert('Lỗi', 'Ghi chú không được vượt quá 500 ký tự');
+      return;
+    }
+
+    if (updateAttachments.length === 0) {
+      Alert.alert('Lỗi', 'Vui lòng giữ lại hoặc đính kèm ít nhất 1 minh chứng');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('reason_type', updateReasonType);
+    formData.append('note', updateNote.trim());
+
+    const classSessionId = selectedRequest.classSession?.id || selectedRequest.class_session_id;
+    if (classSessionId) {
+      formData.append('class_session_id', classSessionId);
+    }
+
+    if (removeAttachmentPublicIds.length > 0) {
+      formData.append('remove_attachment_public_ids', JSON.stringify(removeAttachmentPublicIds));
+    }
+
+    updateAttachments
+      .filter((attachment) => attachment.isLocal)
+      .forEach((attachment, index) => {
+        formData.append('attachments', {
+          uri: attachment.uri,
+          type: attachment.type === 'image' ? 'image/jpeg' : 'application/pdf',
+          name: attachment.name || `attachment_${index}.jpg`,
+        });
+      });
+
+    dispatch(updateLeaveRequestThunk({
+      leaveRequestId: selectedRequest.id,
+      formData,
+    }));
   };
 
   const filteredRequests = studentLeaves.filter((req) => {
@@ -490,6 +708,39 @@ const LeaveRequestListScreen = ({ navigation, route }) => {
         getReasonIcon={getReasonIcon}
         onCancelRequest={handleCancelRequest}
         cancelLoading={cancelLoading}
+        onUpdateRequest={handleUpdateRequest}
+        updateLoading={updateLoading}
+      />
+
+      {/* Update Request Modal */}
+      <CreateLeaveRequestModal
+        visible={showUpdateModal}
+        onClose={() => {
+          setShowUpdateModal(false);
+          setRemoveAttachmentPublicIds([]);
+          dispatch(resetUpdateState());
+        }}
+        selectedSchedule={getSelectedScheduleForUpdate()}
+        reasonType={updateReasonType}
+        reasonTypes={reasonTypes}
+        setShowReasonPicker={setShowReasonPicker}
+        note={updateNote}
+        setNote={setUpdateNote}
+        attachments={updateAttachments}
+        removeAttachment={removeUpdateAttachment}
+        takePhoto={takeUpdatePhoto}
+        pickImage={pickUpdateImage}
+        handleSubmit={handleSubmitUpdate}
+        createLoading={updateLoading}
+        isUpdateMode
+      />
+
+      <ReasonPickerModal
+        visible={showReasonPicker}
+        onClose={() => setShowReasonPicker(false)}
+        reasonTypes={reasonTypes}
+        reasonType={updateReasonType}
+        setReasonType={setUpdateReasonType}
       />
     
     </SafeAreaView>
