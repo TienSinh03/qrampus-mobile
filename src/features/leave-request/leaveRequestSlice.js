@@ -7,6 +7,7 @@ import {
   approveLeaveRequestThunk,
   rejectLeaveRequestThunk,
   cancelLeaveRequestThunk,
+  updateLeaveRequestThunk,
 } from "./leaveRequestThunk";
 
 const initialState = {
@@ -40,6 +41,11 @@ const initialState = {
   cancelError: null,
   cancelSuccess: false,
   
+  // Update state (student)
+  updateLoading: false,
+  updateError: null,
+  updateSuccess: false,
+
   // Pagination
   pagination: null,
 };
@@ -65,6 +71,12 @@ const leaveRequestSlice = createSlice({
       state.cancelLoading = false;
       state.cancelError = null;
       state.cancelSuccess = false;
+    },
+    // Reset update state
+    resetUpdateState: (state) => {
+      state.updateLoading = false;
+      state.updateError = null;
+      state.updateSuccess = false;
     },
     // Reset detail state
     resetDetailState: (state) => {
@@ -238,6 +250,33 @@ const leaveRequestSlice = createSlice({
       .addCase(cancelLeaveRequestThunk.rejected, (state, action) => {
         state.cancelLoading = false;
         state.cancelError = action.payload || "Huy yeu cau nghi that bai";
+      })
+
+      // ==================== UPDATE LEAVE REQUEST (STUDENT) ====================
+      .addCase(updateLeaveRequestThunk.pending, (state) => {
+        state.updateLoading = true;
+        state.updateError = null;
+        state.updateSuccess = false;
+      })
+      .addCase(updateLeaveRequestThunk.fulfilled, (state, action) => {
+        state.updateLoading = false;
+        state.updateSuccess = true;
+        // Update leave in student list
+        if (action.payload) {
+          const updatedLeave = action.payload;
+          const index = state.studentLeaves.findIndex(l => l.id === updatedLeave.id);
+          if (index !== -1) {
+            state.studentLeaves[index] = updatedLeave;
+          }
+          // Update current detail if viewing this request
+          if (state.currentLeaveRequest?.id === updatedLeave.id) {
+            state.currentLeaveRequest = updatedLeave;
+          }
+        }
+      })
+      .addCase(updateLeaveRequestThunk.rejected, (state, action) => {
+        state.updateLoading = false;
+        state.updateError = action.payload || "Cap nhat yeu cau nghi that bai";
       });
   },
 });
@@ -246,6 +285,7 @@ export const {
   resetCreateState,
   resetActionState,
   resetCancelState,
+  resetUpdateState,
   resetDetailState,
   clearErrors,
   updateLeaveInList,

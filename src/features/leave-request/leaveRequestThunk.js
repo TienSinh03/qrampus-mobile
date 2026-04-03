@@ -18,7 +18,7 @@ export const createLeaveRequestThunk = createAsyncThunk(
             });
             
             if (!response?.data?.success) {
-                throw new Error(response?.data?.message || 'Tạo yêu cầu nghỉ phép thất bại');
+                throw new Error(response?.data?.message || 'Cập nhật yêu cầu nghỉ phép thất bại');
             }
 
             return response.data.data;
@@ -217,3 +217,26 @@ export const cancelLeaveRequestThunk = createAsyncThunk(
         }
     }
 )
+
+export const updateLeaveRequestThunk = createAsyncThunk(
+    'leaveRequests/student/update',
+    async ({ leaveRequestId, formData }, { rejectWithValue }) => {
+        try {
+            const response = await instance.put(`/leave-requests/student/${leaveRequestId}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                timeout: 60000, // 60s timeout for file upload
+            });
+
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Tạo yêu cầu nghỉ phép thất bại');
+            }
+
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Cập nhật yêu cầu nghỉ phép thất bại'
+            );
+        }
+    });

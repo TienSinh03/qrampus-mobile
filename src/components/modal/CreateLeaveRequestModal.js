@@ -29,7 +29,15 @@ const CreateLeaveRequestModal = ({
   pickImage,
   handleSubmit,
   createLoading = false,
+  isUpdateMode = false,
+  title,
+  submitLabel,
+  loadingLabel,
 }) => {
+  const modalTitle = title || (isUpdateMode ? 'Chỉnh sửa đơn nghỉ phép' : 'Đơn xin nghỉ phép');
+  const buttonLabel = submitLabel || (isUpdateMode ? 'Cập nhật đơn' : 'Gửi đơn');
+  const loadingText = loadingLabel || (isUpdateMode ? 'Đang cập nhật...' : 'Đang gửi...');
+
   return (
     <Modal
       visible={visible}
@@ -42,7 +50,7 @@ const CreateLeaveRequestModal = ({
         {/* Modal Header */}
         <View className="px-6 py-4 border-b border-gray-200">
           <View className="flex-row items-center justify-between">
-            <Text className="text-gray-900 text-xl font-bold">Đơn xin nghỉ phép</Text>
+            <Text className="text-gray-900 text-xl font-bold">{modalTitle}</Text>
             <TouchableOpacity 
               onPress={onClose}
               disabled={createLoading}
@@ -121,13 +129,13 @@ const CreateLeaveRequestModal = ({
               className="bg-gray-50 rounded-xl p-3 flex-row items-center justify-between mb-2"
             >
               <Image
-                source={{ uri: attachment.uri }}
+                source={{ uri: attachment.url || attachment.uri }}
                 className="w-16 h-16 rounded-lg"
                 resizeMode="cover"
               />
               <View className="flex-1 ml-3">
                 <Text className="text-gray-900 font-semibold" numberOfLines={1}>
-                  {attachment?.name}
+                  {attachment?.name || attachment?.originalName || 'Tệp đính kèm'}
                 </Text>
                 <Text className="text-gray-500 text-xs">
                   {attachment.size ? `${(attachment.size / 1024).toFixed(0)} KB` : 'N/A'}
@@ -182,12 +190,12 @@ const CreateLeaveRequestModal = ({
             {createLoading ? (
               <>
                 <ActivityIndicator size="small" color="white" />
-                <Text className="text-white font-bold text-base ml-2">Đang gửi...</Text>
+                <Text className="text-white font-bold text-base ml-2">{loadingText}</Text>
               </>
             ) : (
               <>
-                <Ionicons name="send" size={20} color="white" />
-                <Text className="text-white font-bold text-base ml-2">Gửi đơn</Text>
+                <Ionicons name={isUpdateMode ? 'create' : 'send'} size={20} color="white" />
+                <Text className="text-white font-bold text-base ml-2">{buttonLabel}</Text>
               </>
             )}
           </TouchableOpacity>
