@@ -76,6 +76,9 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
   
   const qrScaleAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+  
+  // Ref để tránh gọi setState trong setState callback
+  const shouldEndSessionRef = useRef(false);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -166,20 +169,6 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
     ]).start();
   };
 
-  // Fetch next QR
-  const fetchNextQR = useCallback(async () => {
-    if (!activeSession?.id) return;
-    try {
-      await dispatch(getNextQRThunk(activeSession.id)).unwrap();
-      animateQR();
-    } catch (err) {
-      // Session may have expired on server
-      if (err?.includes?.('hết hạn') || err?.includes?.('expired')) {
-        endSession();
-      }
-    }
-  }, [activeSession?.id]);
-
   // Đồng bộ thống kê điểm danh realtime từ server
   const syncAttendanceStats = useCallback(async () => {
     if (!activeSession?.id) return;
@@ -199,6 +188,49 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
       // Khi phiên đã hết hạn hoặc không đủ quyền thì bỏ qua để không làm gián đoạn UI
     }
   }, [activeSession?.id, dispatch]);
+
+  // End session
+  const endSession = useCallback(async () => {
+    setSessionActive(false);
+    setSessionEnded(true);
+
+    if (activeSession?.id) {
+      try {
+        console.log('Closing session with ID:', activeSession.id);
+        await dispatch(closeAttendanceSessionThunk(activeSession.id)).unwrap();
+        console.log('Session closed successfully');
+
+        // Cập nhật hasActiveSession = false khi đóng phiên
+        dispatch(setScheduleHasActiveSession({
+          classSessionId: schedule.id,
+          hasActiveSession: false
+        }));
+      } catch (err) {
+        console.log('Close session error:', err);
+      }
+    }
+
+    // Đồng bộ lần cuối trong setTimeout để tránh setState trong render
+    setTimeout(() => {
+      syncAttendanceStats();
+    }, 0);
+  }, [activeSession?.id, dispatch, schedule.id, syncAttendanceStats]);
+
+  const fetchNextQR = useCallback(async () => {
+    if (!activeSession?.id) return;
+    try {
+      await dispatch(getNextQRThunk(activeSession.id)).unwrap();
+      animateQR();
+    } catch (err) {
+      // Session may have expired on server
+      if (err?.includes?.('hết hạn') || err?.includes?.('expired')) {
+        // ✅ Dùng setTimeout để tránh setState trong async callback
+        setTimeout(() => {
+          endSession();
+        }, 0);
+      }
+    }
+  }, [activeSession?.id, endSession]);
 
   // Áp dụng event get stats attendance realtime từ socket
   const applyRealtimeScanEvent = useCallback((eventPayload) => {
@@ -234,7 +266,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
       // Phiên kết thúc
       setTimeRemaining((prev) => {
         if (prev <= 1) {
-          endSession();
+          shouldEndSessionRef.current = true;
           return 0;
         }
         return prev - 1;
@@ -252,6 +284,14 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
 
     return () => clearInterval(interval);
   }, [sessionActive, activeSession?.id, fetchNextQR]);
+
+  // useEffect riêng để xử lý kết thúc session (tránh setState trong setState)
+  useEffect(() => {
+    if (shouldEndSessionRef.current && timeRemaining === 0) {
+      shouldEndSessionRef.current = false;
+      endSession();
+    }
+  }, [timeRemaining, endSession]);
 
   // Fallback polling thưa để đồng bộ khi mất event socket (tiết kiệm request)
   useEffect(() => {
@@ -284,30 +324,6 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
       }).start();
     }
   }, [timeRemaining, selectedDuration]);
-
-  const endSession = async () => {
-    setSessionActive(false);
-    setSessionEnded(true);
-
-    if (activeSession?.id) {
-      try {
-        console.log('Closing session with ID:', activeSession.id);
-        await dispatch(closeAttendanceSessionThunk(activeSession.id)).unwrap();
-        console.log('Session closed successfully');
-
-        // Cập nhật hasActiveSession = false khi đóng phiên
-        dispatch(setScheduleHasActiveSession({
-          classSessionId: schedule.id,
-          hasActiveSession: false
-        }));
-      } catch (err) {
-        console.log('Close session error:', err);
-      }
-    }
-
-    // Đồng bộ lần cuối để hiển thị danh sách điểm danh đầy đủ
-    syncAttendanceStats();
-  };
 
   const handleManualStop = () => {
     Alert.alert(

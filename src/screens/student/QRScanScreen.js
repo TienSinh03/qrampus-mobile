@@ -15,18 +15,21 @@ import { useDispatch } from 'react-redux';
 import { scanAttendanceByQRThunk } from '../../features/attendanceSession/attendanceSessionThunks';
 import { setScheduleAttended } from '../../features/student/studentSlice';
 import { getDevicePayload } from '../../utils/device.helper';
+import * as Location from 'expo-location';
 
 const QRScanScreen = ({ route, navigation }) => {
   const dispatch = useDispatch();
   const { scheduleId, courseName, courseCode, room } = route.params || {};
   
   const [hasPermission, setHasPermission] = useState(null);
+  const [locationPermission, setLocationPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
 
   useEffect(() => {
     getCameraPermissions();
+    getLocationPermission();
   }, []);
 
   // Yêu cầu quyền truy cập camera
@@ -34,6 +37,34 @@ const QRScanScreen = ({ route, navigation }) => {
     const { status } = await Camera.requestCameraPermissionsAsync();
     setHasPermission(status === 'granted');
   };
+
+  // Yêu cầu quyền truy cập vị trí
+  const getLocationPermission = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      setLocationPermission(status === 'granted');
+
+      if (status !== 'granted') {
+        Alert.alert(
+          'Cần quyền truy cập vị trí',
+          'Vui lòng cấp quyền truy cập vị trí trong Cài đặt để sử dụng tính năng này.',
+          [
+            {
+              text: 'Hủy', 
+              onPress: () => navigation.goBack(),
+              style: 'cancel'
+            },
+            {
+              text: 'Cấp quyền',
+              onPress: () => Location.requestForegroundPermissionsAsync()
+            }
+          ]
+        )
+      }     
+    } catch (error) {
+      console.error('Location permission error:', error);
+    }
+  }
 
   // Xử lý khi quét mã QR
   const handleBarCodeScanned = async ({ type, data }) => {
@@ -47,11 +78,32 @@ const QRScanScreen = ({ route, navigation }) => {
       // Parse QR data
       const qrData = JSON.parse(data);
       const { qr_token, attendance_session_id } = qrData;
-
+      
       if (!qr_token || !attendance_session_id) {
         throw new Error('QR code không hợp lệ');
       }
 
+      let latitude = null;
+      let longitude = null;
+
+      if (locationPermission) {
+        try {
+          const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.High,
+            timeout: 10000,
+            maximumAge: 5000,
+          });
+
+          latitude = location.coords.latitude;
+          longitude = location.coords.longitude;
+        } catch (error) {
+          console.warn('Không lấy được GPS:', error.message);
+        }
+      } else {
+        Alert.alert('Cần bật GPS', 'Bạn phải bật GPS để điểm danh');
+        return;
+      }
+      console.log('GPS coordinates:', { latitude, longitude });
       // Lấy payload thiết bị để backend kiểm tra chống chia sẻ thiết bị
       const deviceInfo = await getDevicePayload();
 
@@ -59,6 +111,8 @@ const QRScanScreen = ({ route, navigation }) => {
       const result = await submitAttendance({
         qr_token,
         class_session_id: scheduleId,
+        latitude, 
+        longitude,
         device_info: deviceInfo,
       });
 
@@ -80,9 +134,7 @@ const QRScanScreen = ({ route, navigation }) => {
           },
         ]
       );
-    } catch (error) {
-      console.error('Scan error:', error);
-      
+    } catch (error) {      
       Alert.alert(
         ' Điểm danh thất bại',
         error?.message || error || 'Có lỗi xảy ra. Vui lòng thử lại.',
