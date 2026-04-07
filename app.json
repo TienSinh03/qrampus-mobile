@@ -20,6 +20,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
       "edgeToEdgeEnabled": true,
       "package": "com.phansinh.QRampus",
       "googleServicesFile": "./google-services.json"
@@ -44,7 +48,16 @@
           "defaultChannel": "default",
           "sounds": []
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Ứng dụng cần GPS để xác minh bạn đang ở trong phòng học khi điểm danh.",
+          "locationAlwaysPermission": "Ứng dụng cần GPS để xác minh bạn đang ở trong phòng học khi điểm danh.",
+          "locationWhenInUsePermission": "Ứng dụng cần GPS để xác minh bạn đang ở trong phòng học khi điểm danh."
+        }
       ]
+
     ],
     "owner": "sinhphan2003"
   }
