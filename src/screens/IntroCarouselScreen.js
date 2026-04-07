@@ -55,19 +55,20 @@ const IntroCarouselScreen = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient
-      colors={['#132440', '#9333ea', '#DD7BDF']}
-      start={{ x: 0, y: 1 }}
-      end={{ x: 1, y: 0 }}
-      className="flex-1"
-    >
+      <LinearGradient
+        colors={['#0040e1c6', '#0063E1', '#0061e1d7']}
+        locations={[0, 0.6, 1]} 
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="flex-1"
+      >
       <StatusBar style="light" />
       
       {/* Skip Button */}
       {currentIndex < slides.length - 1 && (
         <TouchableOpacity
           onPress={handleSkip}
-          className="absolute top-12 right-6 z-10 bg-white/20 px-4 py-2 rounded-full"
+          className="absolute top-12 right-6 z-10 bg-white/40 px-4 py-2 rounded-full"
         >
           <Text className="text-white font-semibold">Bỏ qua</Text>
         </TouchableOpacity>
@@ -108,7 +109,7 @@ const IntroCarouselScreen = ({ navigation }) => {
                   >
                     <View className="flex-row items-center justify-center">
                       <Image source={require('../../assets/images/student.png')} className="w-9 h-9" />
-                      <Text className="text-xl font-bold" style={{ color: '#16476A' }}> Tôi là Sinh viên</Text>
+                      <Text className="text-xl font-bold" style={{ color: '#000000' }}> Tôi là Sinh viên</Text>
                     </View>
                   </TouchableOpacity>
 
@@ -121,7 +122,7 @@ const IntroCarouselScreen = ({ navigation }) => {
                       shadowOpacity: 0.25,
                       shadowRadius: 4,
                       elevation: 5,
-                      backgroundColor: '#DD7BDF'
+                      backgroundColor: '#7bd0df'
                     }}
                   >
                     <View className="flex-row items-center justify-center">

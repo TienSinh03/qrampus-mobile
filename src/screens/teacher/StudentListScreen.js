@@ -81,6 +81,7 @@ const StudentListScreen = ({ navigation, route }) => {
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
       >
+        
         <View className="flex-row items-center justify-between mb-3">
           <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
             <Ionicons name="arrow-back" size={24} color="white" />

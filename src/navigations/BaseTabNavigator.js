@@ -10,7 +10,7 @@ const BaseTabNavigator = ({
   tabs = [], // Array of { name, component, label, icon, iconFocused }
 }) => {
   const userRole = useSelector(selectLoginRole);
-  const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
+  const roleColor = userRole === 'teacher' ? '#0171a5' : '#2563eb';
 
   return (
     <Tab.Navigator
