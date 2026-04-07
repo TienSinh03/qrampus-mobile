@@ -30,7 +30,7 @@ const StatsCard = ({ stats, userRole = 'teacher' }) => {
       icon: 'time-outline',
       label: 'Số giờ đã dạy',
       value: `${hoursThisWeek}h`,
-      valueColor: 'text-purple-600',
+      valueColor: 'text-sky-600',
     },
     {
       icon: 'people-outline',
@@ -82,7 +82,7 @@ const StatsCard = ({ stats, userRole = 'teacher' }) => {
                 <Ionicons 
                   name={stat.icon} 
                   size={24} 
-                  color={isTeacher ? '#7c3aed' : '#2563eb'} 
+                  color={isTeacher ? '#0171a5' : '#2563eb'} 
                 />
               </View>
               <Text className={`text-2xl font-bold ${stat.valueColor} mb-1`}>

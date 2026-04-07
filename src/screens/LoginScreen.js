@@ -119,7 +119,7 @@ const LoginScreen = ({ route, navigation }) => {
     }));
   };
 
-  const gradientColors = isStudent ? ['#2563eb', '#9333ea'] : ['#9333ea', '#7c3aed'];
+  const gradientColors = isStudent ? ['#2563eb', '#2563eb'] : ['#3bd0f9', '#00a5dc'];
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -159,7 +159,7 @@ const LoginScreen = ({ route, navigation }) => {
             <View className="items-center mb-12">
               {/* <Text className="text-6xl mb-4">{roleIcon}</Text> */}
               <Text className="text-white text-3xl font-bold mb-2">Đăng nhập</Text>
-              <Text className="text-white/90 text-lg">
+              <Text className="text-white/100 text-lg">
                 {roleTitle}
               </Text>
             </View>
@@ -200,7 +200,7 @@ const LoginScreen = ({ route, navigation }) => {
               <TouchableOpacity className="items-end mb-6">
                 <Text 
                   className="text-sm font-semibold"
-                  style={{ color: isStudent ? '#2563eb' : '#9333ea' }}
+                  style={{ color: isStudent ? '#000000' : '#000000' }}
                 >
                   Quên mật khẩu?
                 </Text>
@@ -214,7 +214,7 @@ const LoginScreen = ({ route, navigation }) => {
                 style={{
                   backgroundColor: isLoading 
                     ? '#9ca3af' 
-                    : (isStudent ? '#2563eb' : '#9333ea'),
+                    : (isStudent ? '#2563eb' : '#0087ad'),
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.25,
@@ -232,7 +232,7 @@ const LoginScreen = ({ route, navigation }) => {
 
             {/* Footer */}
             <View className="mt-8 items-center">
-              <Text className="text-white/80 text-sm">
+              <Text className="text-white/100 text-sm">
                 Chưa có tài khoản?{' '}
                 <Text className="font-bold">Liên hệ quản trị viên</Text>
               </Text>

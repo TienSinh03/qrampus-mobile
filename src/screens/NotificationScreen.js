@@ -45,14 +45,14 @@ const NotificationScreen = ({ navigation }) => {
       dot: 'bg-blue-600',
     },
     teacher: {
-      headerBg: 'bg-purple-600',
-      headerText: 'text-purple-100',
-      unreadBg: 'bg-purple-50',
-      unreadText: 'text-purple-900',
-      buttonBg: 'bg-purple-600',
-      tagBg: 'bg-purple-100',
-      tagText: 'text-purple-700',
-      dot: 'bg-purple-600',
+      headerBg: 'bg-sky-600',
+      headerText: 'text-sky-100',
+      unreadBg: 'bg-sky-50',
+      unreadText: 'text-sky-900',
+      buttonBg: 'bg-sky-600',
+      tagBg: 'bg-sky-100',
+      tagText: 'text-sky-700',
+      dot: 'bg-sky-600',
     },
   };
 
@@ -186,7 +186,7 @@ const NotificationScreen = ({ navigation }) => {
       {/* Loading state */}
       {isLoading && notifications.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={userRole === 'teacher' ? '#7c3aed' : '#2563eb'} />
+          <ActivityIndicator size="large" color={userRole === 'teacher' ? '#0ea5e9' : '#2563eb'} />
           <Text className="text-gray-400 text-sm mt-3">Đang tải thông báo...</Text>
         </View>
       ) : (
@@ -209,7 +209,7 @@ const NotificationScreen = ({ navigation }) => {
           )}
           ListEmptyComponent={
             <View className="items-center justify-center py-20">
-              <Ionicons name="notifications-off-outline" size={64} color="#d1d5db" />
+              <Ionicons name="notifications-off-outline" size={64} color="#dbd1d5" />
               <Text className="text-gray-400 text-base mt-4">
                 {filter === 'unread' ? 'Không có thông báo chưa đọc' : 
                  filter === 'read' ? 'Không có thông báo đã đọc' :
