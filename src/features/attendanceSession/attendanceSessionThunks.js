@@ -105,11 +105,13 @@ export const getNextQRThunk = createAsyncThunk(
  */
 export const scanAttendanceByQRThunk = createAsyncThunk(
     'attendanceSession/scanByQr',
-    async ({ qr_token, class_session_id, device_info }, { rejectWithValue }) => {
+    async ({ qr_token, class_session_id, latitude, longitude, device_info }, { rejectWithValue }) => {
         try {
             const response = await instance.post('/attendance-sessions/scan', {
                 qr_token,
                 class_session_id,
+                latitude,
+                longitude,
                 device_info,
             });
 
