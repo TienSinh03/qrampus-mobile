@@ -91,7 +91,7 @@ const ImageSessionDetailModal = ({
                     onPress={() => setCaptureType('manual')}
                     className={`flex-1 mr-2 p-4 rounded-xl border-2 ${
                       captureType === 'manual'
-                        ? 'border-purple-500 bg-purple-50'
+                        ? 'border-sky-500 bg-sky-50'
                         : 'border-gray-200 bg-white'
                     }`}
                   >
@@ -102,7 +102,7 @@ const ImageSessionDetailModal = ({
                     />
                     <Text
                       className={`mt-2 font-semibold ${
-                        captureType === 'manual' ? 'text-purple-700' : 'text-gray-600'
+                        captureType === 'manual' ? 'text-sky-700' : 'text-gray-600'
                       }`}
                     >
                       Thủ công
@@ -116,7 +116,7 @@ const ImageSessionDetailModal = ({
                     onPress={() => setCaptureType('auto')}
                     className={`flex-1 ml-2 p-4 rounded-xl border-2 ${
                       captureType === 'auto'
-                        ? 'border-purple-500 bg-purple-50'
+                        ? 'border-sky-500 bg-sky-50'
                         : 'border-gray-200 bg-white'
                     }`}
                   >
@@ -127,7 +127,7 @@ const ImageSessionDetailModal = ({
                     />
                     <Text
                       className={`mt-2 font-semibold ${
-                        captureType === 'auto' ? 'text-purple-700' : 'text-gray-600'
+                        captureType === 'auto' ? 'text-sky-700' : 'text-gray-600'
                       }`}
                     >
                       Tự động
@@ -162,7 +162,7 @@ const ImageSessionDetailModal = ({
                 onPress={handleCreateSession}
                 disabled={isSubmitting}
                 className={`p-4 rounded-xl items-center ${
-                  isSubmitting ? 'bg-gray-300' : 'bg-purple-600'
+                  isSubmitting ? 'bg-gray-300' : 'bg-sky-600'
                 }`}
               >
                 {isSubmitting ? (
@@ -211,8 +211,8 @@ const ImageSessionDetailModal = ({
 
                 <View className="flex-row items-center justify-between mb-3">
                   <Text className="text-gray-600 text-sm">Loại chụp</Text>
-                  <View className="bg-purple-100 px-3 py-1 rounded-full">
-                    <Text className="text-purple-700 font-semibold text-xs">
+                  <View className="bg-sky-100 px-3 py-1 rounded-full">
+                    <Text className="text-sky-700 font-semibold text-xs">
                       {session.captureType === 'manual' ? 'Thủ công' : 'Tự động'}
                     </Text>
                   </View>
@@ -260,7 +260,7 @@ const ImageSessionDetailModal = ({
 
               {/* Class Session Info */}
               {session.courseName && (
-                <View className="bg-purple-50 rounded-xl p-4 mb-4">
+                <View className="bg-sky-50 rounded-xl p-4 mb-4">
                   <Text className="text-gray-900 font-bold mb-3">Thông tin lớp học</Text>
                   
                   <View className="flex-row items-center mb-2">

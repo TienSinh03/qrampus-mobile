@@ -176,7 +176,7 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
           >
             <Ionicons name="qr-code" size={22} color={isUrgent ? '#dc2626' : isPracticeSchedule ? '#06b6d4' : '#0171a5'} />
             <Text 
-              className={`font-bold text-base ml-2 ${isUrgent ? 'text-red-600' : isPracticeSchedule ? 'text-cyan-500' : 'text-purple-600'}`}
+              className={`font-bold text-base ml-2 ${isUrgent ? 'text-red-600' : isPracticeSchedule ? 'text-cyan-500' : 'text-sky-600'}`}
             >
               {isUrgent ? 'Tạo QR điểm danh ngay' : 'Tạo QR điểm danh'}
             </Text>

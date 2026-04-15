@@ -61,10 +61,10 @@ const RoleSelectionScreen = ({ navigation }) => {
               activeOpacity={0.8}
             >
               <View className="items-center">
-                <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-4">
+                <View className="bg-sky-100 w-20 h-20 rounded-full items-center justify-center mb-4">
                   <Image source={require('../../assets/images/teacher.png')} className="w-16 h-16" />
                 </View>
-                <Text className="text-purple-600 text-2xl font-bold mb-2">Giảng viên</Text>
+                <Text className="text-sky-600 text-2xl font-bold mb-2">Giảng viên</Text>
                 <Text className="text-gray-600 text-center text-base">Tạo QR code điểm danh và quản lý lớp học</Text>
               </View>
             </TouchableOpacity>

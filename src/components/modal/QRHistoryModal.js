@@ -34,7 +34,7 @@ const QRHistoryModal = ({
               <View
                 key={session.id}
                 className={`bg-gray-50 rounded-xl p-4 mb-3 ${
-                  index === 0 ? 'border-2 border-purple-200' : ''
+                  index === 0 ? 'border-2 border-sky-200' : ''
                 }`}
               >
                 <View className="flex-row items-center justify-between mb-2">
@@ -42,8 +42,8 @@ const QRHistoryModal = ({
                     {session.date} • {session.time}
                   </Text>
                   {index === 0 && (
-                    <View className="bg-purple-100 px-2 py-1 rounded-full">
-                      <Text className="text-purple-700 text-xs font-semibold">Gần nhất</Text>
+                    <View className="bg-sky-100 px-2 py-1 rounded-full">
+                      <Text className="text-sky-700 text-xs font-semibold">Gần nhất</Text>
                     </View>
                   )}
                 </View>

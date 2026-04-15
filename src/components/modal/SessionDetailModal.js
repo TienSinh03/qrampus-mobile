@@ -103,7 +103,7 @@ const SessionDetailModal = ({
                 <Text className="text-gray-900 font-bold mb-3">Thống kê</Text>
                 <View className="flex-row justify-between mb-3">
                   <View className="flex-1 items-center">
-                    <Text className="text-2xl font-bold text-purple-600">
+                    <Text className="text-2xl font-bold text-sky-600">
                       {session?.stats?.attended || 0}
                     </Text>
                     <Text className="text-gray-500 text-xs">Đã điểm danh</Text>
