@@ -33,9 +33,9 @@ const CourseDetailScreen = ({ navigation, route }) => {
   // Màu sắc dựa theo role
   const isTeacher = userRole === 'teacher';
   const gradientColors = isTeacher 
-    ? ['#7c3aed', '#8b5cf6'] 
+    ? ['#0171a5', '#30b2ea'] 
     : ['#2563eb', '#3b82f6'];
-  const accentColor = isTeacher ? '#7c3aed' : '#2563eb';
+  const accentColor = isTeacher ? '#0171a5' : '#2563eb';
 
   // Status badge
   const getStatusBadge = () => {

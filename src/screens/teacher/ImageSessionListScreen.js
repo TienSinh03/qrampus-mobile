@@ -138,7 +138,7 @@ const ImageSessionListScreen = ({ navigation, route }) => {
 
       {/* Header */}
       <LinearGradient
-        colors={['#7c3aed', '#8b5cf6']}
+        colors={['#0171a5', '#8b5cf6']}
         className="px-6 py-4"
       >
         <View className="flex-row items-center mb-3">
@@ -208,8 +208,8 @@ const ImageSessionListScreen = ({ navigation, route }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#7c3aed']}
-            tintColor="#7c3aed"
+            colors={['#0171a5']}
+            tintColor="#0171a5"
           />
         }
       >
@@ -220,7 +220,7 @@ const ImageSessionListScreen = ({ navigation, route }) => {
         {/* Loading State */}
         {isLoading && (
           <View className="bg-white rounded-2xl p-8 items-center">
-            <ActivityIndicator size="large" color="#7c3aed" />
+            <ActivityIndicator size="large" color="#0171a5" />
             <Text className="text-gray-500 text-sm mt-3">
               Đang tải dữ liệu...
             </Text>
@@ -325,11 +325,11 @@ const ImageSessionListScreen = ({ navigation, route }) => {
 
                 {/* Hiển thị thông tin lớp học (nếu có) */}
                 {session.courseName && (
-                  <View className="bg-purple-50 rounded-lg p-3 mt-2">
-                    <Text className="text-purple-700 text-xs font-semibold">
+                  <View className="bg-sky-50 rounded-lg p-3 mt-2">
+                    <Text className="text-sky-700 text-xs font-semibold">
                       Lớp học: {session.courseName}
                     </Text>
-                    <Text className="text-purple-600 text-xs">
+                    <Text className="text-sky-600 text-xs">
                       Ngày: {session.classDate} • {session.startHour} - {session.endHour}
                     </Text>
                   </View>

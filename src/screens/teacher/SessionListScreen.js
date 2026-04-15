@@ -144,7 +144,7 @@ const SessionListScreen = ({ navigation, route }) => {
 
       {/* Header */}
       <LinearGradient
-        colors={['#7c3aed', '#8b5cf6']}
+        colors={['#0171a5', '#30b2ea']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
@@ -186,8 +186,8 @@ const SessionListScreen = ({ navigation, route }) => {
               }}
             >
               <View className="flex-row items-center p-4">
-                <View className="w-12 h-12 bg-purple-100 rounded-xl items-center justify-center mr-3">
-                  <Ionicons name="people" size={24} color="#7c3aed" />
+                <View className="w-12 h-12 bg-sky-100 rounded-xl items-center justify-center mr-3">
+                  <Ionicons name="people" size={24} color="#0171a5" />
                 </View>
                 <View className="flex-1">
                   <Text className="text-gray-900 font-bold text-base mb-0.5">Danh sách sinh viên</Text>
@@ -204,7 +204,7 @@ const SessionListScreen = ({ navigation, route }) => {
                 activeOpacity={0.8}
                 className="rounded-xl overflow-hidden"
                 style={{
-                  shadowColor: '#7c3aed',
+                  shadowColor: '#0171a5',
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: 0.3,
                   shadowRadius: 6,
@@ -212,7 +212,7 @@ const SessionListScreen = ({ navigation, route }) => {
                 }}
               >
                 <LinearGradient
-                  colors={['#7c3aed', '#8b5cf6']}
+                  colors={['#0171a5', '#30b2ea']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   className="flex-row items-center p-4"
@@ -294,7 +294,7 @@ const SessionListScreen = ({ navigation, route }) => {
 
         {historyLoading && sessions.length === 0 ? (
           <View className="bg-white rounded-2xl p-8 items-center justify-center">
-            <ActivityIndicator size="large" color="#7c3aed" />
+            <ActivityIndicator size="large" color="#0171a5" />
             <Text className="text-gray-500 text-sm mt-3">Đang tải...</Text>
           </View>
         ) : sessions.length === 0 ? (

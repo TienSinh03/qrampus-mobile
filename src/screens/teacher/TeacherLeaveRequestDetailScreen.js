@@ -209,7 +209,7 @@ const TeacherLeaveRequestDetailScreen = ({ navigation, route }) => {
 
       {/* Header */}
       <LinearGradient
-        colors={['#7c3aed', '#8b5cf6']}
+        colors={['#0171a5', '#30b2ea']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
@@ -246,7 +246,7 @@ const TeacherLeaveRequestDetailScreen = ({ navigation, route }) => {
         {/* Student Information */}
         <View className="bg-purple-50 rounded-2xl p-4 mb-4 border-2 border-purple-200">
           <View className="flex-row items-center mb-3">
-            <Ionicons name="person" size={24} color="#7c3aed" />
+            <Ionicons name="person" size={24} color="#0171a5" />
             <Text className="text-gray-900 font-bold text-lg ml-2">Thông tin sinh viên</Text>
           </View>
           
@@ -326,12 +326,12 @@ const TeacherLeaveRequestDetailScreen = ({ navigation, route }) => {
         {/* Reason */}
         <View className="bg-white rounded-2xl p-4 mb-4 border border-gray-200">
           <View className="flex-row items-center mb-3">
-            <Ionicons name={getReasonIcon(request.reason_type)} size={24} color="#7c3aed" />
+            <Ionicons name={getReasonIcon(request.reason_type)} size={24} color="#0171a5" />
             <Text className="text-gray-900 font-bold text-lg ml-2">Lý do nghỉ</Text>
           </View>
 
-          <View className="bg-purple-50 rounded-xl px-4 py-2 mb-3">
-            <Text className="text-purple-700 font-semibold text-base">
+          <View className="bg-blue-50 rounded-xl px-4 py-2 mb-3">
+            <Text className="text-blue-700 font-semibold text-base">
               {getReasonType(request.reason_type) || 'Không rõ lý do'}
             </Text>
           </View>
@@ -342,7 +342,7 @@ const TeacherLeaveRequestDetailScreen = ({ navigation, route }) => {
         {/* Attachments */}
         <View className="bg-white rounded-2xl p-4 mb-4 border border-gray-200">
           <View className="flex-row items-center mb-3">
-            <Ionicons name="attach" size={24} color="#7c3aed" />
+            <Ionicons name="attach" size={24} color="#0171a5" />
             <Text className="text-gray-900 font-bold text-lg ml-2">
               Minh chứng đính kèm ({request.attachments?.length || 0})
             </Text>
@@ -378,8 +378,8 @@ const TeacherLeaveRequestDetailScreen = ({ navigation, route }) => {
                   {isImage ? 'Ảnh' : 'PDF'}
                 </Text>
                 <View className="flex-row items-center">
-                  <Ionicons name="eye" size={14} color="#7c3aed" />
-                  <Text className="text-purple-600 text-sm ml-1 font-semibold">
+                  <Ionicons name="eye" size={14} color="#0171a5" />
+                  <Text className="text-blue-600 text-sm ml-1 font-semibold">
                     Nhấn để xem
                   </Text>
                 </View>
@@ -392,7 +392,7 @@ const TeacherLeaveRequestDetailScreen = ({ navigation, route }) => {
         {/* Submission Info */}
         <View className="bg-white rounded-2xl p-4 mb-4 border border-gray-200">
           <View className="flex-row items-center mb-3">
-            <Ionicons name="information-circle" size={24} color="#7c3aed" />
+            <Ionicons name="information-circle" size={24} color="#0171a5" />
             <Text className="text-gray-900 font-bold text-lg ml-2">Thông tin nộp đơn</Text>
           </View>
 

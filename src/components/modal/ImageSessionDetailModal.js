@@ -98,7 +98,7 @@ const ImageSessionDetailModal = ({
                     <Ionicons
                       name="hand-left"
                       size={24}
-                      color={captureType === 'manual' ? '#7c3aed' : '#9ca3af'}
+                      color={captureType === 'manual' ? '#0171a5' : '#9ca3af'}
                     />
                     <Text
                       className={`mt-2 font-semibold ${
@@ -123,7 +123,7 @@ const ImageSessionDetailModal = ({
                     <Ionicons
                       name="flash"
                       size={24}
-                      color={captureType === 'auto' ? '#7c3aed' : '#9ca3af'}
+                      color={captureType === 'auto' ? '#0171a5' : '#9ca3af'}
                     />
                     <Text
                       className={`mt-2 font-semibold ${
@@ -264,7 +264,7 @@ const ImageSessionDetailModal = ({
                   <Text className="text-gray-900 font-bold mb-3">Thông tin lớp học</Text>
                   
                   <View className="flex-row items-center mb-2">
-                    <Ionicons name="book" size={16} color="#7c3aed" />
+                    <Ionicons name="book" size={16} color="#0171a5" />
                     <Text className="ml-2 text-gray-700">
                       {session.courseName}
                     </Text>
@@ -272,7 +272,7 @@ const ImageSessionDetailModal = ({
 
                   {session.courseCode && (
                     <View className="flex-row items-center mb-2">
-                      <Ionicons name="code" size={16} color="#7c3aed" />
+                      <Ionicons name="code" size={16} color="#0171a5" />
                       <Text className="ml-2 text-gray-700">
                         Mã: {session.courseCode}
                       </Text>
@@ -281,7 +281,7 @@ const ImageSessionDetailModal = ({
 
                   {session.classDate && (
                     <View className="flex-row items-center mb-2">
-                      <Ionicons name="calendar" size={16} color="#7c3aed" />
+                      <Ionicons name="calendar" size={16} color="#0171a5" />
                       <Text className="ml-2 text-gray-700">
                         Ngày: {session.classDate}
                       </Text>
@@ -290,7 +290,7 @@ const ImageSessionDetailModal = ({
 
                   {session.startHour && session.endHour && (
                     <View className="flex-row items-center">
-                      <Ionicons name="time" size={16} color="#7c3aed" />
+                      <Ionicons name="time" size={16} color="#0171a5" />
                       <Text className="ml-2 text-gray-700">
                         Giờ: {session.startHour} - {session.endHour}
                       </Text>

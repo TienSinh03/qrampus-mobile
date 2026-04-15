@@ -181,7 +181,7 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
 
       {/* Header */}
       <LinearGradient
-        colors={isUrgent && !hasActiveSession ? ['#dc2626', '#ef4444'] : isPracticeSchedule ? ['#0891b2', '#06b6d4'] : ['#7c3aed', '#8b5cf6']}
+        colors={isUrgent && !hasActiveSession ? ['#dc2626', '#ef4444'] : isPracticeSchedule ? ['#0891b2', '#06b6d4'] : ['#0171a5', '#30b2ea']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
@@ -240,19 +240,19 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
             }}>
               <View className={`w-14 h-14 rounded-2xl items-center justify-center mr-4 ${
                 timeRemaining === 'Đang diễn ra' ? 'bg-green-100' : 
-                timeRemaining === 'Đã kết thúc' ? 'bg-gray-100' : 'bg-purple-100'
+                timeRemaining === 'Đã kết thúc' ? 'bg-gray-100' : 'bg-sky-100'
               }`}>
                 <Ionicons 
                   name={timeRemaining === 'Đang diễn ra' ? 'time' : timeRemaining === 'Đã kết thúc' ? 'checkmark-done' : 'alarm'} 
                   size={28} 
-                  color={timeRemaining === 'Đang diễn ra' ? '#10b981' : timeRemaining === 'Đã kết thúc' ? '#6b7280' : '#7c3aed'} 
+                  color={timeRemaining === 'Đang diễn ra' ? '#10b981' : timeRemaining === 'Đã kết thúc' ? '#6b7280' : '#0171a5'} 
                 />
               </View>
               <View className="flex-1">
                 <Text className="text-gray-500 text-xs mb-1">Trạng thái lớp học</Text>
                 <Text className={`text-lg font-bold ${
                   timeRemaining === 'Đang diễn ra' ? 'text-green-600' : 
-                  timeRemaining === 'Đã kết thúc' ? 'text-gray-600' : 'text-purple-600'
+                  timeRemaining === 'Đã kết thúc' ? 'text-gray-600' : 'text-sky-600'
                 }`}>
                   {timeRemaining}
                 </Text>
@@ -271,7 +271,7 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
               activeOpacity={0.8}
               className="rounded-2xl overflow-hidden mb-4"
               style={{
-                shadowColor: isUrgent ? '#dc2626' : '#7c3aed',
+                shadowColor: isUrgent ? '#dc2626' : '#0171a5',
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.25,
                 shadowRadius: 8,
@@ -279,7 +279,7 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
               }}
             >
               <LinearGradient
-                colors={isUrgent ? ['#dc2626', '#ef4444'] : ['#7c3aed', '#8b5cf6']}
+                colors={isUrgent ? ['#dc2626', '#ef4444'] : ['#0171a5', '#30b2ea']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 className="p-5"
@@ -387,8 +387,8 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
               }}
             >
               <View className="p-4">
-                <View className="w-12 h-12 bg-purple-50 rounded-xl items-center justify-center mb-3">
-                  <Ionicons name="people" size={24} color="#7c3aed" />
+                <View className="w-12 h-12 bg-sky-50 rounded-xl items-center justify-center mb-3">
+                  <Ionicons name="people" size={24} color="#0171a5" />
                 </View>
                 <Text className="text-gray-900 font-bold text-base mb-1">
                   Sinh viên
@@ -397,8 +397,8 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
                   {studentCount} sinh viên
                 </Text>
                 <View className="flex-row items-center">
-                  <Text className="text-purple-600 text-xs font-semibold">Xem danh sách</Text>
-                  <Ionicons name="chevron-forward" size={14} color="#7c3aed" style={{ marginLeft: 2 }} />
+                  <Text className="text-blue-600 text-xs font-semibold">Xem danh sách</Text>
+                  <Ionicons name="chevron-forward" size={14} color="#0171a5" style={{ marginLeft: 2 }} />
                 </View>
               </View>
             </TouchableOpacity>
@@ -504,8 +504,8 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
           }}>
             {/* Date & Time */}
             <View className="flex-row items-center mb-4 pb-4 border-b border-gray-100">
-              <View className="w-12 h-12 bg-purple-50 rounded-xl items-center justify-center mr-3">
-                <Ionicons name="calendar" size={24} color="#7c3aed" />
+              <View className="w-12 h-12 bg-sky-50 rounded-xl items-center justify-center mr-3">
+                <Ionicons name="calendar" size={24} color="#0171a5" />
               </View>
               <View className="flex-1">
                 <Text className="text-gray-500 text-xs mb-1">Thời gian</Text>

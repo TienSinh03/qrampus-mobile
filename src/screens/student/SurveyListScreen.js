@@ -207,7 +207,7 @@ const SurveyListScreen = ({ navigation }) => {
                   <Ionicons
                     name={isPractice ? 'flask-outline' : 'school-outline'}
                     size={16}
-                    color={isPractice ? '#7c3aed' : '#2563eb'}
+                    color={isPractice ? '#0171a5' : '#2563eb'}
                   />
                   <Text className="text-sm text-gray-600 ml-2">
                     {isPractice

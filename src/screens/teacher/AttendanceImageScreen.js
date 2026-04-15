@@ -251,7 +251,7 @@ const AttendanceImageScreen = ({ navigation, route }) => {
       <StatusBar style="light" />
 
       {/* Header */}
-      <LinearGradient colors={['#7c3aed', '#8b5cf6']} className="px-6 pt-5 pb-6">
+      <LinearGradient colors={['#0171a5', '#8b5cf6']} className="px-6 pt-5 pb-6">
         {/* ===== HEADER ===== */}
         <View className="flex-row items-center justify-between mb-5">
           <View className="flex-row items-center flex-1">
@@ -379,8 +379,8 @@ const AttendanceImageScreen = ({ navigation, route }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#7c3aed']}
-            tintColor="#7c3aed"
+            colors={['#0171a5']}
+            tintColor="#0171a5"
           />
         }
       >
@@ -395,13 +395,13 @@ const AttendanceImageScreen = ({ navigation, route }) => {
                 onPress={() => setViewMode('grid')}
                 className={`px-4 py-2 rounded-full ${viewMode === 'grid' ? 'bg-white shadow' : ''}`}
               >
-                <Ionicons name="grid" size={20} color={viewMode === 'grid' ? '#7c3aed' : '#6b7280'} />
+                <Ionicons name="grid" size={20} color={viewMode === 'grid' ? '#0171a5' : '#6b7280'} />
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setViewMode('list')}
                 className={`px-4 py-2 rounded-full ${viewMode === 'list' ? 'bg-white shadow' : ''}`}
               >
-                <Ionicons name="list" size={20} color={viewMode === 'list' ? '#7c3aed' : '#6b7280'} />
+                <Ionicons name="list" size={20} color={viewMode === 'list' ? '#0171a5' : '#6b7280'} />
               </TouchableOpacity>
             </View>
           </View>
@@ -410,7 +410,7 @@ const AttendanceImageScreen = ({ navigation, route }) => {
         {/* Loading */}
         {isLoading && (
           <View className="items-center justify-center py-20">
-            <ActivityIndicator size="large" color="#7c3aed" />
+            <ActivityIndicator size="large" color="#0171a5" />
             <Text className="text-gray-500 mt-3">Đang tải hình ảnh...</Text>
           </View>
         )}

@@ -18,22 +18,21 @@ const CourseCard = ({ course, onPress, userRole = 'student' }) => {
   // Màu sắc dựa theo role
   const isTeacher = userRole === 'teacher';
   const gradientColors = isTeacher 
-    ? ['#7c3aed', '#8b5cf6'] // Purple for teacher
+    ? ['#0171a5', '#0171a5'] // Blue for teacher
     : ['#2563eb', '#3b82f6']; // Blue for student
 
-  const accentColor = isTeacher ? '#7c3aed' : '#2563eb';
-
+  const accentColor = isTeacher ? '#0171a5' : '#2563eb';
   // Status badge
   const getStatusBadge = () => {
     switch (status) {
       case 'active':
-        return { label: 'Đang học', bgColor: 'bg-green-500/20', textColor: 'text-green-100' };
+        return { label: 'Đang học', bgColor: 'bg-green-500/50', textColor: 'text-green-100' };
       case 'completed':
-        return { label: 'Hoàn thành', bgColor: 'bg-gray-500/20', textColor: 'text-gray-200' };
+        return { label: 'Hoàn thành', bgColor: 'bg-gray-500/50', textColor: 'text-gray-200' };
       case 'upcoming':
-        return { label: 'Sắp tới', bgColor: 'bg-yellow-500/20', textColor: 'text-yellow-100' };
+        return { label: 'Sắp tới', bgColor: 'bg-yellow-500/50', textColor: 'text-yellow-100' };
       default:
-        return { label: 'Đang học', bgColor: 'bg-green-500/20', textColor: 'text-green-100' };
+        return { label: 'Đang học', bgColor: 'bg-green-500/50', textColor: 'text-green-100' };
     }
   };
 

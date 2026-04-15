@@ -201,7 +201,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
 
       {/* Header */}
       <LinearGradient
-        colors={['#7c3aed', '#8b5cf6']}
+        colors={['#0171a5', '#30b2ea']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
@@ -260,7 +260,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
             }`}
           >
             <Text className={`font-semibold ${
-              filterCourse === 'all' ? 'text-purple-600' : 'text-white'
+              filterCourse === 'all' ? 'text-sky-600' : 'text-white'
             }`}>
               Tất cả môn
             </Text>
@@ -274,7 +274,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
               }`}
             >
               <Text className={`font-semibold ${
-                filterCourse === course.courseCode ? 'text-purple-600' : 'text-white'
+                filterCourse === course.courseCode ? 'text-sky-600' : 'text-white'
               }`}>
                 {course.courseCode}
                 {course.pendingCount > 0 && ` (${course.pendingCount})`}
@@ -292,7 +292,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
             }`}
           >
             <Text className={`font-semibold ${
-              filterStatus === 'pending' ? 'text-purple-600' : 'text-white'
+              filterStatus === 'pending' ? 'text-sky-600' : 'text-white'
             }`}>
               Chờ duyệt ({pendingCount})
             </Text>
@@ -304,7 +304,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
             }`}
           >
             <Text className={`font-semibold ${
-              filterStatus === 'approved' ? 'text-purple-600' : 'text-white'
+              filterStatus === 'approved' ? 'text-sky-600' : 'text-white'
             }`}>
               Đã duyệt ({approvedCount})
             </Text>
@@ -316,7 +316,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
             }`}
           >
             <Text className={`font-semibold ${
-              filterStatus === 'rejected' ? 'text-purple-600' : 'text-white'
+              filterStatus === 'rejected' ? 'text-sky-600' : 'text-white'
             }`}>
               Đã từ chối ({rejectedCount})
             </Text>
@@ -328,7 +328,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
             }`}
           >
             <Text className={`font-semibold ${
-              filterStatus === 'all' ? 'text-purple-600' : 'text-white'
+              filterStatus === 'all' ? 'text-sky-600' : 'text-white'
             }`}>
               Tất cả ({leavesWithHours.length})
             </Text>
@@ -378,8 +378,8 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
 
               {/* Student Info */}
               <View className="flex-row items-center mb-3">
-                <View className="w-12 h-12 bg-purple-100 rounded-full items-center justify-center mr-3">
-                  <Text className="text-purple-700 font-bold text-lg">
+                <View className="w-12 h-12 bg-sky-100 rounded-full items-center justify-center mr-3">
+                  <Text className="text-sky-700 font-bold text-lg">
                     {(request.student?.full_name || 'S').charAt(0)}
                   </Text>
                 </View>
@@ -402,8 +402,8 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
               {/* Schedule Info */}
               <View className="bg-gray-50 rounded-xl p-3 mb-2">
                 <View className="flex-row items-center mb-1">
-                  <View className="bg-purple-100 rounded-lg px-2 py-1 mr-2">
-                    <Text className="text-purple-700 text-xs font-bold">
+                  <View className="bg-sky-100 rounded-lg px-2 py-1 mr-2">
+                    <Text className="text-sky-700 text-xs font-bold">
                       {request.classSession?.courseSection?.code || 'N/A'}
                     </Text>
                   </View>
@@ -425,8 +425,8 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
 
               {/* Reason */}
               <View className="flex-row items-center mb-2">
-                <Ionicons name={getReasonIcon(request.reason_type)} size={16} color="#7c3aed" />
-                <Text className="text-purple-700 font-semibold text-sm ml-2">
+                <Ionicons name={getReasonIcon(request.reason_type)} size={16} color="#0171a5" />
+                <Text className="text-sky-700 font-semibold text-sm ml-2">
                   {getReasonType(request.reason_type) || 'Không rõ lý do'}
                 </Text>
               </View>
@@ -494,12 +494,12 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
                     setShowCourseModal(false);
                   }}
                   className={`rounded-xl p-4 mb-3 flex-row items-center justify-between ${
-                    filterCourse === 'all' ? 'bg-purple-50 border-2 border-purple-500' : 'bg-gray-50'
+                    filterCourse === 'all' ? 'bg-sky-50 border-2 border-sky-500' : 'bg-gray-50'
                   }`}
                 >
                   <View className="flex-1">
                     <Text className={`font-bold text-base mb-1 ${
-                      filterCourse === 'all' ? 'text-purple-700' : 'text-gray-900'
+                      filterCourse === 'all' ? 'text-sky-700' : 'text-gray-900'
                     }`}>
                       Tất cả môn học
                     </Text>
@@ -521,17 +521,17 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
                       setShowCourseModal(false);
                     }}
                     className={`rounded-xl p-4 mb-3 flex-row items-center justify-between ${
-                      filterCourse === course.courseCode ? 'bg-purple-50 border-2 border-purple-500' : 'bg-gray-50'
+                      filterCourse === course.courseCode ? 'bg-sky-50 border-2 border-sky-500' : 'bg-gray-50'
                     }`}
                   >
                     <View className="flex-1">
                       <View className="flex-row items-center mb-1">
-                        <View className="bg-purple-100 rounded-lg px-2 py-1 mr-2">
-                          <Text className="text-purple-700 text-xs font-bold">{course.courseCode}</Text>
+                        <View className="bg-sky-100 rounded-lg px-2 py-1 mr-2">
+                          <Text className="text-sky-700 text-xs font-bold">{course.courseCode}</Text>
                         </View>
                       </View>
                       <Text className={`font-bold text-base mb-1 ${
-                        filterCourse === course.courseCode ? 'text-purple-700' : 'text-gray-900'
+                        filterCourse === course.courseCode ? 'text-sky-700' : 'text-gray-900'
                       }`} numberOfLines={1}>
                         {course.name}
                       </Text>
@@ -540,7 +540,7 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
                       </Text>
                     </View>
                     {filterCourse === course.courseCode && (
-                      <Ionicons name="checkmark-circle" size={24} color="#7c3aed" />
+                      <Ionicons name="checkmark-circle" size={24} color="#0171a5" />
                     )}
                   </TouchableOpacity>
                 ))}

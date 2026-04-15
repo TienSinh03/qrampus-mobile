@@ -19,7 +19,7 @@ const BaseCoursesScreen = ({
   const [selectedSemester, setSelectedSemester] = useState('all');
   const [showSemesterSelector, setShowSemesterSelector] = useState(false);
 
-  const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
+  const roleColor = userRole === 'teacher' ? '#0171a5' : '#2563eb';
   const roleLabel = userRole === 'teacher' ? 'Giảng viên' : 'Sinh viên';
 
   // Lọc khóa học theo tìm kiếm và học kỳ

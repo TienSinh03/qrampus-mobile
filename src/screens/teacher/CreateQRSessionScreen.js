@@ -357,7 +357,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
 
       {/* Header */}
       <LinearGradient
-        colors={sessionEnded ? ['#6b7280', '#9ca3af'] : ['#7c3aed', '#8b5cf6']}
+        colors={sessionEnded ? ['#6b7280', '#9ca3af'] : ['#0171a5', '#8b5cf6']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
@@ -415,7 +415,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
                       outputRange: ['0%', '100%'],
                     }),
                     height: '100%',
-                    backgroundColor: '#7c3aed',
+                    backgroundColor: '#0171a5',
                   }}
                 />
               </View>
@@ -458,7 +458,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
                     })}
                     size={SCREEN_WIDTH * 0.6}
                     backgroundColor="white"
-                    color="#7c3aed"
+                    color="#0171a5"
                   />
                 </Animated.View>
 
@@ -493,8 +493,8 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
 
               {!sessionEnded && (
                 <View className="mt-4 flex-row items-center">
-                  <Ionicons name="timer-outline" size={16} color="#7c3aed" />
-                  <Text className="text-purple-600 font-semibold ml-2">
+                  <Ionicons name="timer-outline" size={16} color="#0171a5" />
+                  <Text className="text-sky-600 font-semibold ml-2">
                     QR mới trong {qrTimeRemaining}s
                   </Text>
                 </View>
@@ -517,7 +517,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
 
               <View className="flex-row justify-between mb-4">
                 <View className="flex-1 items-center">
-                  <Text className="text-3xl font-bold text-purple-600">
+                  <Text className="text-3xl font-bold text-sky-600">
                     {attendedStudents.length}
                   </Text>
                   <Text className="text-gray-500 text-xs">Đã điểm danh</Text>
@@ -653,7 +653,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
           ) : sessionEnded ? (
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              className="bg-purple-600 rounded-xl py-4 flex-row items-center justify-center"
+              className="bg-sky-600 rounded-xl py-4 flex-row items-center justify-center"
               style={{ elevation: 3 }}
             >
               <Ionicons name="arrow-back" size={24} color="white" />
@@ -679,11 +679,11 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 key={duration}
                 onPress={() => handleStartSession(duration)}
-                className="bg-purple-50 rounded-xl p-4 mb-3 flex-row items-center justify-between"
-                style={{ borderWidth: 2, borderColor: '#7c3aed' }}
+                className="bg-sky-50 rounded-xl p-4 mb-3 flex-row items-center justify-between"
+                style={{ borderWidth: 2, borderColor: '#0171a5' }}
               >
                 <View className="flex-row items-center">
-                  <View className="w-12 h-12 bg-purple-600 rounded-full items-center justify-center mr-3">
+                  <View className="w-12 h-12 bg-sky-600 rounded-full items-center justify-center mr-3">
                     <Text className="text-white text-xl font-bold">
                       {duration}
                     </Text>
@@ -695,7 +695,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
                     <Text className="text-gray-500 text-xs">QR mới mỗi 10 giây</Text>
                   </View>
                 </View>
-                <Ionicons name="chevron-forward" size={24} color="#7c3aed" />
+                <Ionicons name="chevron-forward" size={24} color="#0171a5" />
               </TouchableOpacity>
             ))}
 

@@ -16,10 +16,10 @@ const BaseProfileScreen = ({
   menuItems = [], // Array of menu items
 }) => {
   const roleColors = userRole === 'teacher' 
-    ? ['#7c3aed', '#8b5cf6']  // purple gradient
+    ? ['#0171a5', '#30b2ea']  // purple gradient
     : ['#2563eb', '#3b82f6'];  // blue gradient
   
-  const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
+  const roleColor = userRole === 'teacher' ? '#0171a5' : '#2563eb';
   const roleBgColor = userRole === 'teacher' ? '#faf5ff' : '#eff6ff';
 
   const dispatch = useDispatch();

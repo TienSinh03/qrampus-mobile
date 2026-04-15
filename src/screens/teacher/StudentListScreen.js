@@ -76,7 +76,7 @@ const StudentListScreen = ({ navigation, route }) => {
 
       {/* Header */}
       <LinearGradient
-        colors={isPracticeSchedule ? ['#0891b2', '#06b6d4'] : ['#7c3aed', '#8b5cf6']}
+        colors={isPracticeSchedule ? ['#0891b2', '#06b6d4'] : ['#0171a5', '#30b2ea']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-6 py-4"
@@ -144,7 +144,7 @@ const StudentListScreen = ({ navigation, route }) => {
       {/* Student List */}
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#7c3aed" />
+          <ActivityIndicator size="large" color="#0171a5" />
           <Text className="text-gray-500 mt-3">Đang tải danh sách...</Text>
         </View>
       ) : (
@@ -185,8 +185,8 @@ const StudentListScreen = ({ navigation, route }) => {
                     </Text>
                   </View>
                   {student.practiceGroup ? (
-                    <View className="px-3 py-1 rounded-full bg-purple-100">
-                      <Text className="text-xs font-semibold text-purple-700">
+                    <View className="px-3 py-1 rounded-full bg-sky-100">
+                      <Text className="text-xs font-semibold text-sky-700">
                         {student.practiceGroup.groupName}
                       </Text>
                     </View>

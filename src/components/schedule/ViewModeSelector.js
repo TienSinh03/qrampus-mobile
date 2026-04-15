@@ -7,7 +7,7 @@ const ViewModeSelector = ({ viewMode, onViewModeChange, userRole }) => {
       <TouchableOpacity
         onPress={() => onViewModeChange('day')}
         className={`px-6 py-2 rounded-lg mr-2 ${
-          viewMode === 'day' ? (userRole === 'teacher' ? 'bg-purple-700' : 'bg-blue-600') : 'bg-white'
+          viewMode === 'day' ? (userRole === 'teacher' ? 'bg-sky-700' : 'bg-blue-600') : 'bg-white'
         }`}
       >
         <Text
@@ -21,7 +21,7 @@ const ViewModeSelector = ({ viewMode, onViewModeChange, userRole }) => {
       <TouchableOpacity
         onPress={() => onViewModeChange('week')}
         className={`px-6 py-2 rounded-lg mr-2 ${
-          viewMode === 'week' ? (userRole === 'teacher' ? 'bg-purple-700' : 'bg-blue-600') : 'bg-white'
+          viewMode === 'week' ? (userRole === 'teacher' ? 'bg-sky-700' : 'bg-blue-600') : 'bg-white'
         }`}
       >
         <Text
@@ -35,7 +35,7 @@ const ViewModeSelector = ({ viewMode, onViewModeChange, userRole }) => {
       <TouchableOpacity
         onPress={() => onViewModeChange('month')}
         className={`px-6 py-2 rounded-lg ${
-          viewMode === 'month' ? (userRole === 'teacher' ? 'bg-purple-700' : 'bg-blue-600') : 'bg-white'
+          viewMode === 'month' ? (userRole === 'teacher' ? 'bg-sky-700' : 'bg-blue-600') : 'bg-white'
         }`}
       >
         <Text

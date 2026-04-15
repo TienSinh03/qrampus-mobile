@@ -27,17 +27,17 @@ const SurveyStatistics = ({ surveyStats }) => {
       }}>
         {/* Overall Score */}
         <View className="items-center pb-4 mb-4 border-b border-gray-100">
-          <View className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-50 to-blue-50 items-center justify-center mb-3"
+          <View className="w-32 h-32 rounded-full bg-gradient-to-br from-sky-50 to-blue-50 items-center justify-center mb-3"
             style={{
               borderWidth: 8,
-              borderColor: '#8b5cf6',
+              borderColor: '#3b82f6',
             }}
           >
-            <Text className="text-4xl font-bold text-purple-600">
+            <Text className="text-4xl font-bold text-sky-600">
               {(surveyStats.questions.reduce((sum, q) => sum + q.averageRating, 0) / surveyStats.questions.length).toFixed(1)}
             </Text>
             <View className="flex-row items-center mt-1">
-              <Ionicons name="star" size={16} color="#8b5cf6" />
+              <Ionicons name="star" size={16} color="#3b82f6" />
               <Text className="text-gray-500 text-xs ml-1">/ 5.0</Text>
             </View>
           </View>
@@ -54,8 +54,8 @@ const SurveyStatistics = ({ surveyStats }) => {
             className={`py-4 ${index < surveyStats.questions.length - 1 ? 'border-b border-gray-100' : ''}`}
           >
             <View className="flex-row items-start mb-3">
-              <View className="w-6 h-6 bg-purple-100 rounded-full items-center justify-center mr-2 mt-0.5">
-                <Text className="text-purple-600 font-bold text-xs">{index + 1}</Text>
+              <View className="w-6 h-6 bg-sky-100 rounded-full items-center justify-center mr-2 mt-0.5">
+                <Text className="text-sky-600 font-bold text-xs">{index + 1}</Text>
               </View>
               <Text className="flex-1 text-gray-800 font-semibold text-sm leading-5">
                 {q.question}
@@ -74,7 +74,7 @@ const SurveyStatistics = ({ surveyStats }) => {
                   />
                 ))}
               </View>
-              <Text className="text-purple-600 font-bold text-lg">
+              <Text className="text-sky-600 font-bold text-lg">
                 {q.averageRating.toFixed(1)}
               </Text>
               <Text className="text-gray-400 text-sm ml-1">/ 5.0</Text>

@@ -108,7 +108,7 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
   if (!permission) {
     return (
       <View className="flex-1 items-center justify-center bg-gray-50">
-        <ActivityIndicator size="large" color="#7c3aed" />
+        <ActivityIndicator size="large" color="#0171a5" />
         <Text className="text-gray-600 mt-4">Đang yêu cầu quyền truy cập camera...</Text>
       </View>
     );
@@ -126,7 +126,7 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
           <View className="flex-row" style={{ gap: 12 }}>
             <TouchableOpacity
               onPress={requestPermission}
-              className="bg-purple-600 px-6 py-3 rounded-xl"
+              className="bg-sky-600 px-6 py-3 rounded-xl"
             >
               <Text className="text-white font-bold">Cấp quyền</Text>
             </TouchableOpacity>
@@ -187,10 +187,10 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
                   height: height * 0.5,
                 }}
               >
-                <View className="absolute -top-2 -left-2 w-6 h-6 border-l-4 border-t-4 border-purple-500 rounded-tl-xl" />
-                <View className="absolute -top-2 -right-2 w-6 h-6 border-r-4 border-t-4 border-purple-500 rounded-tr-xl" />
-                <View className="absolute -bottom-2 -left-2 w-6 h-6 border-l-4 border-b-4 border-purple-500 rounded-bl-xl" />
-                <View className="absolute -bottom-2 -right-2 w-6 h-6 border-r-4 border-b-4 border-purple-500 rounded-br-xl" />
+                <View className="absolute -top-2 -left-2 w-6 h-6 border-l-4 border-t-4 border-sky-500 rounded-tl-xl" />
+                <View className="absolute -top-2 -right-2 w-6 h-6 border-r-4 border-t-4 border-sky-500 rounded-tr-xl" />
+                <View className="absolute -bottom-2 -left-2 w-6 h-6 border-l-4 border-b-4 border-sky-500 rounded-bl-xl" />
+                <View className="absolute -bottom-2 -right-2 w-6 h-6 border-r-4 border-b-4 border-sky-500 rounded-br-xl" />
                 
                 <View className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/50 px-4 py-2 rounded-full"
                   style={{ marginLeft: -80, marginTop: -20 }}
@@ -238,7 +238,7 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
                 shadowRadius: 10,
               }}
             >
-              <View className="w-16 h-16 bg-white rounded-full border-4 border-purple-500" />
+              <View className="w-16 h-16 bg-white rounded-full border-4 border-sky-500" />
             </TouchableOpacity>
 
             {/* Flip camera button */}
@@ -264,7 +264,7 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 onPress={handleConfirm}
                 disabled={uploading}
-                className="flex-1 bg-purple-600 py-4 rounded-xl flex-row items-center justify-center"
+                className="flex-1 bg-sky-600 py-4 rounded-xl flex-row items-center justify-center"
               >
                 {uploading ? (
                   <ActivityIndicator size="small" color="white" />
@@ -282,7 +282,7 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
 
       {/* Info banner */}
       {!capturedImage && (
-        <View className="absolute bottom-32 left-4 right-4 bg-purple-900/90 rounded-xl p-4">
+        <View className="absolute bottom-32 left-4 right-4 bg-sky-900/90 rounded-xl p-4">
           <View className="flex-row items-start">
             <Ionicons name="information-circle" size={24} color="#c4b5fd" />
             <View className="flex-1 ml-3">

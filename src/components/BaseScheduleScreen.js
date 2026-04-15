@@ -63,7 +63,7 @@ const BaseScheduleScreen = ({
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
-  const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
+  const roleColor = userRole === 'teacher' ? '#0171a5' : '#2563eb';
 
   // Sync state khi parent thay đổi
   useEffect(() => {

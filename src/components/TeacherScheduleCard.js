@@ -99,12 +99,12 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
       className="mb-4"
     >
       <LinearGradient
-        colors={isUrgent && !hasActiveSession ? ['#dc2626', '#ef4444'] : isPracticeSchedule ? ['#0891b2', '#06b6d4'] : ['#7c3aed', '#8b5cf6']}
+        colors={isUrgent && !hasActiveSession ? ['#dc2626', '#ef4444'] : isPracticeSchedule ? ['#0891b2', '#06b6d4'] : ['#0171a5', '#30b2ea']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="rounded-2xl p-4"
         style={{
-          shadowColor: isUrgent ? '#dc2626' : isPracticeSchedule ? '#0891b2' : '#7c3aed',
+          shadowColor: isUrgent ? '#dc2626' : isPracticeSchedule ? '#0891b2' : '#0171a5',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,
@@ -174,7 +174,7 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
               elevation: 3,
             }}
           >
-            <Ionicons name="qr-code" size={22} color={isUrgent ? '#dc2626' : isPracticeSchedule ? '#06b6d4' : '#7c3aed'} />
+            <Ionicons name="qr-code" size={22} color={isUrgent ? '#dc2626' : isPracticeSchedule ? '#06b6d4' : '#0171a5'} />
             <Text 
               className={`font-bold text-base ml-2 ${isUrgent ? 'text-red-600' : isPracticeSchedule ? 'text-cyan-500' : 'text-purple-600'}`}
             >
