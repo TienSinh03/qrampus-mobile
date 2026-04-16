@@ -8,10 +8,9 @@ const RoleSelectionScreen = ({ navigation }) => {
   const handleRoleSelect = (role) => {
     navigation.navigate('Login', { role });
   };
-
   return (
     <LinearGradient
-      colors={['#132440', '#9333ea', '#DD7BDF']}
+      colors={['#132440', '#0061e1d7', '#0040e1c6']}
       start={{ x: 0, y: 1 }}
       end={{ x: 1, y: 0 }}
       className="flex-1"

@@ -56,10 +56,10 @@ const IntroCarouselScreen = ({ navigation }) => {
 
   return (
       <LinearGradient
-        colors={['#0040e1c6', '#0063E1', '#0061e1d7']}
+        colors={['#132440', '#0061e1d7', '#0040e1c6']}
         locations={[0, 0.6, 1]} 
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={{ x: 0, y: 1 }}
+        end={{ x: 1, y: 0 }}
         className="flex-1"
       >
       <StatusBar style="light" />
