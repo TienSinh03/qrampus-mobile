@@ -156,7 +156,7 @@ const ScheduleCard = ({ schedule, navigation }) => {
 
         {/* QR Code Button */}
         {isAttended && (
-          <View className={`bg-${isPracticeSchedule ? 'emerald' : 'blue'}-500/20 border border-${isPracticeSchedule ? 'emerald' : 'blue'}-300/50 rounded-xl py-3 px-3 flex-row items-center justify-center`}>
+          <View className={`bg-${isPracticeSchedule ? 'emerald' : 'blue'}-500/20 border border-${isPracticeSchedule ? 'emerald' : 'blue'}-500 rounded-xl py-3 px-3 flex-row items-center justify-center mb-1`}>
             <Ionicons name="checkmark-circle" size={18} color={isPracticeSchedule ? '#10b981' : '#2563eb'} />
             <Text className={`text-${isPracticeSchedule ? 'emerald' : 'blue'}-100 text-sm font-semibold ml-2`}>
               Bạn đã điểm danh buổi học này

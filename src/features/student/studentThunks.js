@@ -6,6 +6,8 @@ import { transformCourseToUI } from "../../utils/course.helper";
  * Transform schedule từ API sang format UI
  */
 export const transformScheduleToUI = (schedule) => {
+    const attendanceStats = schedule.attendanceStats || {};
+
     return {
         id: schedule.sessionId,
         sessionId: schedule.sessionId,
@@ -45,6 +47,13 @@ export const transformScheduleToUI = (schedule) => {
         attendedAt: schedule.attendedAt || null,
         isTheory: schedule.scheduleType === 'theory',
         isPractice: schedule.scheduleType === 'practice',
+        attendanceStats: {
+            total: attendanceStats.totalSessions ?? 0,
+            present:  attendanceStats.presentCount ?? 0,
+            absent:  attendanceStats.absentCount ?? 0,
+            excused:  attendanceStats.excusedCount ?? 0,
+            rate: attendanceStats.attendanceRate ?? 0,
+        },
     };
 };
 

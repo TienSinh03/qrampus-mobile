@@ -33,13 +33,26 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
     }
     return initialSchedule || {};
   }, [scheduleDetail, initialSchedule]);
-  
-  const [attendanceStats, setAttendanceStats] = useState({
-    present: 8,
-    absent: 2,
-    excused: 1,
-    total: 11,
-  });
+
+  const attendanceStats = useMemo(() => {
+    const stats = schedule?.attendanceStats || {};
+
+    const total = Number(stats.total ?? 0);
+    const present = Number(stats.present ?? 0);
+    const excused = Number(stats.excused ?? 0);
+    const absent =
+      stats.absent !== undefined && stats.absent !== null
+        ? Number(stats.absent)
+        : Math.max(total - present - excused, 0);
+
+    return {
+      present: Number.isFinite(present) ? present : 0,
+      absent: Number.isFinite(absent) ? absent : 0,
+      excused: Number.isFinite(excused) ? excused : 0,
+      total: Number.isFinite(total) ? total : 0,
+    };
+  }, [schedule]);
+
   const [showSurvey, setShowSurvey] = useState(false);
   const [hasCompletedSurvey, setHasCompletedSurvey] = useState(false);
 
@@ -173,7 +186,8 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
     });
   };
 
-  const attendanceRate = ((attendanceStats.present / attendanceStats.total) * 100).toFixed(1);
+  const attendanceRateValue = attendanceStats.total > 0 ? (attendanceStats.present / attendanceStats.total) * 100 : 0;
+  const attendanceRate = attendanceRateValue.toFixed(1);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -429,11 +443,11 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
               <View className="w-32 h-32 rounded-full bg-blue-50 items-center justify-center mb-2"
                 style={{
                   borderWidth: 8,
-                  borderColor: attendanceRate >= 80 ? '#10b981' : attendanceRate >= 50 ? '#f59e0b' : '#ef4444',
+                  borderColor: attendanceRateValue >= 80 ? '#10b981' : attendanceRateValue >= 50 ? '#f59e0b' : '#ef4444',
                 }}
               >
                 <Text className={`text-3xl font-bold ${
-                  attendanceRate >= 80 ? 'text-green-600' : attendanceRate >= 50 ? 'text-orange-600' : 'text-red-600'
+                  attendanceRateValue >= 80 ? 'text-green-600' : attendanceRateValue >= 50 ? 'text-orange-600' : 'text-red-600'
                 }`}>
                   {attendanceRate}%
                 </Text>
@@ -487,7 +501,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
         </View>
 
         {/* Warning*/}
-        {attendanceRate < 80 && (
+        {attendanceRateValue < 80 && (
           <View className="px-6 pb-6">
             <View className="bg-orange-50 rounded-xl p-4 flex-row items-start border-l-4 border-orange-500">
               <Ionicons name="warning" size={24} color="#f59e0b" className="mr-3" />
