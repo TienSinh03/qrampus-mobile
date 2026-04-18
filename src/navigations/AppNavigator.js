@@ -18,6 +18,7 @@ import LoginScreen from '../screens/LoginScreen';
 import StudentTabNavigator from './StudentTabNavigator';
 import TeacherTabNavigator from './TeacherTabNavigator';
 import NotificationScreen from '../screens/NotificationScreen';
+import NotificationDetailScreen from '../screens/NotificationDetailScreen';
 import QRScanScreen from '../screens/student/QRScanScreen';
 import ScheduleDetailScreen from '../screens/student/ScheduleDetailScreen';
 import LeaveRequestScreen from '../screens/student/LeaveRequestScreen';
@@ -121,6 +122,13 @@ const AppNavigator = () => {
           component={NotificationScreen}
           options={{
             gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="NotificationDetail"
+          component={NotificationDetailScreen}
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen

@@ -17,7 +17,6 @@ import {
   markAllAsReadThunk,
 } from '../features/notification/notificationThunks';
 import { selectLoginRole } from '../features/auth/authSlice';
-import { getNotificationAction } from '../utils/notificationHelper';
 
 const PAGE_SIZE = 20;
 
@@ -89,14 +88,10 @@ const NotificationScreen = ({ navigation }) => {
       dispatch(markAsReadThunk(notification.id));
     }
 
-    const action = getNotificationAction(notification.type);
-    const meta = notification.metadata || {};
-
-    if (action === 'create_qr' && meta.course_section_id) {
-      navigation.navigate('CreateQRSession', {
-        courseSectionId: meta.course_section_id,
-      });
-    }
+    navigation.navigate('NotificationDetail', {
+      notification,
+      userRole,
+    });
   }, [dispatch, navigation]);
 
   // Đánh dấu tất cả đã đọc
