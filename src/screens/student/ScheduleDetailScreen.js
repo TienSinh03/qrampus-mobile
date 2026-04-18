@@ -75,6 +75,28 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
     sessionStatus = '',
   } = schedule || {};
 
+  // Lắng nghe realtime từ Redux khi GV mở/đóng phiên hoặc SV đã điểm danh
+  const realtimeHasQR = useSelector(state => {
+    const all = [
+      ...(state.student?.schedules || []),
+      ...(state.student?.schedulesToday || []),
+    ];
+    const found = all.find(s => s.id === schedule.id);
+    return found ? !!found.hasQR : false;
+  });
+
+  const realtimeIsAttended = useSelector(state => {
+    const all = [
+      ...(state.student?.schedules || []),
+      ...(state.student?.schedulesToday || []),
+    ];
+    const found = all.find(s => s.id === schedule.id);
+    return found ? !!found.isAttended : false;
+  });
+
+  const hasQR = hasQRProp || realtimeHasQR;
+  const isAttended = isAttendedProp || realtimeIsAttended;
+
   const isPracticeSchedule = isPractice && !isTheory;
 
 
@@ -239,7 +261,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
       >
         <View className="px-6 pt-6 pb-4">
           {/** View notification small */}
-          {isAttendedProp && (
+          {isAttended && (
             <View className=" rounded-xl mb-3 flex-row items-center justify-center">
                 <Ionicons name="checkmark-circle" size={18} color="#10b981" />
                 <Text className="text-emerald-800 text-sm font-semibold ml-2">
@@ -251,10 +273,10 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
           <Text className="text-gray-900 font-bold text-lg mb-3">Thao tác nhanh</Text>
           
           {/* QR Scan Button */}
-          {hasQRProp && (
+          {hasQR && (
             <TouchableOpacity
               onPress={handleQRPress}
-              className={`${isAttendedProp ? 'bg-gray-400' : 'bg-blue-600'} rounded-xl py-4 mb-3 flex-row items-center justify-center`}
+              className={`${isAttended ? 'bg-gray-400' : 'bg-blue-600'} rounded-xl py-4 mb-3 flex-row items-center justify-center`}
               style={{
                 shadowColor: '#2563eb',
                 shadowOffset: { width: 0, height: 4 },
@@ -262,7 +284,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
                 shadowRadius: 8,
                 elevation: 5,
               }}
-              disabled={isAttendedProp}
+              disabled={isAttended}
             >
               <Ionicons name="qr-code" size={24} color="white" />
               <Text className="text-white font-bold text-base ml-2">Quét mã điểm danh</Text>
