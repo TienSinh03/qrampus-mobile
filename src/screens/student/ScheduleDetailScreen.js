@@ -53,7 +53,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
     };
   }, [schedule]);
 
-  const [showSurvey, setShowSurvey] = useState(false);
+  // const [showSurvey, setShowSurvey] = useState(false);
   const [hasCompletedSurvey, setHasCompletedSurvey] = useState(false);
 
   const {
@@ -121,31 +121,31 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
   }, [schedule.id]);
 
   // Kiểm tra xem có nên hiển thị khảo sát không (10 phút trước đến 10 phút sau khi kết thúc)
-  useEffect(() => {
-    const checkSurveyTime = () => {
-      const now = new Date();
-      const [endHourNum, endMinute] = endHour.split(':').map(Number);
+  // useEffect(() => {
+  //   const checkSurveyTime = () => {
+  //     const now = new Date();
+  //     const [endHourNum, endMinute] = endHour.split(':').map(Number);
       
-      const classEndTime = new Date();
-      classEndTime.setHours(endHourNum, endMinute, 0, 0);
+  //     const classEndTime = new Date();
+  //     classEndTime.setHours(endHourNum, endMinute, 0, 0);
       
-      // Thời gian bắt đầu có thể làm khảo sát (10 phút trước khi kết thúc)
-      const surveyStartTime = new Date(classEndTime.getTime() - 10 * 60 * 1000);
-      // Thời gian kết thúc làm khảo sát (10 phút sau khi kết thúc)
-      const surveyEndTime = new Date(classEndTime.getTime() + 10 * 60 * 1000);
+  //     // Thời gian bắt đầu có thể làm khảo sát (10 phút trước khi kết thúc)
+  //     const surveyStartTime = new Date(classEndTime.getTime() - 10 * 60 * 1000);
+  //     // Thời gian kết thúc làm khảo sát (10 phút sau khi kết thúc)
+  //     const surveyEndTime = new Date(classEndTime.getTime() + 10 * 60 * 1000);
       
-      // Hiển thị khảo sát nếu:
-      // 1. Đang trong khoảng thời gian (10 phút trước đến 10 phút sau khi kết thúc)
-      // 2. Chưa hoàn thành khảo sát
-      const shouldShow = now >= surveyStartTime && now <= surveyEndTime && !hasCompletedSurvey;
-      setShowSurvey(shouldShow);
-    };
+  //     // Hiển thị khảo sát nếu:
+  //     // 1. Đang trong khoảng thời gian (10 phút trước đến 10 phút sau khi kết thúc)
+  //     // 2. Chưa hoàn thành khảo sát
+  //     const shouldShow = now >= surveyStartTime && now <= surveyEndTime && !hasCompletedSurvey;
+  //     setShowSurvey(shouldShow);
+  //   };
 
-    checkSurveyTime();
-    const interval = setInterval(checkSurveyTime, 30000); // Check mỗi 30 giây
+  //   checkSurveyTime();
+  //   const interval = setInterval(checkSurveyTime, 30000); // Check mỗi 30 giây
     
-    return () => clearInterval(interval);
-  }, [endHour, hasCompletedSurvey]);
+  //   return () => clearInterval(interval);
+  // }, [endHour, hasCompletedSurvey]);
 
   const onRefresh = async () => {
     if (!schedule?.id) {
@@ -292,7 +292,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
           )}
 
           {/* Survey Button - Show when near end time */}
-          {showSurvey && !hasCompletedSurvey && (
+          {/* {showSurvey && !hasCompletedSurvey && (
             <TouchableOpacity
               onPress={handleSurveyPress}
               activeOpacity={0.8}
@@ -323,7 +323,7 @@ const ScheduleDetailScreen = ({ navigation, route }) => {
                 </View>
               </LinearGradient>
             </TouchableOpacity>
-          )}
+          )} */}
 
           {hasCompletedSurvey && (
             <TouchableOpacity

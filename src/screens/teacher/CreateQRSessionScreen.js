@@ -253,9 +253,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
       return [nextItem, ...prev];
     });
 
-    if (typeof meta?.stats?.total === 'number') {
-      setTotalStudents(meta.stats.total);
-    }
+    setTotalStudents((prev) => prev + 1);
   }, []);
 
   // Thời gian đếm ngược cho phiên và QR

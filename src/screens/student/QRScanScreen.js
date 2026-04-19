@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -27,9 +27,50 @@ const QRScanScreen = ({ route, navigation }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
 
+  const prefetchedDeviceInfoRef = useRef(null);
+  const prefetchedLocationRef = useRef(null);
+
   useEffect(() => {
     getCameraPermissions();
-    getLocationPermission();
+
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      const granted = status === 'granted';
+      setLocationPermission(granted);
+
+      try {
+        prefetchedDeviceInfoRef.current = await getDevicePayload();
+      } catch (e) {
+        console.warn('Device prefetch failed:', e?.message);
+      }
+
+      if (!granted) return;
+
+      try {
+        const lastKnown = await Location.getLastKnownPositionAsync();
+        if (lastKnown?.coords) {
+          prefetchedLocationRef.current = {
+            latitude: lastKnown.coords.latitude,
+            longitude: lastKnown.coords.longitude,
+          };
+        }
+
+        const current = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeout: 2500,
+          maximumAge: 15000,
+        });
+
+        if (current?.coords) {
+          prefetchedLocationRef.current = {
+            latitude: current.coords.latitude,
+            longitude: current.coords.longitude,
+          };
+        }
+      } catch (e) {
+        console.warn('Location prefetch failed:', e?.message);
+      }
+    })();
   }, []);
 
   // Yêu cầu quyền truy cập camera
@@ -39,37 +80,38 @@ const QRScanScreen = ({ route, navigation }) => {
   };
 
   // Yêu cầu quyền truy cập vị trí
-  const getLocationPermission = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status === 'granted');
+  // const getLocationPermission = async () => {
+  //   try {
+  //     const { status } = await Location.requestForegroundPermissionsAsync();
+  //     setLocationPermission(status === 'granted');
 
-      if (status !== 'granted') {
-        Alert.alert(
-          'Cần quyền truy cập vị trí',
-          'Vui lòng cấp quyền truy cập vị trí trong Cài đặt để sử dụng tính năng này.',
-          [
-            {
-              text: 'Hủy', 
-              onPress: () => navigation.goBack(),
-              style: 'cancel'
-            },
-            {
-              text: 'Cấp quyền',
-              onPress: () => Location.requestForegroundPermissionsAsync()
-            }
-          ]
-        )
-      }     
-    } catch (error) {
-      console.error('Location permission error:', error);
-    }
-  }
+  //     if (status !== 'granted') {
+  //       Alert.alert(
+  //         'Cần quyền truy cập vị trí',
+  //         'Vui lòng cấp quyền truy cập vị trí trong Cài đặt để sử dụng tính năng này.',
+  //         [
+  //           {
+  //             text: 'Hủy', 
+  //             onPress: () => navigation.goBack(),
+  //             style: 'cancel'
+  //           },
+  //           {
+  //             text: 'Cấp quyền',
+  //             onPress: () => Location.requestForegroundPermissionsAsync()
+  //           }
+  //         ]
+  //       )
+  //     }     
+  //   } catch (error) {
+  //     console.error('Location permission error:', error);
+  //   }
+  // }
 
   // Xử lý khi quét mã QR
   const handleBarCodeScanned = async ({ type, data }) => {
     if (scanned || isProcessing) return;
-    
+    const t0 = Date.now();
+
     setScanned(true);
     setIsProcessing(true);
     Vibration.vibrate(100); // Rung nhẹ khi quét
@@ -86,42 +128,38 @@ const QRScanScreen = ({ route, navigation }) => {
       let latitude = null;
       let longitude = null;
 
-      if (locationPermission) {
-        try {
-          const location = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-            timeout: 10000,
-            maximumAge: 5000,
-          });
+      // if (locationPermission) {
+      //   try {
+      //     const location = await Location.getCurrentPositionAsync({
+      //       accuracy: Location.Accuracy.High,
+      //       timeout: 10000,
+      //       maximumAge: 5000,
+      //     });
 
-          latitude = location.coords.latitude;
-          longitude = location.coords.longitude;
-        } catch (error) {
-          console.warn('Không lấy được GPS:', error.message);
-        }
-      } else {
-        Alert.alert('Cần bật GPS', 'Bạn phải bật GPS để điểm danh');
-        return;
-      }
-      console.log('GPS coordinates:', { latitude, longitude });
-      // Lấy payload thiết bị để backend kiểm tra chống chia sẻ thiết bị
-      const deviceInfo = await getDevicePayload();
+      //     latitude = location.coords.latitude;
+      //     longitude = location.coords.longitude;
+      //   } catch (error) {
+      //     console.warn('Không lấy được GPS:', error.message);
+      //   }
+      // } else {
+      //   Alert.alert('Cần bật GPS', 'Bạn phải bật GPS để điểm danh');
+      //   return;
+      // }
+      // // Lấy payload thiết bị để backend kiểm tra chống chia sẻ thiết bị
+      // const deviceInfo = await getDevicePayload();
+
+      const loc = prefetchedLocationRef.current || {};
+      const deviceInfo = prefetchedDeviceInfoRef.current || null;
 
       // Gọi API điểm danh
       const result = await submitAttendance({
         qr_token,
         class_session_id: scheduleId,
-        latitude, 
-        longitude,
+        latitude: loc.latitude ?? null,
+        longitude: loc.longitude ??  null,
         device_info: deviceInfo,
       });
-
-      dispatch(
-        setScheduleAttended({
-          classSessionId: scheduleId,
-          attendedAt: result?.attendance?.scan_time,
-        })
-      );
+      console.log('DEBUG scan total ms =', Date.now() - t0);
 
       // Thành công
       Alert.alert(
@@ -130,7 +168,16 @@ const QRScanScreen = ({ route, navigation }) => {
         [
           {
             text: 'OK',
-            onPress: () => navigation.goBack(),
+            onPress: () => {
+              // Cập nhật trạng thái đã điểm danh trong store
+              dispatch(
+                setScheduleAttended({
+                  classSessionId: scheduleId,
+                  attendedAt: result?.attendance?.scan_time,
+                })
+              );
+              navigation.goBack()
+            },
           },
         ]
       );

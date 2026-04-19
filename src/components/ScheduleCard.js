@@ -41,7 +41,7 @@ const ScheduleCard = ({ schedule, navigation }) => {
 
   const hasQR = hasQRProp || realtimeHasQR;
   const isAttended = isAttendedProp || realtimeIsAttended;
-  console.log('ScheduleCard render - hasQR:', hasQR, 'for schedule ID:', id);
+  
   const isCompleted = sessionStatus === 'completed';
   const isPracticeSchedule = isPractice && !isTheory;
   const gradientColors = isPracticeSchedule ? ['#059669', '#10b981'] : ['#2563eb', '#3b82f6'];

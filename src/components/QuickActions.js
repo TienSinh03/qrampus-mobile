@@ -36,7 +36,6 @@ const QuickActions = ({ actions = [], roleColor, roleBgColor }) => {
 
   return (
     <View className="px-4 mb-4">
-      <Text className="text-gray-900 text-base font-bold mb-3 px-2">Truy cập nhanh</Text>
       <FlatList
         data={actions}
         keyExtractor={(item) => item.id}
