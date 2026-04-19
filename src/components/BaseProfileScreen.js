@@ -44,7 +44,7 @@ const BaseProfileScreen = ({
 
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView className="flex-1">
       <StatusBar style="dark" />
 
       <ScrollView 
@@ -54,47 +54,85 @@ const BaseProfileScreen = ({
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        {/* Profile Header */}
+
         <LinearGradient
           colors={roleColors}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-6 pt-6 pb-8"
+          className="px-6 pt-8 pb-12 overflow-hidden"
         >
-          <View className="items-center">
+          {/* Background Circle SVG giả lập */}
+          <View className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
+          <View className="absolute top-24 -left-12 w-28 h-28 rounded-full bg-white/10" />
+          <View className="absolute bottom-6 right-10 w-16 h-16 rounded-full bg-white/10" />
+
+          {/* Top Row */}
+          <View className="flex-row items-center justify-between mb-8">
+            <View>
+              <Text className="text-white/80 text-sm">
+                Cài đặt chung
+              </Text>
+
+              <Text className="text-white text-2xl font-bold mt-1">
+                Xin chào 👋
+              </Text>
+            </View>
+
+            <TouchableOpacity className="w-11 h-11 rounded-full bg-white/15 items-center justify-center" onPress={handleLogout}>
+              <Ionicons name="log-out" size={22} color="white" />
+              {/* Logout Icon */}
+              <Text className="sr-only">Đăng xuất</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Main User Card */}
+          <View className="flex-row items-center">
             {/* Avatar */}
-            <View 
-              className="w-24 h-24 rounded-full bg-white items-center justify-center mb-4"
+            <View
+              className="w-24 h-24 rounded-full bg-white items-center justify-center border-4 border-white/30"
               style={{
                 shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.2,
                 shadowRadius: 8,
                 elevation: 8,
               }}
             >
               {userData?.avatarUri ? (
-                <Image 
-                  source={{ uri: userData.avatarUri }} 
+                <Image
+                  source={{ uri: userData.avatarUri }}
                   className="w-full h-full rounded-full"
                 />
               ) : (
-                <Text className="text-4xl font-bold" style={{ color: roleColor }}>
+                <Text
+                  className="text-4xl font-bold"
+                  style={{ color: roleColor }}
+                >
                   {userData?.name?.charAt(0)?.toUpperCase() || 'U'}
                 </Text>
               )}
             </View>
 
-            {/* User Info */}
-            <Text className="text-white text-2xl font-bold mb-1">
-              {userData?.name}
-            </Text>
-            <Text className="text-white/80 text-base mb-1">
-              {userData?.code}
-            </Text>
-            <Text className="text-white/80 text-sm">
-              {userData?.major}
-            </Text>
+            {/* Info */}
+            <View className="ml-4 flex-1">
+              <Text className="text-white text-xl font-bold">
+                {userData?.name}
+              </Text>
+
+              <Text className="text-white/80 text-sm mt-1">
+                {userData?.code}
+              </Text>
+
+              <Text className="text-white/80 text-sm mt-1">
+                {userData?.major}
+              </Text>
+
+              <View className="self-start mt-3 px-3 py-1 rounded-full bg-white/20">
+                <Text className="text-white text-xs font-semibold uppercase">
+                  {userRole === 'teacher' ? 'Giảng viên' : 'Sinh viên'}
+                </Text>
+              </View>
+            </View>
           </View>
         </LinearGradient>
 
@@ -153,16 +191,6 @@ const BaseProfileScreen = ({
             </TouchableOpacity>
           ))}
 
-          {/* Logout Button */}
-          <TouchableOpacity
-            onPress={handleLogout}
-            className="bg-red-50 rounded-2xl p-4 mt-2 flex-row items-center justify-center"
-          >
-            <Ionicons name="log-out-outline" size={24} color="#dc2626" />
-            <Text className="text-red-600 font-bold text-base ml-2">
-              Đăng xuất
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

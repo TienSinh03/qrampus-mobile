@@ -1,7 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
+
+const remindersBgUri = Image.resolveAssetSource(
+  require('../../../assets/undraw_reminders_o8j5.svg')
+).uri;
 
 const CourseCard = ({ course, onPress, userRole = 'student' }) => {
   const {
@@ -15,14 +20,13 @@ const CourseCard = ({ course, onPress, userRole = 'student' }) => {
     classSessions = [],
   } = course || {};
 
-  // Màu sắc dựa theo role
   const isTeacher = userRole === 'teacher';
-  const gradientColors = isTeacher 
-    ? ['#0171a5', '#0171a5'] // Blue for teacher
-    : ['#2563eb', '#3b82f6']; // Blue for student
+  const gradientColors = isTeacher
+    ? ['#0171a5', '#0171a5']
+    : ['#2563eb', '#3b82f6'];
 
-  const accentColor = isTeacher ? '#0171a5' : '#2563eb';
-  // Status badge
+  const accentColor = isTeacher ? '#0171a5' : '#82a6f4';
+
   const getStatusBadge = () => {
     switch (status) {
       case 'active':
@@ -55,9 +59,23 @@ const CourseCard = ({ course, onPress, userRole = 'student' }) => {
           shadowOpacity: 0.3,
           shadowRadius: 8,
           elevation: 5,
+          overflow: 'hidden',
         }}
       >
-        {/* Header - Course Code and Status */}
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            right: -90,     // ép sang góc phải
+            bottom: -90,    // nằm dưới sát mép
+            width: 180,
+            height: 180,
+            opacity: 0.35,
+          }}
+        >
+          <SvgUri uri={remindersBgUri} width="50%" height="50%" preserveAspectRatio="xMidYMid slice" />
+        </View>
+
         <View className="flex-row justify-between items-center mb-3">
           <View className="bg-white/20 px-3 py-1 rounded-full">
             <Text className="text-white text-sm font-bold">{courseCode}</Text>
@@ -69,26 +87,21 @@ const CourseCard = ({ course, onPress, userRole = 'student' }) => {
           </View>
         </View>
 
-        {/* Course Name */}
         <Text className="text-white text-lg font-bold mb-3" numberOfLines={2}>
           {courseName}
         </Text>
 
-        {/* Course Details */}
         <View className="flex-row flex-wrap items-center">
-          {/* Semester */}
           <View className="flex-row items-center mr-4 mb-2">
             <Ionicons name="calendar-outline" size={16} color="white" />
             <Text className="text-white/90 text-sm ml-1">{semester}</Text>
           </View>
 
-          {/* Credits */}
           <View className="flex-row items-center mr-4 mb-2">
             <Ionicons name="school-outline" size={16} color="white" />
             <Text className="text-white/90 text-sm ml-1">{credits} tín chỉ</Text>
           </View>
 
-          {/* Teacher name for students */}
           {!isTeacher && teacherName && (
             <View className="flex-row items-center mr-4 mb-2">
               <Ionicons name="person-outline" size={16} color="white" />
@@ -98,7 +111,6 @@ const CourseCard = ({ course, onPress, userRole = 'student' }) => {
             </View>
           )}
 
-          {/* Student count for teachers */}
           {isTeacher && studentCount > 0 && (
             <View className="flex-row items-center mr-4 mb-2">
               <Ionicons name="people-outline" size={16} color="white" />
@@ -109,7 +121,6 @@ const CourseCard = ({ course, onPress, userRole = 'student' }) => {
           )}
         </View>
 
-        {/* View Details Button */}
         <View className="flex-row justify-end mt-2">
           <View className="flex-row items-center">
             <Text className="text-white/80 text-sm mr-1">Chi tiết</Text>

@@ -31,11 +31,22 @@ const QuickActionItem = ({ item, roleColor, roleBgColor }) => (
   </TouchableOpacity>
 );
 
-const QuickActions = ({ actions = [], roleColor, roleBgColor }) => {
+const QuickActions = ({ actions = [], roleColor, roleBgColor, userRole = 'student' }) => {
   if (!actions || actions.length === 0) return null;
 
   return (
     <View className="px-4 mb-4">
+      <View className="flex-row items-center justify-between mb-4">
+        <Text className="text-gray-900 text-lg font-bold">
+          Truy cập nhanh 
+        </Text>
+        <Text 
+          className="text-sm font-semibold"
+          style={{ color: roleColor }}
+        >
+          {userRole === 'teacher' ? '3 mục' : '5 mục'}
+        </Text>
+      </View>
       <FlatList
         data={actions}
         keyExtractor={(item) => item.id}

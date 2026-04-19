@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path } from 'react-native-svg';
 import { useSelector } from 'react-redux';
 
 const ScheduleCard = ({ schedule, navigation }) => {
@@ -47,6 +48,7 @@ const ScheduleCard = ({ schedule, navigation }) => {
   const gradientColors = isPracticeSchedule ? ['#059669', '#10b981'] : ['#2563eb', '#3b82f6'];
   const shadowColor = isPracticeSchedule ? '#059669' : '#2563eb';
   const accentColor = isPracticeSchedule ? '#059669' : '#2563eb';
+  const waveColor = isPracticeSchedule ? '#b5ddd2' : '#7f96d4';
   const scheduleTypeLabel = isPracticeSchedule ? 'Thực hành' : 'Lý thuyết';
   const scheduleTypeIcon = isPracticeSchedule ? 'construct-outline' : 'book-outline';
   
@@ -110,6 +112,33 @@ const ScheduleCard = ({ schedule, navigation }) => {
           elevation: 5,
         }}
       >
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 70,
+            overflow: 'hidden',
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+          }}
+        >
+          <Svg width="100%" height="100%" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <Path
+              d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+              fill={waveColor}
+              opacity={0.25}
+            />
+            <Path
+              d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+              fill={waveColor}
+              opacity={0.28}
+            />
+          </Svg>
+        </View>
+
         {/* Header - Time and Course Code */}
         <View className="flex-row justify-between items-center mb-3">
           <View className="flex-row items-center">
