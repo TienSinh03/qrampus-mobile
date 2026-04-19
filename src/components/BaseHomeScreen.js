@@ -77,8 +77,9 @@ const BaseHomeScreen = ({
         }
       >
         {/* Date Section */}
-        <View className="px-6 py-4">
-          <Text className="text-gray-500 text-sm mb-1">Hôm nay</Text>
+        <View className="px-6 py-4 flex-row items-center gap-2 justify-between">
+          <Text className="text-gray-500 text-sm">Hôm nay</Text>
+
           <Text className="text-gray-900 text-xl font-bold">
             {getCurrentDate()}
           </Text>
@@ -116,6 +117,7 @@ const BaseHomeScreen = ({
           actions={quickActions}
           roleColor={roleColor}
           roleBgColor={roleBgColor}
+          userRole={userRole}
         />
 
         {/* Today's Schedule */}

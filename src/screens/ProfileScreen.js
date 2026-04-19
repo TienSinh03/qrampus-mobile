@@ -7,11 +7,13 @@ import {
   ActivityIndicator,
   TextInput,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { SvgUri } from 'react-native-svg';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { selectLoginRole } from '../features/auth/authSlice';
@@ -32,6 +34,10 @@ import {
   getTeacherProfileThunk,
   updateTeacherProfileThunk,
 } from '../features/teacher/teacherThunks';
+
+const profileIllustrationUri = Image.resolveAssetSource(
+  require('../../assets/undraw_profile.svg')
+).uri;
 
 const ProfileScreen = () => {
   const dispatch = useDispatch();
@@ -95,12 +101,26 @@ const ProfileScreen = () => {
             paddingTop: 60,
             paddingBottom: 90,
             paddingHorizontal: 24,
-            borderBottomLeftRadius: 30,
-            borderBottomRightRadius: 30,
+
+            overflow: 'hidden',
           }}
         >
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              right: -8,
+              bottom: -10,
+              width: 120,
+              height: 140,
+              opacity: 0.18,
+            }}
+          >
+            <SvgUri uri={profileIllustrationUri} width="90%" height="90%" preserveAspectRatio="xMidYMid slice" />
+          </View>
+
           <View className="flex-row justify-between items-center">
-            <Text className="text-white text-2xl font-bold">
+            <Text className="text-white text-xl font-bold">
               Hồ sơ cá nhân
             </Text>
 

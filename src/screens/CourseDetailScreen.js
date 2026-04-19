@@ -4,14 +4,19 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Dimensions
+  Dimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
+const audiobookSvgUri = Image.resolveAssetSource(
+  require('../../assets/undraw_audiobook.svg')
+).uri;
 
 const CourseDetailScreen = ({ navigation, route }) => {
   // Lấy thông tin từ route params
@@ -71,7 +76,27 @@ const CourseDetailScreen = ({ navigation, route }) => {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-6 pt-4 pb-6"
+        style={{ overflow: 'hidden' }}
       >
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            right: -24,
+            bottom: -14,
+            width: 200,
+            height: 140,
+            opacity: 0.18,
+          }}
+        >
+          <SvgUri
+            uri={audiobookSvgUri}
+            width="100%"
+            height="100%"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </View>
+
         {/* Navigation Bar */}
         <View className="flex-row items-center justify-between mb-4">
           <TouchableOpacity 
@@ -81,24 +106,65 @@ const CourseDetailScreen = ({ navigation, route }) => {
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text className="text-white text-lg font-bold">Chi tiết khóa học</Text>
-          <View style={{ width: 40 }} />
+          <View style={{ width: 20 }} />
         </View>
 
         {/* Course Header Info */}
-        <View className="items-center">
-          <View className="bg-white/20 px-4 py-2 rounded-full mb-3">
-            <Text className="text-white font-bold text-base">{courseCode}</Text>
-          </View>
-          <Text className="text-white text-2xl font-bold text-center mb-2" numberOfLines={2}>
-            {courseName}
-          </Text>
-          <View className="flex-row items-center">
-            <View className={`${statusBadge.bgColor} px-3 py-1 rounded-full mr-2`}>
+        <View className="mt-1">
+          <View className="flex-row items-center justify-between mb-4">
+            {/* Left side */}
+            <View className="flex-row items-center flex-1">
+              {/* Course code */}
+              <View className="bg-white/20 px-4 py-2 rounded-full border border-white/20 mr-3">
+                <Text className="text-white font-bold text-sm tracking-wider">
+                  {courseCode}
+                </Text>
+              </View>
+
+              {/* Semester */}
+              <Text
+                numberOfLines={1}
+                className="text-white/80 text-sm flex-1"
+              >
+                {semester}
+              </Text>
+            </View>
+
+            {/* Status */}
+            <View className={`${statusBadge.bgColor} px-3 py-1 rounded-full ml-3`}>
               <Text className={`${statusBadge.textColor} text-xs font-semibold`}>
                 {statusBadge.label}
               </Text>
             </View>
-            <Text className="text-white/80 text-sm">{semester}</Text>
+          </View>
+          {/* Tên khóa học */}
+          <Text
+            numberOfLines={2}
+            className="text-white text-xl font-bold leading-9 mb-3"
+          >
+            {courseName}
+          </Text>
+          {/* Extra info row */}
+          <View className="flex-row items-center justify-between bg-white/10 rounded-2xl px-4 py-3 border border-white/10">
+            <View>
+              <Text className="text-white/70 text-xs">
+                Trạng thái
+              </Text>
+              <Text className="text-white font-semibold text-sm mt-1">
+                Đang hoạt động
+              </Text>
+            </View>
+
+            <View className="w-px h-8 bg-white/20" />
+
+            <View>
+              <Text className="text-white/70 text-xs">
+                Loại
+              </Text>
+              <Text className="text-white font-semibold text-sm mt-1">
+                Học phần
+              </Text>
+            </View>
           </View>
         </View>
       </LinearGradient>
