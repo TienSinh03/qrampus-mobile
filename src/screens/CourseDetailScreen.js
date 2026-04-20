@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,19 @@ import {
   ScrollView,
   Dimensions,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SvgUri } from 'react-native-svg';
+import { useFocusEffect } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { checkSurveyCompletion } from '../features/surveyResponse/surveyResponseThunks';
+import { selectCompletionStatuses } from '../features/surveyResponse/surveyResponseSlice';
+import axiosInstance from '../api/axiosInstance';
 
 const { width } = Dimensions.get('window');
 const audiobookSvgUri = Image.resolveAssetSource(
@@ -19,6 +26,8 @@ const audiobookSvgUri = Image.resolveAssetSource(
 ).uri;
 
 const CourseDetailScreen = ({ navigation, route }) => {
+  const dispatch = useDispatch();
+
   // Lấy thông tin từ route params
   const course = route?.params?.course || {};
   const userRole = route?.params?.userRole || 'student';
@@ -41,6 +50,178 @@ const CourseDetailScreen = ({ navigation, route }) => {
     ? ['#0171a5', '#30b2ea'] 
     : ['#2563eb', '#3b82f6'];
   const accentColor = isTeacher ? '#0171a5' : '#2563eb';
+  const completionStatuses = useSelector(selectCompletionStatuses);
+  const [courseSurveyEnrollments, setCourseSurveyEnrollments] = useState([]);
+  const [surveyLoading, setSurveyLoading] = useState(false);
+  const [surveyError, setSurveyError] = useState('');
+  const courseSectionId = course?.courseId || course?.courseSectionId || course?.id || null;
+
+  const fetchStudentCourseSurveys = useCallback(async () => {
+    if (isTeacher || !courseSectionId) {
+      setCourseSurveyEnrollments([]);
+      return;
+    }
+
+    setSurveyLoading(true);
+    setSurveyError('');
+
+    try {
+      const res = await axiosInstance.get(
+        `/survey/my-surveys/course-section/${courseSectionId}`
+      );
+      setCourseSurveyEnrollments(res?.data?.data || []);
+    } catch (err) {
+      setCourseSurveyEnrollments([]);
+      setSurveyError(
+        err?.response?.data?.message || 'Không thể tải danh sách khảo sát'
+      );
+    } finally {
+      setSurveyLoading(false);
+    }
+  }, [isTeacher, courseSectionId]);
+
+  const courseSurveyItems = useMemo(() => {
+    return (courseSurveyEnrollments || []).map((enrollment) => {
+      const {
+        id,
+        learning_type,
+        practice_group_id,
+        practiceGroup,
+        courseSection,
+      } = enrollment;
+
+      const surveys = courseSection?.surveys || [];
+
+      const validSurveys = surveys.filter((survey) => {
+        if (learning_type === 'theory') {
+          return survey.practice_group_id === null;
+        }
+        if (learning_type === 'practice') {
+          return survey.practice_group_id === practice_group_id;
+        }
+        return false;
+      });
+
+      return {
+        enrollmentId: id,
+        courseCode: courseSection?.code,
+        courseName: courseSection?.name,
+        semester: courseSection?.semester,
+        learningType: learning_type,
+        practiceGroupName: practiceGroup?.group_name,
+        practiceGroupNumber: practiceGroup?.number_group,
+        hasSurvey: validSurveys.length > 0,
+        surveys: validSurveys,
+      };
+    });
+  }, [courseSurveyEnrollments]);
+
+  const surveyEntries = useMemo(() => {
+    return courseSurveyItems.flatMap((item) => {
+      if (!item.hasSurvey || !item.surveys?.length) {
+        return [{ item, survey: null }];
+      }
+      return item.surveys.map((survey) => ({ item, survey }));
+    });
+  }, [courseSurveyItems]);
+
+  const sortedSurveyEntries = useMemo(() => {
+    return [...surveyEntries].sort((a, b) => {
+      const aPractice = a.item?.learningType === 'practice';
+      const bPractice = b.item?.learningType === 'practice';
+      if (aPractice !== bPractice) {
+        return aPractice ? 1 : -1;
+      }
+
+      const aGroup = Number(a.item?.practiceGroupNumber || 0);
+      const bGroup = Number(b.item?.practiceGroupNumber || 0);
+      if (aGroup !== bGroup) {
+        return aGroup - bGroup;
+      }
+
+      const aClose = a.survey?.closes_at ? new Date(a.survey.closes_at).getTime() : Number.MAX_SAFE_INTEGER;
+      const bClose = b.survey?.closes_at ? new Date(b.survey.closes_at).getTime() : Number.MAX_SAFE_INTEGER;
+      return aClose - bClose;
+    });
+  }, [surveyEntries]);
+
+  const surveyIds = useMemo(
+    () => [...new Set(surveyEntries.map((entry) => entry.survey?.id).filter(Boolean))],
+    [surveyEntries]
+  );
+
+  const formatSurveyDate = (dateValue) => {
+    if (!dateValue) return 'Chưa cập nhật';
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return 'Chưa cập nhật';
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  const getSurveyTheme = (status) => {
+    if (status === 'completed') {
+      return {
+        cardBg: '#ecfdf5',
+        borderColor: '#a7f3d0',
+        statusBg: '#bbf7d0',
+        statusText: '#166534',
+        statusLabel: 'Đã hoàn thành',
+      };
+    }
+
+    if (status === 'pending') {
+      return {
+        cardBg: '#eff6ff',
+        borderColor: '#bfdbfe',
+        statusBg: '#bfdbfe',
+        statusText: '#1d4ed8',
+        statusLabel: 'Chưa hoàn thành',
+      };
+    }
+
+    return {
+      cardBg: '#f8fafc',
+      borderColor: '#e2e8f0',
+      statusBg: '#e2e8f0',
+      statusText: '#475569',
+      statusLabel: 'Chưa có khảo sát',
+    };
+  };
+
+  const handleOpenSurvey = (entry) => {
+    if (!entry?.survey?.id) {
+      return;
+    }
+
+    navigation.navigate('SurveyQuestion', {
+      surveyId: entry.survey.id,
+      courseName: entry.item.courseName || courseName,
+      courseCode: entry.item.courseCode || courseCode,
+      semester: entry.item.semester || semester,
+      learningType: entry.item.learningType,
+      practiceGroupName: entry.item.practiceGroupName,
+      practiceGroupNumber: entry.item.practiceGroupNumber,
+    });
+  };
+
+  useEffect(() => {
+    fetchStudentCourseSurveys();
+  }, [fetchStudentCourseSurveys]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isTeacher) return;
+
+      fetchStudentCourseSurveys();
+    }, [isTeacher, fetchStudentCourseSurveys])
+  );
+
+  useEffect(() => {
+    if (!isTeacher && surveyIds.length > 0) {
+      surveyIds.forEach((id) => {
+        dispatch(checkSurveyCompletion(id));
+      });
+    }
+  }, [dispatch, isTeacher, surveyIds]);
 
   // Status badge
   const getStatusBadge = () => {
@@ -394,6 +575,152 @@ const CourseDetailScreen = ({ navigation, route }) => {
               Xem chi tiết trong mục Lịch {isTeacher ? 'giảng' : 'học'}
             </Text>
           </View>
+        </View>
+
+        {/* khảo sát */}
+        <View className="px-6 pb-6">
+          <Text className="text-gray-900 font-bold text-lg mb-3">
+            {isTeacher ? 'Khảo sát của sinh viên' : 'Khảo sát khóa học'}
+          </Text>
+
+          {!isTeacher ? (
+            <View>
+              {surveyLoading && sortedSurveyEntries.length === 0 && (
+                <View className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm mb-3">
+                  <ActivityIndicator size="small" color="#2563eb" />
+                </View>
+              )}
+
+              {!!surveyError && !surveyLoading && (
+                <View className="bg-red-50 rounded-2xl p-4 border border-red-200 shadow-sm mb-3">
+                  <Text className="text-red-600 text-sm">{surveyError}</Text>
+                </View>
+              )}
+
+              {!surveyLoading && !surveyError && sortedSurveyEntries.length === 0 && (
+                <View className="bg-slate-50 rounded-2xl p-4 border border-slate-200 shadow-sm mb-3">
+                  <Text className="text-slate-600 text-sm">
+                    Chưa có khảo sát cho học phần này.
+                  </Text>
+                </View>
+              )}
+
+              {sortedSurveyEntries.map((entry, index) => {
+                const surveyId = entry.survey?.id || null;
+                const completionStatus = surveyId
+                  ? completionStatuses[surveyId]
+                  : null;
+                const isCompleted = completionStatus?.isComplete || false;
+                const status = !surveyId ? 'none' : isCompleted ? 'completed' : 'pending';
+                const theme = getSurveyTheme(status);
+
+                return (
+                  <View
+                    key={`${entry.item.enrollmentId}-${surveyId || 'none'}-${index}`}
+                    className="rounded-2xl p-4 border shadow-sm mb-3"
+                    style={{
+                      backgroundColor: theme.cardBg,
+                      borderColor: theme.borderColor,
+                    }}
+                  >
+                    <Text className="text-base font-bold text-gray-900 mb-2">
+                      {entry.survey?.title || 'Khảo sát chất lượng môn học'}
+                    </Text>
+
+                    <Text className="text-sm text-gray-500 mb-3">
+                      Hạn cuối: {formatSurveyDate(entry.survey?.closes_at)}
+                    </Text>
+
+                    <View className="flex-row flex-wrap mb-3">
+                      {entry.item?.learningType === 'practice' ? (
+                        <View className="bg-cyan-100 px-3 py-1 rounded-full mr-2 mb-2">
+                          <Text className="text-cyan-700 text-xs font-semibold">
+                            Thực hành
+                          </Text>
+                        </View>
+                      ) : (
+                        <View className="bg-blue-100 px-3 py-1 rounded-full mr-2 mb-2">
+                          <Text className="text-blue-700 text-xs font-semibold">
+                            Lý thuyết
+                          </Text>
+                        </View>
+                      )}
+
+                      {entry.item?.learningType === 'practice' &&
+                        entry.item?.practiceGroupNumber && (
+                          <View className="bg-purple-100 px-3 py-1 rounded-full mr-2 mb-2">
+                            <Text className="text-purple-700 text-xs font-semibold">
+                              Nhóm TH{String(entry.item.practiceGroupNumber).padStart(2, '0')}
+                            </Text>
+                          </View>
+                        )}
+
+                      {surveyId && (
+                        <View className="bg-gray-100 px-3 py-1 rounded-full mb-2">
+                          <Text className="text-gray-600 text-xs font-semibold">
+                            ID KS: {surveyId}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View className="h-px bg-gray-100 mb-3" />
+
+                    <View className="flex-row items-center justify-between">
+                      <Text className="text-sm text-gray-500">Trạng thái khảo sát</Text>
+
+                      <View
+                        className="px-3 py-1 rounded-full"
+                        style={{ backgroundColor: theme.statusBg }}
+                      >
+                        <Text
+                          className="text-xs font-bold"
+                          style={{ color: theme.statusText }}
+                        >
+                          {theme.statusLabel}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {!!surveyId && (
+                      <TouchableOpacity
+                        className="mt-3 bg-blue-600 rounded-xl px-4 py-2.5 flex-row items-center justify-center"
+                        activeOpacity={0.85}
+                        onPress={() => handleOpenSurvey(entry)}
+                      >
+                        <Ionicons name="document-text-outline" size={16} color="#fff" />
+                        <Text className="text-white font-semibold ml-2">
+                          {isCompleted ? 'Xem khảo sát' : 'Làm khảo sát'}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          ) : (
+            <View className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
+              <Text className="text-base font-bold text-gray-900 mb-2">
+                Khảo sát chất lượng môn học
+              </Text>
+
+              <Text className="text-sm text-gray-500 mb-3">
+                Hạn cuối: 25/04/2026
+              </Text>
+
+              <View className="h-px bg-gray-100 mb-3" />
+
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-sm text-gray-500">Sinh viên đã khảo sát</Text>
+                <Text className="text-sm font-bold text-gray-900">32 / 40</Text>
+              </View>
+
+              <View className="flex-row justify-between items-center">
+                <Text className="text-sm text-gray-500">Đánh giá trung bình</Text>
+                <Text className="text-yellow-500 font-bold text-base">⭐ 4.8</Text>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Bottom spacing */}

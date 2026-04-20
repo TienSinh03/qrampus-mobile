@@ -8,11 +8,13 @@ import {
   RefreshControl,
   TextInput,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { getSurveyQuestions } from '../../features/survey/surveyThunks';
@@ -26,11 +28,35 @@ import {
   selectResponses,
   selectResponsesLoading,
   selectSubmitting,
+  clearResponses,
 } from '../../features/surveyResponse/surveyResponseSlice';
+
+const surveyHeaderSvgSource = Image.resolveAssetSource(
+  require('../../../assets/svg_survey.svg')
+);
+const surveyHeaderSvgUri =
+  surveyHeaderSvgSource?.uri || surveyHeaderSvgSource?.localUri || null;
 
 const SurveyQuestionScreen = ({ route, navigation }) => {
   const dispatch = useDispatch();
-  const { surveyId, courseName, courseCode } = route.params || {};
+  const {
+    surveyId,
+    courseName,
+    courseCode,
+    practiceGroupNumber,
+    practice_groups,
+    practice_group_id,
+  } = route.params || {};
+
+  const normalizedPracticeGroup = [
+    practiceGroupNumber,
+    practice_groups,
+    practice_group_id,
+  ].find((value) => {
+    if (typeof value === 'number') return true;
+    if (typeof value === 'string') return /^\d+$/.test(value.trim());
+    return false;
+  });
 
   const questions = useSelector(selectQuestions);
   const loading = useSelector(selectQuestionsLoading);
@@ -45,7 +71,11 @@ const SurveyQuestionScreen = ({ route, navigation }) => {
   const [hasResponses, setHasResponses] = useState(false);
 
   useEffect(() => {
+    setAnswers({});
+    setHasResponses(false);
+
     if (surveyId) {
+      dispatch(clearResponses());
       dispatch(getSurveyQuestions(surveyId));
       // Load responses
       dispatch(getSurveyResponsesBySurvey(surveyId));
@@ -54,6 +84,12 @@ const SurveyQuestionScreen = ({ route, navigation }) => {
 
   // Map responses vào answers state
   useEffect(() => {
+    if (!responses || responses.length === 0) {
+      setAnswers({});
+      setHasResponses(false);
+      return;
+    }
+
     if (responses.length > 0) {
       console.log('📝 Mapping responses:', responses);
       const answersMap = {};
@@ -326,7 +362,31 @@ const SurveyQuestionScreen = ({ route, navigation }) => {
     <SafeAreaView className="flex-1 bg-gray-100">
       <StatusBar style="light" />
 
-      <LinearGradient colors={['#2563eb', '#3b82f6']} className="px-5 pt-5 pb-8">
+      <LinearGradient
+        colors={['#2563eb', '#3b82f6']}
+        className="relative overflow-hidden px-5 pt-5 pb-8"
+      >
+        {!!surveyHeaderSvgUri && (
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              right: -18,
+              bottom: -12,
+              width: 170,
+              height: 118,
+              opacity: 0.28,
+            }}
+          >
+            <SvgUri
+              uri={surveyHeaderSvgUri}
+              width="100%"
+              height="100%"
+              preserveAspectRatio="xMidYMid slice"
+            />
+          </View>
+        )}
+
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -342,6 +402,16 @@ const SurveyQuestionScreen = ({ route, navigation }) => {
             <Text className="text-white/80 text-sm">
               {courseCode}
             </Text>
+
+            {normalizedPracticeGroup !== undefined &&
+              normalizedPracticeGroup !== null && (
+                <View className="mt-2 flex-row items-center bg-white/15 self-start px-2.5 py-1 rounded-full">
+                  <Ionicons name="people" size={13} color="#fff" />
+                  <Text className="text-white text-xs font-semibold ml-1.5">
+                    Nhóm TH: {normalizedPracticeGroup}
+                  </Text>
+                </View>
+              )}
           </View>
         )}
       </LinearGradient>

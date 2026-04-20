@@ -68,6 +68,30 @@ const formatMetaValue = (value) => {
   return String(value);
 };
 
+const decodeHtmlEntities = (text = '') => {
+  return text
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+};
+
+const htmlToReadableText = (html = '') => {
+  if (!html || typeof html !== 'string') return '';
+
+  return decodeHtmlEntities(
+    html
+      .replace(/<\s*br\s*\/?\s*>/gi, '\n')
+      .replace(/<\s*\/\s*(p|div|li|h[1-6])\s*>/gi, '\n')
+      .replace(/<\s*li\b[^>]*>/gi, '- ')
+      .replace(/<[^>]*>/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+  );
+};
+
 const NotificationDetailScreen = ({ navigation, route }) => {
   const notification = route?.params?.notification;
   const userRole = route?.params?.userRole || 'student';
@@ -108,6 +132,29 @@ const NotificationDetailScreen = ({ navigation, route }) => {
 
   const action =
     getNotificationAction(notification.type);
+
+  const htmlMessage =
+    notification.message_html ||
+    notification.html ||
+    notification.content_html ||
+    '';
+
+  const plainMessage =
+    notification.message ||
+    '';
+
+  const hasHtmlTags =
+    typeof plainMessage === 'string' &&
+    /<\/?[a-z][\s\S]*>/i.test(plainMessage);
+
+  const messageHtmlSource =
+    (typeof htmlMessage === 'string' && htmlMessage.trim()) ||
+    (hasHtmlTags ? plainMessage : '');
+
+  const hasHtmlMessage = !!messageHtmlSource;
+  const messageText = hasHtmlMessage
+    ? htmlToReadableText(messageHtmlSource)
+    : plainMessage;
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -231,11 +278,11 @@ const NotificationDetailScreen = ({ navigation, route }) => {
         {/* message */}
         <View className="bg-white rounded-2xl p-4 mb-3 shadow-sm">
           <Text className="text-gray-900 font-bold text-base mb-2">
-            Nội dung
+            Nội dung:
           </Text>
 
-          <Text className="text-gray-700 text-sm leading-6">
-            {notification.message ||
+          <Text className="text-gray-700 text-sm leading-6" selectable>
+            {messageText ||
               'Không có nội dung chi tiết'}
           </Text>
         </View>

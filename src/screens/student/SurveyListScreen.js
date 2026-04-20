@@ -8,12 +8,15 @@ import {
   ActivityIndicator,
   RefreshControl,
   Animated,
-  Dimensions
+  Dimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+import { SvgUri } from 'react-native-svg';
 import { useDispatch, useSelector } from 'react-redux';
 import useCollapsibleHeader from '../../hooks/useCollapsibleHeader';
 
@@ -29,6 +32,11 @@ import { checkSurveyCompletion } from '../../features/surveyResponse/surveyRespo
 import { selectCompletionStatuses } from '../../features/surveyResponse/surveyResponseSlice';
 
 const { width } = Dimensions.get('window');
+const surveyListSvgSource = Image.resolveAssetSource(
+  require('../../../assets/svg_listsurvey.svg')
+);
+const surveyListSvgUri =
+  surveyListSvgSource?.uri || surveyListSvgSource?.localUri || null;
 
 const SurveyListScreen = ({ navigation }) => {
   
@@ -41,9 +49,11 @@ const SurveyListScreen = ({ navigation }) => {
   const keyword = useSelector(selectSearchKeyword);
   const completionStatuses = useSelector(selectCompletionStatuses);
 
-  useEffect(() => {
-    dispatch(getStudentSurveys());
-  }, [dispatch]);
+  useFocusEffect(
+    React.useCallback(() => {
+      dispatch(getStudentSurveys());
+    }, [dispatch])
+  );
 
   // Kiểm tra completion status cho các survey
   useEffect(() => {
@@ -60,6 +70,20 @@ const SurveyListScreen = ({ navigation }) => {
     }
   }, [items, dispatch, completionStatuses]);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      if (items.length === 0) {
+        return;
+      }
+
+      items.forEach((item) => {
+        if (item.hasSurvey && item.surveys && item.surveys.length > 0) {
+          dispatch(checkSurveyCompletion(item.surveys[0].id));
+        }
+      });
+    }, [items, dispatch])
+  );
+
   /** 🔥 Có khảo sát lên đầu */
   const sortedItems = useMemo(() => {
     return [...items].sort(
@@ -68,9 +92,9 @@ const SurveyListScreen = ({ navigation }) => {
   }, [items]);
 
   const handlePress = (item) => {
-    console.log('===== SURVEY ITEM =====');
-    console.log(item);
-    console.log('=======================');
+    // console.log('===== SURVEY ITEM =====');
+    // console.log(item);
+    // console.log('=======================');
     
     if (!item.hasSurvey || !item.surveys || item.surveys.length === 0) {
       return;
@@ -159,6 +183,38 @@ const SurveyListScreen = ({ navigation }) => {
             const surveyId = item.surveys && item.surveys.length > 0 ? item.surveys[0].id : null;
             const completionStatus = surveyId ? completionStatuses[surveyId] : null;
             const isCompleted = completionStatus?.isComplete || false;
+            const cardTheme = !item.hasSurvey
+              ? {
+                  cardBg: '#f8fafc',
+                  cardBorder: '#e2e8f0',
+                  iconBg: '#e2e8f0',
+                  iconColor: '#64748b',
+                  accentColor: '#94a3b8',
+                  statusBg: '#e2e8f0',
+                  statusText: '#475569',
+                  svgOpacity: 0.09,
+                }
+              : isCompleted
+              ? {
+                  cardBg: '#ecfdf5',
+                  cardBorder: '#a7f3d0',
+                  iconBg: '#d1fae5',
+                  iconColor: '#059669',
+                  accentColor: '#10b981',
+                  statusBg: '#bbf7d0',
+                  statusText: '#166534',
+                  svgOpacity: 0.12,
+                }
+              : {
+                  cardBg: '#eff6ff',
+                  cardBorder: '#bfdbfe',
+                  iconBg: '#dbeafe',
+                  iconColor: '#2563eb',
+                  accentColor: '#3b82f6',
+                  statusBg: '#bfdbfe',
+                  statusText: '#1d4ed8',
+                  svgOpacity: 0.12,
+                };
 
             return (
               <TouchableOpacity
@@ -166,21 +222,45 @@ const SurveyListScreen = ({ navigation }) => {
                 activeOpacity={0.8}
                 disabled={disabled}
                 onPress={() => handlePress(item)}
-                className={`mb-4 rounded-2xl p-5 bg-white ${
-                  disabled ? 'opacity-50' : ''
-                }`}
+                className="relative mb-4 rounded-2xl p-5 overflow-hidden border"
                 style={{
+                  backgroundColor: cardTheme.cardBg,
+                  borderColor: cardTheme.cardBorder,
                   shadowColor: '#000',
                   shadowOpacity: 0.05,
                   shadowRadius: 10,
                   elevation: 3,
                 }}
               >
+                {!!surveyListSvgUri && (
+                  <View
+                    pointerEvents="none"
+                    style={{
+                      position: 'absolute',
+                      right: -10,
+                      bottom: 0,
+                      width: 90,
+                      height: 90,
+                      opacity: cardTheme.svgOpacity,
+                    }}
+                  >
+                    <SvgUri
+                      uri={surveyListSvgUri}
+                      width="100%"
+                      height="100%"
+                      preserveAspectRatio="xMidYMid slice"
+                    />
+                  </View>
+                )}
+
                 {/* HEADER */}
                 <View className="flex-row justify-between items-center">
                   <View className="flex-row items-center flex-1">
-                    <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-3">
-                      <Ionicons name="book-outline" size={20} color="#2563eb" />
+                    <View
+                      className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                      style={{ backgroundColor: cardTheme.iconBg }}
+                    >
+                      <Ionicons name="book-outline" size={20} color={cardTheme.iconColor} />
                     </View>
 
                     <View className="flex-1">
@@ -197,7 +277,7 @@ const SurveyListScreen = ({ navigation }) => {
                     <Ionicons
                       name="chevron-forward"
                       size={20}
-                      color="#9ca3af"
+                      color={cardTheme.accentColor}
                     />
                   )}
                 </View>
@@ -207,7 +287,7 @@ const SurveyListScreen = ({ navigation }) => {
                   <Ionicons
                     name={isPractice ? 'flask-outline' : 'school-outline'}
                     size={16}
-                    color={isPractice ? '#0171a5' : '#2563eb'}
+                    color={isPractice ? '#0171a5' : cardTheme.iconColor}
                   />
                   <Text className="text-sm text-gray-600 ml-2">
                     {isPractice
@@ -229,21 +309,30 @@ const SurveyListScreen = ({ navigation }) => {
                 <View className="flex-row mt-3">
                   {item.hasSurvey ? (
                     isCompleted ? (
-                      <View className="bg-blue-100 px-3 py-1 rounded-full">
-                        <Text className="text-blue-700 text-xs font-semibold">
+                      <View
+                        className="px-3 py-1 rounded-full"
+                        style={{ backgroundColor: cardTheme.statusBg }}
+                      >
+                        <Text className="text-xs font-semibold" style={{ color: cardTheme.statusText }}>
                           ✓ Đã hoàn thành khảo sát
                         </Text>
                       </View>
                     ) : (
-                      <View className="bg-green-100 px-3 py-1 rounded-full">
-                        <Text className="text-green-700 text-xs font-semibold">
-                          Có khảo sát - Vui lòng hoàn thành
+                      <View
+                        className="px-3 py-1 rounded-full"
+                        style={{ backgroundColor: cardTheme.statusBg }}
+                      >
+                        <Text className="text-xs font-semibold" style={{ color: cardTheme.statusText }}>
+                          Chưa hoàn thành khảo sát
                         </Text>
                       </View>
                     )
                   ) : (
-                    <View className="bg-gray-200 px-3 py-1 rounded-full">
-                      <Text className="text-gray-600 text-xs font-semibold">
+                    <View
+                      className="px-3 py-1 rounded-full"
+                      style={{ backgroundColor: cardTheme.statusBg }}
+                    >
+                      <Text className="text-xs font-semibold" style={{ color: cardTheme.statusText }}>
                         Chưa có khảo sát
                       </Text>
                     </View>

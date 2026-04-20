@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
 import { useSelector } from 'react-redux';
+
+const teacherCardSvgSource = Image.resolveAssetSource(
+  require('../../assets/svg_cardteacher.svg')
+);
+const teacherCardSvgUri =
+  teacherCardSvgSource?.uri || teacherCardSvgSource?.localUri || null;
 
 const TeacherScheduleCard = ({ schedule, navigation }) => {
   const {
@@ -109,8 +116,30 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
           shadowOpacity: 0.3,
           shadowRadius: 8,
           elevation: 5,
+          overflow: 'hidden',
         }}
       >
+        {!!teacherCardSvgUri && (
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              right: 0,
+              bottom: 0,
+              width: 100,
+              height: 100,
+              opacity: 0.28,
+            }}
+          >
+            <SvgUri
+              uri={teacherCardSvgUri}
+              width="100%"
+              height="100%"
+              preserveAspectRatio="xMidYMid slice"
+            />
+          </View>
+        )}
+
         {/* Header - Time and Course Code */}
         <View className="flex-row justify-between items-center mb-3">
           <View className="flex-row items-center">

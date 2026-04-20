@@ -37,8 +37,26 @@ const surveyResponseSlice = createSlice({
         state.submitting = true;
         state.error = null;
       })
-      .addCase(submitSurveyResponses.fulfilled, (state) => {
+      .addCase(submitSurveyResponses.fulfilled, (state, action) => {
         state.submitting = false;
+
+        const { surveyId, responses } = action.meta.arg || {};
+        if (surveyId) {
+          const answeredQuestions = Array.isArray(responses)
+            ? responses.length
+            : 0;
+          const previousStatus = state.completionStatuses[surveyId] || {};
+
+          state.completionStatuses[surveyId] = {
+            isComplete: true,
+            answeredQuestions,
+            totalQuestions:
+              previousStatus.totalQuestions &&
+              previousStatus.totalQuestions > answeredQuestions
+                ? previousStatus.totalQuestions
+                : answeredQuestions,
+          };
+        }
       })
       .addCase(submitSurveyResponses.rejected, (state, action) => {
         state.submitting = false;

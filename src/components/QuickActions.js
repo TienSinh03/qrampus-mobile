@@ -44,7 +44,7 @@ const QuickActions = ({ actions = [], roleColor, roleBgColor, userRole = 'studen
           className="text-sm font-semibold"
           style={{ color: roleColor }}
         >
-          {userRole === 'teacher' ? '3 mục' : '5 mục'}
+          {userRole === 'teacher' ? '3 mục' : '8 mục'}
         </Text>
       </View>
       <FlatList
