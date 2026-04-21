@@ -5,15 +5,15 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  Animated
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
 import AttendanceStatistics from '../../components/statistics/AttendanceStatistics';
 import SurveyStatistics from '../../components/statistics/SurveyStatistics';
-import useCollapsibleHeader from '../../hooks/useCollapsibleHeader';
 import { useDispatch, useSelector } from 'react-redux';
 import { getStudentsByClassSessionThunk } from '../../features/classSession/classSessionThunks';
 import {
@@ -26,6 +26,9 @@ import {
 } from '../../features/classSession/classSessionSlice';
 
 const { width } = Dimensions.get('window');
+const audiobookSvgUri = Image.resolveAssetSource(
+  require('../../../assets/undraw_audiobook.svg')
+).uri;
 
 const TeacherScheduleDetailScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
@@ -52,8 +55,6 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
   } = schedule || {};
   
   const isPracticeSchedule = isPractice && !isTheory;
-
-  const { animatedHeight, animatedOpacity, animatedTranslateY, handleScroll } = useCollapsibleHeader(!practiceGroup ? width * 0.25: width * 0.35);
 
   useEffect(() => {
     dispatch(getStudentsByClassSessionThunk(schedule.id));
@@ -175,6 +176,20 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
     navigation.navigate('TeacherLeaveRequestList', { schedule });
   };
 
+  const getStatusBadge = () => {
+    if (timeRemaining === 'Đã kết thúc') {
+      return { label: 'Đã kết thúc', bgColor: 'bg-red-500', textColor: 'text-white' };
+    }
+
+    if (timeRemaining === 'Đang diễn ra' || hasActiveSession) {
+      return { label: 'Đang diễn ra', bgColor: 'bg-green-500', textColor: 'text-white' };
+    }
+
+    return { label: 'Sắp bắt đầu', bgColor: 'bg-amber-500', textColor: 'text-white' };
+  };
+
+  const statusBadge = getStatusBadge();
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
@@ -184,48 +199,99 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
         colors={isUrgent && !hasActiveSession ? ['#dc2626', '#ef4444'] : isPracticeSchedule ? ['#0891b2', '#06b6d4'] : ['#0171a5', '#30b2ea']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        className="px-6 py-4"
+        className="px-6 pt-4 pb-6"
+        style={{ overflow: 'hidden' }}
       >
-        <View className="flex-row items-center justify-between">
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            right: -24,
+            bottom: -14,
+            width: 200,
+            height: 140,
+            opacity: 0.18,
+          }}
+        >
+          <SvgUri
+            uri={audiobookSvgUri}
+            width="100%"
+            height="100%"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </View>
+
+        <View className="flex-row items-center justify-between mb-4">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="w-10 h-10 bg-white/20 rounded-full items-center justify-center"
+          >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           <Text className="text-white text-lg font-bold">Chi tiết lịch giảng dạy</Text>
-          <View style={{ width: width*0.05 }} />
+          <View style={{ width: 20 }} />
         </View>
-        <Animated.View
-          style={{
-              height: animatedHeight,
-              opacity: animatedOpacity,
-              transform: [{ translateY: animatedTranslateY }],
-              overflow: 'hidden',
-              alignItems: 'center',
-            }}
-        >
 
-          <View className="items-center mt-3 mb-2">
-            <View className="bg-white/20 px-4 py-2 rounded-full mb-3">
-              <Text className="text-white font-bold text-base">{courseCode}</Text>
-            </View>
-            <Text className="text-white text-2xl font-bold text-center mb-1">
-              {courseName}
-            </Text>
-            {practiceGroup && (
-              <View className="bg-white/30 px-3 py-1 rounded-full mt-2">
-                <Text className="text-white text-sm font-semibold">
-                  Nhóm {practiceGroup.group_name}
+        <View className="mt-1">
+          <View className="flex-row items-center justify-between mb-4">
+            {/* Left side */}
+            <View className="flex-row items-center flex-1">
+              {/* Course code */}
+              <View className="bg-white/20 px-4 py-2 rounded-full border border-white/20 mr-3">
+                <Text className="text-white font-bold text-sm tracking-wider">
+                  {courseCode}
                 </Text>
               </View>
-            )}
+
+              {/* Semester */}
+              <Text
+                numberOfLines={1}
+                className="text-white/80 text-sm flex-1"
+              >
+                {practiceGroup?.group_name ? `Nhóm ${practiceGroup.group_name}` : `${dayOfWeek || 'Lý thuyết'} ${classDate ? `• ${classDate}` : ''}`}
+              </Text>
+            </View>
+
           </View>
-        </Animated.View>
+          {/* Tên khóa học */}
+          <Text
+            numberOfLines={2}
+            className="text-white text-xl font-bold leading-9 mb-3"
+          >
+            {courseName}
+          </Text>
+          {/* Extra info row */}
+          <View className="flex-row items-center justify-between bg-white/10 rounded-2xl px-4 py-3 border border-white/10">
+            <View className="px-3 py-1 ml-3 justify-center items-center">
+              <Text className="text-white/70 text-xs">
+                Trạng thái
+              </Text>
+
+              <View className={`${statusBadge.bgColor} px-2 py-0.5 rounded-full mt-1 self-start`}>
+                <Text className={`${statusBadge.textColor} text-xs font-semibold`}>
+                  {statusBadge.label}
+                </Text>
+              </View>
+            </View>
+
+            <View className="w-px h-8 bg-white/20" />
+
+            <View>
+              <Text className="text-white/70 text-xs">
+                Loại
+              </Text>
+              <Text className="text-white font-semibold text-sm mt-1">
+                {isPracticeSchedule ? 'Thực hành' : 'Lý thuyết'}
+              </Text>
+            </View>
+          </View>
+        </View>
       </LinearGradient>
 
       {/* Content */}
-      <Animated.ScrollView 
+      <ScrollView 
         className="flex-1" 
         showsVerticalScrollIndicator={false} 
-        onScroll={handleScroll} 
         scrollEventThrottle={16}
       >
         {/* Quick Status Card */}
@@ -563,7 +629,7 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
         <SurveyStatistics surveyStats={surveyStats} />
 
         <View className="h-8" />
-      </Animated.ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 };

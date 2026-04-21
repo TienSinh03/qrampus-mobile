@@ -103,6 +103,43 @@ const TeacherHomeScreen = ({ navigation }) => {
     //   onPress: () => navigation.navigate('StudentList'),
     //   // onPress: () => console.log('Student List'),
     // },
+    // QUẢN LÝ THÔNG BÁO
+    {
+      id: '4',
+      icon: 'notifications-outline',
+      label: 'Quản lý Thông báo',
+      onPress: () => navigation.navigate('TeacherNotification'),
+      badge: 5
+    },
+    //QUẢN LÝ KHẢO SÁT
+    {
+      id: '5',
+      icon: 'clipboard-outline',
+      label: 'Quản lý Khảo sát',
+      onPress: () => navigation.navigate('TeacherSurveyList'),
+      badge: 2
+    },
+    {
+      id: '6',
+      icon: 'people-outline',
+      label: 'Danh sách SV',
+      onPress: () => navigation.navigate('StudentList'),
+      // onPress: () => console.log('Student List'),
+    },
+    {
+      id: '7',
+      icon: 'bar-chart-outline',
+      label: 'Thống kê',
+      onPress: () => navigation.navigate('TeacherStatistics'),
+      // onPress: () => console.log('Statistics'),
+    },
+    // ĐĂNG XUẤT
+    {
+      id: '8',
+      icon: 'log-out-outline',
+      label: 'Đăng xuất',
+      onPress: () => console.log('Logout'),
+    }
   ];
 
   const renderScheduleCard = (schedule) => (

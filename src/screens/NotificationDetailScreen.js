@@ -35,7 +35,7 @@ const roleConfig = {
 const fieldLabels = {
   sender_name: 'Người gửi',
   sender_role: 'Vai trò người gửi',
-  target_mode: 'Chế độ gửi',
+  target_mode: 'Gửi đến',
   courseCode: 'Mã học phần',
   room: 'Phòng học',
   startTime: 'Thời gian bắt đầu',
@@ -127,6 +127,11 @@ const NotificationDetailScreen = ({ navigation, route }) => {
   }
 
   const meta = notification.metadata || {};
+  const allowedMetaKeys = ['sender_name', 'sender_role', 'target_mode'];
+  const visibleMetaEntries = allowedMetaKeys
+    .filter((key) => Object.prototype.hasOwnProperty.call(meta, key))
+    .map((key) => [key, meta[key]])
+    .filter(([, value]) => value !== null && value !== undefined && value !== '');
   const { icon, iconColor } =
     getNotificationTypeConfig(notification.type);
 
@@ -202,14 +207,21 @@ const NotificationDetailScreen = ({ navigation, route }) => {
             {getTimeAgo(notification?.sent_at)} •{' '}
             {formatAbsoluteDateTime(notification?.sent_at)}
             </Text>
-
         </View>
 
         {/* image right */}
         <Image
             source={require('../../assets/images/headr_notification.png')}
-            className="w-28 h-28"
+            className="w-28 h-28 "
             resizeMode="contain"
+            style={{
+              opacity: 0.45,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.08,
+              shadowRadius: 3,
+              elevation: 2,
+            }}
         />
 
         </View>
@@ -223,7 +235,7 @@ const NotificationDetailScreen = ({ navigation, route }) => {
         }}
       >
         {/* status */}
-        <View className="bg-white rounded-2xl p-4 mb-3 shadow-sm">
+        <View className="bg-white  p-4 mb-3 shadow-sm">
           <Text className="text-gray-900 font-bold text-base mb-3">
             Trạng thái và loại
           </Text>
@@ -276,7 +288,7 @@ const NotificationDetailScreen = ({ navigation, route }) => {
         </View>
 
         {/* message */}
-        <View className="bg-white rounded-2xl p-4 mb-3 shadow-sm">
+        <View className="bg-white p-4 mb-3 shadow-sm">
           <Text className="text-gray-900 font-bold text-base mb-2">
             Nội dung:
           </Text>
@@ -288,12 +300,12 @@ const NotificationDetailScreen = ({ navigation, route }) => {
         </View>
 
         {/* metadata */}
-        <View className="bg-white rounded-2xl p-4 mb-3 shadow-sm">
+        <View className="bg-white p-4 mb-3 shadow-sm">
           <Text className="text-gray-900 font-bold text-base mb-3">
             Thông tin bổ sung
           </Text>
 
-          {Object.keys(meta).length === 0 ? (
+          {visibleMetaEntries.length === 0 ? (
             <View
               className="rounded-xl px-3 py-3"
               style={{
@@ -306,7 +318,7 @@ const NotificationDetailScreen = ({ navigation, route }) => {
               </Text>
             </View>
           ) : (
-            Object.entries(meta).map(
+            visibleMetaEntries.map(
               ([key, value]) => (
                 <View
                   key={key}

@@ -14,12 +14,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAttendanceImagesBySessionId } from '../../features/attendanceImage/attendanceImageThunks';
 
 const { width } = Dimensions.get('window');
 const imageSizeGrid = (width - 48) / 3; // 3 cột
 const imageSizeList = width - 48;       // full width cho list
+const optimizeImageSvgUri = Image.resolveAssetSource(
+  require('../../../assets/undraw_optimize-image_q59h.svg')
+).uri;
 
 const AttendanceImageScreen = ({ navigation, route }) => {
   const { imageSession, schedule } = route.params;
@@ -251,7 +255,26 @@ const AttendanceImageScreen = ({ navigation, route }) => {
       <StatusBar style="light" />
 
       {/* Header */}
-      <LinearGradient colors={['#0171a5', '#8b5cf6']} className="px-6 pt-5 pb-6">
+      <LinearGradient colors={['#0171a5', '#38bdf8']} className="px-6 pt-5 pb-6 overflow-hidden">
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            width: 110,
+            height: 210,
+            opacity: 0.48,
+          }}
+        >
+          <SvgUri
+            uri={optimizeImageSvgUri}
+            width="100%"
+            height="100%"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </View>
+
         {/* ===== HEADER ===== */}
         <View className="flex-row items-center justify-between mb-5">
           <View className="flex-row items-center flex-1">

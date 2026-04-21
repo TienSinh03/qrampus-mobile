@@ -66,6 +66,7 @@ const TeacherProfileScreen = ({ navigation }) => {
       subtitle: 'Hướng dẫn sử dụng và hỗ trợ',
       onPress: () => console.log('Help'),
     },
+    { id: '6', icon: 'document-text-outline', title: 'Điều khoản & Chính sách', subtitle: 'Xem điều khoản và chính sách sử dụng', onPress: () => navigation.navigate('TermsPolicies') }
   ];
 
   return (

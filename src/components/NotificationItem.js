@@ -59,7 +59,7 @@ const NotificationItem = ({
           </View>
 
           <Text className="text-gray-600 text-sm mb-2 leading-5">
-            {notification.message}
+            {notification.messagePreview || notification.message}
           </Text>
 
           <View className="flex-row items-center flex-wrap mb-2">

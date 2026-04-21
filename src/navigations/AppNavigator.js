@@ -40,6 +40,9 @@ import SurveyQuestionScreen from '../screens/student/SurveyQuestionScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import StudentChangePasswordScreen from '../screens/student/StudentChangePasswordScreen';
 import DeviceChangeHistoryScreen from '../screens/student/DeviceChangeHistoryScreen';
+import TermsPoliciesScreen from '../screens/TermsPoliciesScreen';
+import TeacherNotificationScreen from '../screens/teacher/TeacherNotificationScreen';
+import TeacherMyNotificationScreen from '../screens/teacher/TeacherMyNotificationScreen';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -287,6 +290,30 @@ const AppNavigator = () => {
         <Stack.Screen
           name="DeviceChangeHistory"
           component={DeviceChangeHistoryScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="TermsPolicies"
+          component={TermsPoliciesScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="TeacherNotification"
+          component={TeacherNotificationScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="TeacherMyNotification"
+          component={TeacherMyNotificationScreen}
           options={{
             headerShown: false,
           }}

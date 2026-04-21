@@ -6,17 +6,23 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
   fetchImageSessionsByTeacher,
   checkImageSessionStatus 
 } from '../../features/imageSession/imageSessionThunks';
 import ImageSessionDetailModal from '../../components/modal/ImageSessionDetailModal';
+
+const optimizeImageSvgUri = Image.resolveAssetSource(
+  require('../../../assets/undraw_optimize-image_q59h.svg')
+).uri;
 
 const ImageSessionListScreen = ({ navigation, route }) => {
   const { schedule } = route.params;
@@ -138,9 +144,28 @@ const ImageSessionListScreen = ({ navigation, route }) => {
 
       {/* Header */}
       <LinearGradient
-        colors={['#0171a5', '#8b5cf6']}
-        className="px-6 py-4"
+				colors={['#0369a1', '#38bdf8']}
+        className="px-6 py-4 overflow-hidden"
       >
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            width: 110,
+            height: 210,
+            opacity: 0.48,
+          }}
+        >
+          <SvgUri
+            uri={optimizeImageSvgUri}
+            width="100%"
+            height="100%"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </View>
+
         <View className="flex-row items-center mb-3">
           <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
             <Ionicons name="arrow-back" size={24} color="white" />

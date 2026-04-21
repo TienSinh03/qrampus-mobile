@@ -60,11 +60,13 @@ const StatsCard = ({ stats, userRole = 'teacher' }) => {
   ];
 
   return (
-    <View className="px-6 mb-4">
-      <Text className="text-gray-900 text-base font-bold mb-3">
-        Thống kê tuần này
-      </Text>
+    <View className="px-4 mb-4">
+      <View className="flex-row items-center justify-between mb-4">
+        <Text className="text-gray-900 text-lg font-bold">
+           Thống kê tuần này
+        </Text>
       
+      </View>
       <View className="bg-white rounded-2xl p-4" style={{
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },

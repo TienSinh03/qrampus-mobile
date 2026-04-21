@@ -175,7 +175,7 @@ const SurveyListScreen = ({ navigation }) => {
           }
           onScroll={handleScroll}
           onMomentumScrollBegin={handleMomentumScrollBegin}
-          scrollEventThrottle={16}
+          // scrollEventThrottle={16}
         >
           {sortedItems.map((item) => {
             const disabled = !item.hasSurvey;

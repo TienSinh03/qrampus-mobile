@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { SvgUri } from 'react-native-svg';
 import { useSelector, useDispatch } from 'react-redux';
 import NotificationItem from '../components/NotificationItem';
 import {
@@ -19,6 +20,55 @@ import {
 import { selectLoginRole } from '../features/auth/authSlice';
 
 const PAGE_SIZE = 20;
+
+const messageSentSvgUri = Image.resolveAssetSource(
+  require('../../assets/undraw_message-sent_iyz6.svg')
+).uri;
+
+const decodeHtmlEntities = (text = '') => {
+  return text
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+};
+
+const htmlToReadableText = (html = '') => {
+  if (!html || typeof html !== 'string') return '';
+
+  return decodeHtmlEntities(
+    html
+      .replace(/<\s*br\s*\/?\s*>/gi, '\n')
+      .replace(/<\s*\/\s*(p|div|li|h[1-6])\s*>/gi, '\n')
+      .replace(/<\s*li\b[^>]*>/gi, '- ')
+      .replace(/<[^>]*>/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+  );
+};
+
+const getNotificationPreviewMessage = (notification = {}) => {
+  const htmlMessage =
+    notification.message_html ||
+    notification.html ||
+    notification.content_html ||
+    '';
+
+  const plainMessage = notification.message || '';
+  const hasHtmlTags =
+    typeof plainMessage === 'string' &&
+    /<\/?[a-z][\s\S]*>/i.test(plainMessage);
+
+  const messageHtmlSource =
+    (typeof htmlMessage === 'string' && htmlMessage.trim()) ||
+    (hasHtmlTags ? plainMessage : '');
+
+  return messageHtmlSource
+    ? htmlToReadableText(messageHtmlSource)
+    : plainMessage;
+};
 
 const NotificationScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -69,6 +119,11 @@ const NotificationScreen = ({ navigation }) => {
     return true;
   });
 
+  const normalizedNotifications = filteredNotifications.map((item) => ({
+    ...item,
+    messagePreview: getNotificationPreviewMessage(item),
+  }));
+
   // Pull-to-refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -106,7 +161,26 @@ const NotificationScreen = ({ navigation }) => {
       <StatusBar style="dark" />
       
       {/* Header */}
-      <View className={`${configRole.headerBg} px-4 py-3`}>
+      <View className={`${configRole.headerBg} px-5 pt-4 pb-6 overflow-hidden`}>
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            width: 110,
+            height: 160,
+            opacity: 0.2,
+          }}
+        >
+          <SvgUri
+            uri={messageSentSvgUri}
+            width="100%"
+            height="100%"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </View>
+
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center">
             <TouchableOpacity 
@@ -186,7 +260,7 @@ const NotificationScreen = ({ navigation }) => {
         </View>
       ) : (
         <FlatList
-          data={filteredNotifications}
+          data={normalizedNotifications}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingTop: 16, paddingBottom: 20 }}
           refreshControl={
