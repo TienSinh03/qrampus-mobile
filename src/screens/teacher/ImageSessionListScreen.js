@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {
   checkImageSessionStatus 
 } from '../../features/imageSession/imageSessionThunks';
 import ImageSessionDetailModal from '../../components/modal/ImageSessionDetailModal';
+import useImageSessionSocket from '../../hooks/useImageSessionSocket';
 
 const optimizeImageSvgUri = Image.resolveAssetSource(
   require('../../../assets/undraw_optimize-image_q59h.svg')
@@ -31,6 +32,8 @@ const ImageSessionListScreen = ({ navigation, route }) => {
   const [selectedSession, setSelectedSession] = useState(null);
   const [modalMode, setModalMode] = useState('view'); // 'view' or 'create'
   const [refreshing, setRefreshing] = useState(false);
+  const [socketConnecting, setSocketConnecting] = useState(false);
+  const initialDataFetched = useRef(false);
 
   console.log('ImageSessionListScreen schedule:', schedule);
 
@@ -38,22 +41,32 @@ const ImageSessionListScreen = ({ navigation, route }) => {
     (state) => state.imageSession
   );
 
+  // Socket real-time listener
+  const { isSocketReady } = useImageSessionSocket(schedule?.courseSectionId, schedule?.id);
+
+  // Fetch initial data only once
   useEffect(() => {
-    // Lấy danh sách image sessions dựa vào classSessionId
-    if (schedule?.id) {
-      dispatch(
-        fetchImageSessionsByTeacher({
-          courseSectionId: schedule.courseSectionId,
-          page: 1,
-          limit: 20,
-        })
-      );
-      
-      // Kiểm tra trạng thái active session
-      dispatch(checkImageSessionStatus(schedule.id));
-      console.log('-------------Dispatched checkImageSessionStatus for classSessionId:', schedule.id);
-    }
-  }, [dispatch, schedule?.id]);
+    if (!schedule?.id || initialDataFetched.current) return;
+    
+    initialDataFetched.current = true;
+    setSocketConnecting(true);
+
+    // Initial load
+    dispatch(
+      fetchImageSessionsByTeacher({
+        courseSectionId: schedule.courseSectionId,
+        page: 1,
+        limit: 20,
+      })
+    );
+    
+    dispatch(checkImageSessionStatus(schedule.id));
+    console.log('[Init] Loaded initial image sessions for:', schedule.id);
+    
+    // Simulate socket connection time
+    const timer = setTimeout(() => setSocketConnecting(false), 800);
+    return () => clearTimeout(timer);
+  }, [schedule?.id, schedule?.courseSectionId, dispatch]);
   
   // console.log('Current sessionStatus from store:', sessionStatus.message);
   const hasCreatedSession = sessions.length > 0;
@@ -120,6 +133,7 @@ const ImageSessionListScreen = ({ navigation, route }) => {
     setRefreshing(true);
     try {
       if (schedule?.id) {
+        // Refresh from server (socket sẽ update realtime sau đó)
         await Promise.all([
           dispatch(checkImageSessionStatus(schedule.id)),
           dispatch(
@@ -130,13 +144,15 @@ const ImageSessionListScreen = ({ navigation, route }) => {
             })
           ),
         ]);
+        console.log('[Refresh] Manual refresh completed, awaiting socket updates');
       }
     } catch (error) {
-      console.error('Error refreshing:', error);
+      console.error('[Refresh] Error:', error);
     } finally {
       setRefreshing(false);
     }
   };
+
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
@@ -180,7 +196,16 @@ const ImageSessionListScreen = ({ navigation, route }) => {
             </Text>
           </View>
         </View>
-
+        
+        {/* Socket Status Indicator */}
+        <View className="flex-row items-center justify-end mt-2">
+          <View className={`w-2 h-2 rounded-full mr-2 ${
+            isSocketReady ? 'bg-green-300' : socketConnecting ? 'bg-yellow-300' : 'bg-gray-400'
+          }`} />
+          <Text className="text-white/70 text-xs">
+            {isSocketReady ? 'Live' : socketConnecting ? 'Connecting...' : 'Offline'}
+          </Text>
+        </View>
         {/* Image Session Status */}
         <TouchableOpacity
           activeOpacity={0.8}

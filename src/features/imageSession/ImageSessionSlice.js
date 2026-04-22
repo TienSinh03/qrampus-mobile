@@ -45,6 +45,30 @@ const imageSessionSlice = createSlice({
       state.newSession = null;
     },
     resetImageSessionState: () => initialState,
+    
+    // Socket handlers
+    setImageSessionStatus: (state, action) => {
+      state.sessionStatus = action.payload;
+    },
+    addImageSession: (state, action) => {
+      const newSession = action.payload;
+      // Check if session already exists
+      const exists = state.sessions.some(s => s.id === newSession.id);
+      if (!exists) {
+        state.sessions.unshift(newSession);
+        state.pagination.total += 1;
+      }
+    },
+    updateImageSessionStatus: (state, action) => {
+      const { sessionId, status } = action.payload;
+      const session = state.sessions.find(s => s.id === sessionId);
+      if (session) {
+        session.status = status;
+      }
+      if (state.sessionStatus?.id === sessionId) {
+        state.sessionStatus.status = status;
+      }
+    },
   },
   extraReducers: (builder) => {
     // fetchImageSessionsByTeacher
@@ -107,6 +131,9 @@ export const {
   clearSessions,
   clearNewSession,
   resetImageSessionState,
+  setImageSessionStatus,
+  addImageSession,
+  updateImageSessionStatus,
 } = imageSessionSlice.actions;
 
 export default imageSessionSlice.reducer;

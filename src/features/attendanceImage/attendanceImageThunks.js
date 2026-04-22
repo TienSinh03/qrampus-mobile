@@ -104,3 +104,34 @@ export const uploadAttendanceImage = createAsyncThunk(
     }
   }
 );
+
+/**
+ * Xóa ảnh điểm danh
+ * Điều kiện: buổi học còn trong thời gian start_hour - end_hour
+ */
+export const deleteAttendanceImage = createAsyncThunk(
+  'attendanceImage/delete',
+  async (imageId, { rejectWithValue }) => {
+    try {
+      console.log('[DEBUG] Deleting attendance image:', imageId);
+
+      const response = await instance.delete(
+        `/attendance-images/${imageId}`
+      );
+
+      console.log('[DEBUG] Delete response:', response.data);
+
+      if (!response?.data?.success) {
+        throw new Error(response?.data?.message || 'Không thể xóa ảnh');
+      }
+
+      return imageId; // Return ID để xóa từ state
+    } catch (error) {
+      console.error('[ERROR] Delete failed:', error);
+      console.error('[ERROR] Response:', error.response?.data);
+      return rejectWithValue(
+        error.response?.data?.message || 'Không thể xóa ảnh. ' + error.message
+      );
+    }
+  }
+);

@@ -1,7 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { 
   fetchAttendanceImagesBySessionId,
-  uploadAttendanceImage 
+  uploadAttendanceImage,
+  deleteAttendanceImage,
 } from './attendanceImageThunks';
 
 const initialState = {
@@ -10,6 +11,8 @@ const initialState = {
   error: null,
   uploading: false,
   uploadError: null,
+  deleting: false,
+  deleteError: null,
 };
 
 const attendanceImageSlice = createSlice({
@@ -53,9 +56,30 @@ const attendanceImageSlice = createSlice({
       .addCase(uploadAttendanceImage.rejected, (state, action) => {
         state.uploading = false;
         state.uploadError = action.payload;
+      })
+
+    // deleteAttendanceImage
+      .addCase(deleteAttendanceImage.pending, (state) => {
+        state.deleting = true;
+        state.deleteError = null;
+      })
+      .addCase(deleteAttendanceImage.fulfilled, (state, action) => {
+        state.deleting = false;
+        // Loại bỏ ảnh đã xóa khỏi danh sách
+        state.images = state.images.filter(
+          (img) => img.id !== action.payload
+        );
+      })
+      .addCase(deleteAttendanceImage.rejected, (state, action) => {
+        state.deleting = false;
+        state.deleteError = action.payload; 
       });
+
+
   },
 });
+
+
 
 export const { clearImages, clearError, resetAttendanceImageState } =
   attendanceImageSlice.actions;

@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   RefreshControl,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -16,7 +17,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SvgUri } from 'react-native-svg';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAttendanceImagesBySessionId } from '../../features/attendanceImage/attendanceImageThunks';
+import {
+  fetchAttendanceImagesBySessionId,
+  deleteAttendanceImage,
+} from '../../features/attendanceImage/attendanceImageThunks';
 
 const { width } = Dimensions.get('window');
 const imageSizeGrid = (width - 48) / 3; // 3 cột
@@ -28,7 +32,13 @@ const optimizeImageSvgUri = Image.resolveAssetSource(
 const AttendanceImageScreen = ({ navigation, route }) => {
   const { imageSession, schedule } = route.params;
   const dispatch = useDispatch();
-  const { images, isLoading, error } = useSelector((state) => state.attendanceImage);
+
+  const {
+    images,
+    isLoading,
+    error,
+    deleting
+  } = useSelector((state) => state.attendanceImage);
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -79,6 +89,11 @@ const AttendanceImageScreen = ({ navigation, route }) => {
     return images.length < 5;
   };
 
+  // Kiểm tra có được phép xóa ảnh không (cùng rule với backend)
+  const canDeleteImage = () => {
+    return canAddImage();
+  };
+
   const handleAddImage = () => {
     if (!canAddImage()) {
       alert(
@@ -102,16 +117,6 @@ const AttendanceImageScreen = ({ navigation, route }) => {
       imageSession,
       schedule,
     });
-  };
-
-  const handleEdit = (image) => {
-    console.log('Nhấn SỬA ảnh có id:', image.id);
-    // Sau này sẽ mở màn hình edit hoặc modal chỉnh sửa
-  };
-
-  const handleDelete = (image) => {
-    console.log('Nhấn XÓA ảnh có id:', image.id);
-    // Sau này sẽ gọi API xóa + cập nhật redux
   };
 
   const formatDateTime = (dateString) => {
@@ -153,6 +158,49 @@ const AttendanceImageScreen = ({ navigation, route }) => {
   };
 
   const sessionStatus = getSessionStatus();
+
+
+    // =============================
+  // XÓA ẢNH
+  // =============================
+  const handleDelete = (image) => {
+    Alert.alert(
+      'Xác nhận',
+      'Bạn muốn xóa ảnh này?',
+      [
+        {
+          text: 'Hủy',
+          style: 'cancel'
+        },
+        {
+          text: 'Xóa',
+          style: 'destructive',
+          onPress: async () => {
+            if (!canDeleteImage()) {
+              Alert.alert(
+                'Không thể xóa',
+                'Chỉ có thể xóa ảnh trong thời gian diễn ra buổi học.'
+              );
+              return;
+            }
+
+            const result = await dispatch(
+              deleteAttendanceImage(image.id)
+            );
+
+            if (deleteAttendanceImage.fulfilled.match(result)) {
+              Alert.alert('Thành công', 'Đã xóa ảnh');
+            } else {
+              Alert.alert(
+                'Lỗi',
+                result.payload || 'Không thể xóa ảnh'
+              );
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -200,13 +248,18 @@ const AttendanceImageScreen = ({ navigation, route }) => {
         {formatDateTime(image.takenAt).split(',')[1]?.trim() || ''}
       </Text>
 
-      {/* Nút sửa - xóa */}
-      <View className="flex-row justify-center mt-1 space-x-4">
-        <TouchableOpacity onPress={() => handleEdit(image)} className="p-1">
-          <Ionicons name="pencil" size={20} color="#3b82f6" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDelete(image)} className="p-1">
-          <Ionicons name="trash" size={20} color="#ef4444" />
+      {/* Nút xóa */}
+      <View className="flex-row justify-center mt-1">
+        <TouchableOpacity
+          onPress={() => handleDelete(image)}
+          className="p-1"
+          disabled={!canDeleteImage() || deleting}
+        >
+          <Ionicons
+            name="trash"
+            size={20}
+            color={!canDeleteImage() || deleting ? '#9ca3af' : '#ef4444'}
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -238,17 +291,24 @@ const AttendanceImageScreen = ({ navigation, route }) => {
           )}
         </View>
 
-        <View className="flex-row justify-end space-x-4">
-          <TouchableOpacity onPress={() => handleEdit(image)}>
-            <Ionicons name="pencil" size={20} color="#3b82f6" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleDelete(image)}>
-            <Ionicons name="trash" size={20} color="#ef4444" />
+        <View className="flex-row justify-end">
+          <TouchableOpacity
+            onPress={() => handleDelete(image)}
+            disabled={!canDeleteImage() || deleting}
+          >
+            <Ionicons
+              name="trash"
+              size={20}
+              color={!canDeleteImage() || deleting ? '#9ca3af' : '#ef4444'}
+            />
           </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>
   );
+
+  
+
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
