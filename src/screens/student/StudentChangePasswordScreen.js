@@ -166,7 +166,7 @@ const StudentChangePasswordScreen = ({ navigation }) => {
           </View>
         </LinearGradient>
 
-        <View className="px-6 -mt-16 pb-6">
+        <View className="px-6 -mt-14 pb-6">
           <View
             style={{
               backgroundColor: 'white',
@@ -176,10 +176,9 @@ const StudentChangePasswordScreen = ({ navigation }) => {
               shadowOpacity: 0.08,
               elevation: 10,
             }}
-          >
-            <Text className="text-lg font-bold text-gray-800 mb-2">Bảo mật tài khoản</Text>
-            <Text className="text-gray-500 mb-6">
-              Nhập mật khẩu hiện tại và mật khẩu mới của bạn.
+          >            
+            <Text className="text-gray-500 mb-2 text-center font-medium">
+              Thay đổi mật khẩu của bạn
             </Text>
 
             <PasswordField
@@ -196,7 +195,7 @@ const StudentChangePasswordScreen = ({ navigation }) => {
               onChangeText={setNewPassword}
             />
 
-            <View className="mb-5 -mt-2 bg-gray-50 rounded-xl px-3 py-3 border border-gray-100">
+            <View className="mb-5 -mt-2 bg-gray-50 rounded-xl px-3 border border-gray-100">
               <Text className="text-xs text-gray-500 mb-2">Yêu cầu mật khẩu:</Text>
 
               <PasswordRule
@@ -231,7 +230,6 @@ const StudentChangePasswordScreen = ({ navigation }) => {
             <LinearGradient
               colors={['#3B82F6', '#6366F1']}
               style={{
-                marginTop: 8,
                 borderRadius: 16,
               }}
             >

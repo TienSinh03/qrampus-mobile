@@ -194,6 +194,40 @@ export const updateStudentProfileThunk = createAsyncThunk(
     }
 );
 
+/**
+ * Upload student avatar (multipart/form-data)
+ * @param {string} localUri - Local file URI from ImagePicker
+ */
+export const uploadStudentAvatarThunk = createAsyncThunk(
+    'student/uploadAvatar',
+    async (localUri, { rejectWithValue }) => {
+        try {
+            const formData = new FormData();
+            const filename = localUri.split('/').pop();
+            const ext = filename.split('.').pop().toLowerCase();
+            const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
+
+            formData.append('avatar', {
+                uri: localUri,
+                name: filename,
+                type: mimeType,
+            });
+
+            const response = await instance.post('/students/me/avatar', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Tải avatar thất bại');
+            }
+
+            return response?.data?.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Tải avatar thất bại');
+        }
+    }
+);
+
 export const fetchScheduleDetailThunk = createAsyncThunk(
     'student/scheduleDetail',
     async (sessionId, { rejectWithValue }) => {

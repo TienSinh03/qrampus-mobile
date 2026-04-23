@@ -116,7 +116,7 @@ const TeacherHomeScreen = ({ navigation }) => {
       id: '5',
       icon: 'clipboard-outline',
       label: 'Quản lý Khảo sát',
-      onPress: () => navigation.navigate('TeacherSurveyList'),
+      onPress: () => navigation.navigate('SurveyScreen'),
       badge: 2
     },
     {

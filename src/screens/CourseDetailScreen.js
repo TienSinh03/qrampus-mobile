@@ -14,10 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SvgUri } from 'react-native-svg';
 import { useFocusEffect } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
-import { checkSurveyCompletion } from '../features/surveyResponse/surveyResponseThunks';
-import { selectCompletionStatuses } from '../features/surveyResponse/surveyResponseSlice';
 import axiosInstance from '../api/axiosInstance';
 
 const { width } = Dimensions.get('window');
@@ -26,8 +24,6 @@ const audiobookSvgUri = Image.resolveAssetSource(
 ).uri;
 
 const CourseDetailScreen = ({ navigation, route }) => {
-  const dispatch = useDispatch();
-
   // Lấy thông tin từ route params
   const course = route?.params?.course || {};
   const userRole = route?.params?.userRole || 'student';
@@ -50,11 +46,38 @@ const CourseDetailScreen = ({ navigation, route }) => {
     ? ['#0171a5', '#30b2ea'] 
     : ['#2563eb', '#3b82f6'];
   const accentColor = isTeacher ? '#0171a5' : '#2563eb';
-  const completionStatuses = useSelector(selectCompletionStatuses);
   const [courseSurveyEnrollments, setCourseSurveyEnrollments] = useState([]);
   const [surveyLoading, setSurveyLoading] = useState(false);
   const [surveyError, setSurveyError] = useState('');
+
+  const [teacherSurveyStats, setTeacherSurveyStats] = useState(null);
+  const [teacherSurveyLoading, setTeacherSurveyLoading] = useState(false);
+  const [teacherSurveyError, setTeacherSurveyError] = useState('');
+
   const courseSectionId = course?.courseId || course?.courseSectionId || course?.id || null;
+
+  const fetchTeacherSurveyStats = useCallback(async () => {
+    if (!isTeacher || !courseSectionId) return;
+    setTeacherSurveyLoading(true);
+    setTeacherSurveyError('');
+    try {
+      const res = await axiosInstance.get(
+        `/survey/teacher/course-section/${courseSectionId}/statistics`
+      );
+      setTeacherSurveyStats(res?.data?.data || null);
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 403) {
+        setTeacherSurveyStats({ surveys: [] });
+      } else {
+        setTeacherSurveyError(
+          err?.response?.data?.message || 'Không thể tải thống kê khảo sát'
+        );
+      }
+    } finally {
+      setTeacherSurveyLoading(false);
+    }
+  }, [isTeacher, courseSectionId]);
 
   const fetchStudentCourseSurveys = useCallback(async () => {
     if (isTeacher || !courseSectionId) {
@@ -126,29 +149,23 @@ const CourseDetailScreen = ({ navigation, route }) => {
   }, [courseSurveyItems]);
 
   const sortedSurveyEntries = useMemo(() => {
-    return [...surveyEntries].sort((a, b) => {
-      const aPractice = a.item?.learningType === 'practice';
-      const bPractice = b.item?.learningType === 'practice';
-      if (aPractice !== bPractice) {
-        return aPractice ? 1 : -1;
-      }
+    const now = new Date();
 
-      const aGroup = Number(a.item?.practiceGroupNumber || 0);
-      const bGroup = Number(b.item?.practiceGroupNumber || 0);
-      if (aGroup !== bGroup) {
-        return aGroup - bGroup;
-      }
+    return [...surveyEntries]
+      .sort((a, b) => {
+        const aPractice = a.item?.learningType === 'practice';
+        const bPractice = b.item?.learningType === 'practice';
+        if (aPractice !== bPractice) return aPractice ? 1 : -1;
 
-      const aClose = a.survey?.closes_at ? new Date(a.survey.closes_at).getTime() : Number.MAX_SAFE_INTEGER;
-      const bClose = b.survey?.closes_at ? new Date(b.survey.closes_at).getTime() : Number.MAX_SAFE_INTEGER;
-      return aClose - bClose;
-    });
+        const aGroup = Number(a.item?.practiceGroupNumber || 0);
+        const bGroup = Number(b.item?.practiceGroupNumber || 0);
+        if (aGroup !== bGroup) return aGroup - bGroup;
+
+        const aClose = a.survey?.closes_at ? new Date(a.survey.closes_at).getTime() : Number.MAX_SAFE_INTEGER;
+        const bClose = b.survey?.closes_at ? new Date(b.survey.closes_at).getTime() : Number.MAX_SAFE_INTEGER;
+        return aClose - bClose;
+      });
   }, [surveyEntries]);
-
-  const surveyIds = useMemo(
-    () => [...new Set(surveyEntries.map((entry) => entry.survey?.id).filter(Boolean))],
-    [surveyEntries]
-  );
 
   const formatSurveyDate = (dateValue) => {
     if (!dateValue) return 'Chưa cập nhật';
@@ -178,12 +195,32 @@ const CourseDetailScreen = ({ navigation, route }) => {
       };
     }
 
+    if (status === 'closed') {
+      return {
+        cardBg: '#f8fafc',
+        borderColor: '#cbd5e1',
+        statusBg: '#f1f5f9',
+        statusText: '#64748b',
+        statusLabel: 'Đã kết thúc',
+      };
+    }
+
+    if (status === 'missed') {
+      return {
+        cardBg: '#fff7ed',
+        borderColor: '#fed7aa',
+        statusBg: '#ffedd5',
+        statusText: '#c2410c',
+        statusLabel: 'Không hoàn thành',
+      };
+    }
+
     return {
       cardBg: '#f8fafc',
       borderColor: '#e2e8f0',
       statusBg: '#e2e8f0',
       statusText: '#475569',
-      statusLabel: 'Chưa có khảo sát',
+      statusLabel: 'Chưa có',
     };
   };
 
@@ -207,21 +244,20 @@ const CourseDetailScreen = ({ navigation, route }) => {
     fetchStudentCourseSurveys();
   }, [fetchStudentCourseSurveys]);
 
+  useEffect(() => {
+    fetchTeacherSurveyStats();
+  }, [fetchTeacherSurveyStats]);
+
   useFocusEffect(
     useCallback(() => {
-      if (isTeacher) return;
-
+      if (isTeacher) {
+        fetchTeacherSurveyStats();
+        return;
+      }
       fetchStudentCourseSurveys();
-    }, [isTeacher, fetchStudentCourseSurveys])
+    }, [isTeacher, fetchStudentCourseSurveys, fetchTeacherSurveyStats])
   );
 
-  useEffect(() => {
-    if (!isTeacher && surveyIds.length > 0) {
-      surveyIds.forEach((id) => {
-        dispatch(checkSurveyCompletion(id));
-      });
-    }
-  }, [dispatch, isTeacher, surveyIds]);
 
   // Status badge
   const getStatusBadge = () => {
@@ -263,11 +299,11 @@ const CourseDetailScreen = ({ navigation, route }) => {
           pointerEvents="none"
           style={{
             position: 'absolute',
-            right: -24,
-            bottom: -14,
-            width: 200,
-            height: 140,
-            opacity: 0.18,
+            right: 0,
+            bottom: 0,
+            width: 100,
+            height: 100,
+            opacity: 0.28,
           }}
         >
           <SvgUri
@@ -279,71 +315,36 @@ const CourseDetailScreen = ({ navigation, route }) => {
         </View>
 
         {/* Navigation Bar */}
-        <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center justify-between">
           <TouchableOpacity 
             onPress={() => navigation.goBack()}
             className="w-10 h-10 bg-white/20 rounded-full items-center justify-center"
           >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-          <Text className="text-white text-lg font-bold">Chi tiết khóa học</Text>
+          <Text className="text-white text-lg font-bold">
+              {courseCode} - {semester}
+          </Text>
           <View style={{ width: 20 }} />
         </View>
 
         {/* Course Header Info */}
         <View className="mt-1">
-          <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-row items-center justify-between">
             {/* Left side */}
             <View className="flex-row items-center flex-1">
               {/* Course code */}
-              <View className="bg-white/20 px-4 py-2 rounded-full border border-white/20 mr-3">
-                <Text className="text-white font-bold text-sm tracking-wider">
-                  {courseCode}
+              <View className="px-4 py-2 mr-3">
+                <Text className="text-white font-bold text-sm tracking-wider ">
+                  {courseName}
                 </Text>
               </View>
-
-              {/* Semester */}
-              <Text
-                numberOfLines={1}
-                className="text-white/80 text-sm flex-1"
-              >
-                {semester}
-              </Text>
             </View>
 
             {/* Status */}
             <View className={`${statusBadge.bgColor} px-3 py-1 rounded-full ml-3`}>
               <Text className={`${statusBadge.textColor} text-xs font-semibold`}>
                 {statusBadge.label}
-              </Text>
-            </View>
-          </View>
-          {/* Tên khóa học */}
-          <Text
-            numberOfLines={2}
-            className="text-white text-xl font-bold leading-9 mb-3"
-          >
-            {courseName}
-          </Text>
-          {/* Extra info row */}
-          <View className="flex-row items-center justify-between bg-white/10 rounded-2xl px-4 py-3 border border-white/10">
-            <View>
-              <Text className="text-white/70 text-xs">
-                Trạng thái
-              </Text>
-              <Text className="text-white font-semibold text-sm mt-1">
-                Đang hoạt động
-              </Text>
-            </View>
-
-            <View className="w-px h-8 bg-white/20" />
-
-            <View>
-              <Text className="text-white/70 text-xs">
-                Loại
-              </Text>
-              <Text className="text-white font-semibold text-sm mt-1">
-                Học phần
               </Text>
             </View>
           </View>
@@ -580,7 +581,7 @@ const CourseDetailScreen = ({ navigation, route }) => {
         {/* khảo sát */}
         <View className="px-6 pb-6">
           <Text className="text-gray-900 font-bold text-lg mb-3">
-            {isTeacher ? 'Khảo sát của sinh viên' : 'Khảo sát khóa học'}
+            {isTeacher ? 'Khảo sát của sinh viên' : 'Khảo sát của bạn'}
           </Text>
 
           {!isTeacher ? (
@@ -607,118 +608,241 @@ const CourseDetailScreen = ({ navigation, route }) => {
 
               {sortedSurveyEntries.map((entry, index) => {
                 const surveyId = entry.survey?.id || null;
-                const completionStatus = surveyId
-                  ? completionStatuses[surveyId]
-                  : null;
-                const isCompleted = completionStatus?.isComplete || false;
-                const status = !surveyId ? 'none' : isCompleted ? 'completed' : 'pending';
+                const now = new Date();
+                const isActive = entry.survey?.is_active === true;
+                const isExpired = entry.survey?.closes_at
+                  ? new Date(entry.survey.closes_at) < now
+                  : false;
+                const canDo = isActive && !isExpired;
+                const isCompleted = entry.survey?.questions?.some(
+                  (q) => q.responses?.length > 0
+                ) ?? false;
+                const status = !surveyId ? 'none'
+                  : isCompleted ? 'completed'
+                  : canDo ? 'pending'
+                  : 'missed';
                 const theme = getSurveyTheme(status);
 
                 return (
                   <View
                     key={`${entry.item.enrollmentId}-${surveyId || 'none'}-${index}`}
-                    className="rounded-2xl p-4 border shadow-sm mb-3"
+                    className="rounded-b-xl border shadow-sm mb-3 overflow-hidden"
                     style={{
                       backgroundColor: theme.cardBg,
                       borderColor: theme.borderColor,
                     }}
                   >
-                    <Text className="text-base font-bold text-gray-900 mb-2">
-                      {entry.survey?.title || 'Khảo sát chất lượng môn học'}
-                    </Text>
+                    {/* Strip màu trên cùng theo trạng thái */}
+                    <View
+                      style={{
+                        height: 4,
+                        backgroundColor:
+                          status === 'completed' ? '#10b981'
+                          : status === 'pending' ? '#3b82f6'
+                          : status === 'missed' ? '#f97316'
+                          : '#e2e8f0',
+                      }}
+                    />
 
-                    <Text className="text-sm text-gray-500 mb-3">
-                      Hạn cuối: {formatSurveyDate(entry.survey?.closes_at)}
-                    </Text>
-
-                    <View className="flex-row flex-wrap mb-3">
-                      {entry.item?.learningType === 'practice' ? (
-                        <View className="bg-cyan-100 px-3 py-1 rounded-full mr-2 mb-2">
-                          <Text className="text-cyan-700 text-xs font-semibold">
-                            Thực hành
+                    <View className="p-4">
+                      {/* Tiêu đề + badge trạng thái */}
+                      <View className="flex-row items-start justify-between mb-1">
+                        <Text
+                          className="text-base font-bold text-gray-900 flex-1 mr-2"
+                          numberOfLines={2}
+                        >
+                          {entry.survey?.title || 'Khảo sát chất lượng môn học'}
+                        </Text>
+                        <View
+                          className="px-2 py-1 rounded-full"
+                          style={{ backgroundColor: theme.statusBg }}
+                        >
+                          <Text
+                            className="text-xs font-bold"
+                            style={{ color: theme.statusText }}
+                          >
+                            {theme.statusLabel}
                           </Text>
                         </View>
-                      ) : (
-                        <View className="bg-blue-100 px-3 py-1 rounded-full mr-2 mb-2">
-                          <Text className="text-blue-700 text-xs font-semibold">
-                            Lý thuyết
-                          </Text>
-                        </View>
+                      </View>
+
+                      {/* Hạn cuối */}
+                      {entry.survey?.closes_at && (
+                        <Text className="text-xs text-gray-400 mb-3">
+                          Hạn cuối: {formatSurveyDate(entry.survey.closes_at)}
+                        </Text>
                       )}
 
-                      {entry.item?.learningType === 'practice' &&
-                        entry.item?.practiceGroupNumber && (
-                          <View className="bg-purple-100 px-3 py-1 rounded-full mr-2 mb-2">
-                            <Text className="text-purple-700 text-xs font-semibold">
-                              Nhóm TH{String(entry.item.practiceGroupNumber).padStart(2, '0')}
+                      {/* Badges loại học */}
+                      <View className="flex-row flex-wrap" style={{ gap: 6 }}>
+                        {entry.item?.learningType === 'practice' ? (
+                          <View className="bg-cyan-100 px-2.5 py-0.5 rounded-full">
+                            <Text className="text-cyan-700 text-xs font-semibold">
+                              Thực hành
+                            </Text>
+                          </View>
+                        ) : (
+                          <View className="bg-blue-100 px-2.5 py-0.5 rounded-full">
+                            <Text className="text-blue-700 text-xs font-semibold">
+                              Lý thuyết
                             </Text>
                           </View>
                         )}
+                        {entry.item?.learningType === 'practice' &&
+                          entry.item?.practiceGroupNumber && (
+                            <View className="bg-purple-100 px-2.5 py-0.5 rounded-full">
+                              <Text className="text-purple-700 text-xs font-semibold">
+                                Nhóm TH{String(entry.item.practiceGroupNumber).padStart(2, '0')}
+                              </Text>
+                            </View>
+                          )}
+                      </View>
 
-                      {surveyId && (
-                        <View className="bg-gray-100 px-3 py-1 rounded-full mb-2">
-                          <Text className="text-gray-600 text-xs font-semibold">
-                            ID KS: {surveyId}
+                      {/* Thông báo không hoàn thành */}
+                      {!!surveyId && status === 'missed' && (
+                        <View className="mt-3 flex-row items-center">
+                          <Ionicons name="alert-circle-outline" size={15} color="#f97316" />
+                          <Text className="ml-1.5 text-xs text-orange-500 font-medium">
+                            Bạn không hoàn thành khảo sát này
                           </Text>
                         </View>
                       )}
-                    </View>
 
-                    <View className="h-px bg-gray-100 mb-3" />
-
-                    <View className="flex-row items-center justify-between">
-                      <Text className="text-sm text-gray-500">Trạng thái khảo sát</Text>
-
-                      <View
-                        className="px-3 py-1 rounded-full"
-                        style={{ backgroundColor: theme.statusBg }}
-                      >
-                        <Text
-                          className="text-xs font-bold"
-                          style={{ color: theme.statusText }}
+                      {/* Button */}
+                      {!!surveyId && (canDo || isCompleted) && (
+                        <TouchableOpacity
+                          className="mt-3 rounded-xl px-4 py-2.5 flex-row items-center justify-center"
+                          activeOpacity={0.85}
+                          onPress={() => handleOpenSurvey(entry)}
+                          style={
+                            isCompleted || !canDo
+                              ? { backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' }
+                              : { backgroundColor: '#2563eb' }
+                          }
                         >
-                          {theme.statusLabel}
-                        </Text>
-                      </View>
+                          <Ionicons
+                            name={isCompleted ? 'checkmark-circle-outline' : 'document-text-outline'}
+                            size={16}
+                            color={isCompleted || !canDo ? '#64748b' : '#fff'}
+                          />
+                          <Text
+                            className="font-semibold ml-2"
+                            style={{ color: isCompleted || !canDo ? '#64748b' : '#fff' }}
+                          >
+                            {isCompleted ? 'Xem lại khảo sát' : 'Làm khảo sát ngay'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
-
-                    {!!surveyId && (
-                      <TouchableOpacity
-                        className="mt-3 bg-blue-600 rounded-xl px-4 py-2.5 flex-row items-center justify-center"
-                        activeOpacity={0.85}
-                        onPress={() => handleOpenSurvey(entry)}
-                      >
-                        <Ionicons name="document-text-outline" size={16} color="#fff" />
-                        <Text className="text-white font-semibold ml-2">
-                          {isCompleted ? 'Xem khảo sát' : 'Làm khảo sát'}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
                   </View>
                 );
               })}
             </View>
           ) : (
-            <View className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm">
-              <Text className="text-base font-bold text-gray-900 mb-2">
-                Khảo sát chất lượng môn học
-              </Text>
+            <View>
+              {teacherSurveyLoading && (
+                <View className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm items-center">
+                  <ActivityIndicator size="small" color="#0171a5" />
+                  <Text className="text-gray-400 text-sm mt-2">Đang tải thống kê...</Text>
+                </View>
+              )}
 
-              <Text className="text-sm text-gray-500 mb-3">
-                Hạn cuối: 25/04/2026
-              </Text>
+              {!!teacherSurveyError && !teacherSurveyLoading && (
+                <View className="bg-red-50 rounded-2xl p-4 border border-red-200 shadow-sm">
+                  <Text className="text-red-600 text-sm">{teacherSurveyError}</Text>
+                </View>
+              )}
 
-              <View className="h-px bg-gray-100 mb-3" />
+              {!teacherSurveyLoading && !teacherSurveyError && teacherSurveyStats?.surveys?.length === 0 && (
+                <View className="bg-slate-50 rounded-2xl p-4 border border-slate-200 shadow-sm flex-row items-center">
+                  <Ionicons name="document-text-outline" size={22} color="#64748b" />
 
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-sm text-gray-500">Sinh viên đã khảo sát</Text>
-                <Text className="text-sm font-bold text-gray-900">32 / 40</Text>
-              </View>
+                  <View className="flex-1">
+                    <Text className="text-slate-700 font-medium text-sm">
+                      Chưa có khảo sát nào
+                    </Text>
+                    <Text className="text-slate-500 text-xs mt-1">
+                      Học phần này hiện chưa được tạo khảo sát.
+                    </Text>
+                  </View>
+                </View>
+              )}
 
-              <View className="flex-row justify-between items-center">
-                <Text className="text-sm text-gray-500">Đánh giá trung bình</Text>
-                <Text className="text-yellow-500 font-bold text-base">⭐ 4.8</Text>
-              </View>
+              {!teacherSurveyLoading && !teacherSurveyError &&
+                (teacherSurveyStats?.surveys || []).map((survey, index) => {
+                  const overview = survey.overview || {};
+                  const isPractice = survey.class_type === 'THỰC HÀNH';
+                  const groupNum = survey.practice_group?.number_group;
+
+                  return (
+                    <View
+                      key={survey.survey_id || index}
+                      className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm mb-3"
+                    >
+                      {/* Tiêu đề + badge loại */}
+                      <View className="flex-row items-start justify-between mb-2">
+                        <Text className="text-base font-bold text-gray-900 flex-1 mr-2" numberOfLines={2}>
+                          {survey.survey_title || 'Khảo sát chất lượng môn học'}
+                        </Text>
+                        <View
+                          className="px-2 py-1 rounded-full"
+                          style={{ backgroundColor: isPractice ? '#e0f2fe' : '#ede9fe' }}
+                        >
+                          <Text
+                            className="text-xs font-semibold"
+                            style={{ color: isPractice ? '#0369a1' : '#6d28d9' }}
+                          >
+                            {isPractice
+                              ? `TH${groupNum != null ? String(groupNum).padStart(2, '0') : ''}`
+                              : 'Lý thuyết'}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Hạn cuối */}
+                      <Text className="text-sm text-gray-500 mb-3">
+                        Hạn cuối:{' '}
+                        {survey.closes_at
+                          ? new Date(survey.closes_at).toLocaleDateString('vi-VN')
+                          : 'Chưa cập nhật'}
+                      </Text>
+
+                      <View className="h-px bg-gray-100 mb-3" />
+
+                      {/* Sinh viên đã khảo sát */}
+                      <View className="flex-row justify-between mb-2">
+                        <Text className="text-sm text-gray-500">Sinh viên đã khảo sát</Text>
+                        <Text className="text-sm font-bold text-gray-900">
+                          {overview.total_students_responded ?? 0}
+                          {' / '}
+                          {overview.total_students_enrolled ?? 0}
+                        </Text>
+                      </View>
+
+                      {/* Tỷ lệ hoàn thành */}
+                      <View className="flex-row justify-between mb-2">
+                        <Text className="text-sm text-gray-500">Tỷ lệ tham gia</Text>
+                        <Text className="text-sm font-bold text-blue-600">
+                          {overview.completion_rate != null
+                            ? `${overview.completion_rate}%`
+                            : '—'}
+                        </Text>
+                      </View>
+
+                      {/* Đánh giá trung bình */}
+                      <View className="flex-row justify-between items-center">
+                        <Text className="text-sm text-gray-500">Đánh giá trung bình</Text>
+                        {overview.avg_rating > 0 ? (
+                          <Text className="text-yellow-500 font-bold text-base">
+                            ⭐ {Number(overview.avg_rating).toFixed(1)}
+                          </Text>
+                        ) : (
+                          <Text className="text-sm text-gray-400">Chưa có</Text>
+                        )}
+                      </View>
+                    </View>
+                  );
+                })}
             </View>
           )}
         </View>

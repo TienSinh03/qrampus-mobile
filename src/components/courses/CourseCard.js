@@ -22,7 +22,7 @@ const CourseCard = ({ course, onPress, userRole = 'student' }) => {
 
   const isTeacher = userRole === 'teacher';
   const gradientColors = isTeacher
-    ? ['#0171a5', '#0171a5']
+    ? ['#0284c7', '#38bdf8']
     : ['#2563eb', '#3b82f6'];
 
   const accentColor = isTeacher ? '#0171a5' : '#82a6f4';
@@ -66,11 +66,12 @@ const CourseCard = ({ course, onPress, userRole = 'student' }) => {
           pointerEvents="none"
           style={{
             position: 'absolute',
-            right: -90,     // ép sang góc phải
-            bottom: -90,    // nằm dưới sát mép
-            width: 180,
-            height: 180,
-            opacity: 0.35,
+            top: -120,          // nằm góc trên
+            right: -50,        // sát mép phải
+            width: 190,
+            height: 190,
+            opacity: 0.75,
+            transform: [{ rotate: '222deg' }], // xoay 90 độ
           }}
         >
           <SvgUri uri={remindersBgUri} width="50%" height="50%" preserveAspectRatio="xMidYMid slice" />
@@ -123,7 +124,7 @@ const CourseCard = ({ course, onPress, userRole = 'student' }) => {
 
         <View className="flex-row justify-end mt-2">
           <View className="flex-row items-center">
-            <Text className="text-white/80 text-sm mr-1">Chi tiết</Text>
+            <Text className="text-white/100 text-sm mr-1">Chi tiết</Text>
             <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.8)" />
           </View>
         </View>

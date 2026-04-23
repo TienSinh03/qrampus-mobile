@@ -1,9 +1,15 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, TextInput, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, TextInput, TouchableOpacity, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
 import CourseCard from './CourseCard';
+
+const onlineArticlesSvgUri = Image.resolveAssetSource(
+  require('../../../assets/undraw_online-articles_g9cg.svg')
+).uri;
 
 const BaseCoursesScreen = ({
   navigation,
@@ -115,22 +121,58 @@ const BaseCoursesScreen = ({
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
 
       {/* Header */}
-      <View className="px-6 pt-4 pb-2">
-        <Text className="text-gray-900 text-2xl font-bold">
-          Khóa học
-        </Text>
-        <Text className="text-gray-500 text-sm mt-1">
-          {userRole === 'teacher' 
-            ? 'Các khóa học bạn đang giảng dạy' 
-            : 'Các khóa học bạn đang tham gia'}
-        </Text>
-      </View>
+      <LinearGradient
+        colors={['#0284c7', '#38bdf8']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        className="px-5 pt-4 pb-6 overflow-hidden"
+      >
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            width: 100,
+            height: 100,
+            opacity: 0.45,
+          }}
+        >
+          <SvgUri
+            uri={onlineArticlesSvgUri}
+            width="100%"
+            height="100%"
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </View>
+
+        <View className="flex-row items-center justify-between">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{ backgroundColor: '#ffffff25' }}
+          >
+            <Ionicons name="arrow-back" size={22} color="white" />
+          </TouchableOpacity>
+
+          <View className="items-center flex-1">
+            <Text className="text-white text-lg font-bold">Khóa học</Text>
+            <Text className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>
+              {userRole === 'teacher'
+                ? 'Các khóa học bạn đang giảng dạy'
+                : 'Các khóa học bạn đang tham gia'}
+            </Text>
+          </View>
+
+          <View className="w-10 h-10" />
+        </View>
+      </LinearGradient>
 
       {/* Search Bar */}
-      <View className="px-6 mb-4">
+      <View className="px-6 mb-4 mt-2">
         <View 
           className="flex-row items-center bg-white rounded-xl px-4 py-3"
           style={{
