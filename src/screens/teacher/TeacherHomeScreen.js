@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BaseHomeScreen from '../../components/BaseHomeScreen';
 import TeacherScheduleCard from '../../components/TeacherScheduleCard';
 import { useSelector, useDispatch } from 'react-redux';
+import { logoutThunk } from '../../features/auth/authThunks';
 import { getTeacherProfileThunk, getMySchedulesToday } from '../../features/teacher/teacherThunks';
 import { selectTeacherProfile, selectTeacherSchedulesToday, selectSchedulesLoading } from '../../features/teacher/teacherSlice';
 
@@ -15,6 +16,14 @@ const TeacherHomeScreen = ({ navigation }) => {
   const isLoading = useSelector(selectSchedulesLoading);
   const schedules = useSelector(selectTeacherSchedulesToday);
 
+  const handleLogout = () => {
+    dispatch(logoutThunk());
+    
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'IntroCarousel' }],
+    });
+  };
 
   //thay bằng API call
   const stats = {
@@ -138,7 +147,7 @@ const TeacherHomeScreen = ({ navigation }) => {
       id: '8',
       icon: 'log-out-outline',
       label: 'Đăng xuất',
-      onPress: () => console.log('Logout'),
+      onPress: handleLogout,
     }
   ];
 

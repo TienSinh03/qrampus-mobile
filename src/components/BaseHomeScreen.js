@@ -156,6 +156,28 @@ const BaseHomeScreen = ({
             </View>
           )}
         </View>
+
+
+        {/* Today's Schedule */}
+        <View className="px-6 pb-6">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-gray-900 text-lg font-bold">
+              {userRole === 'teacher' ? 'Check khuôn mặt' : 'Check khuôn mặt'}
+            </Text>
+            <Text 
+              className="text-sm font-semibold"
+              style={{ color: roleColor }}
+            >
+             {/* Btn bắt dầu */}
+            </Text>
+          </View>
+          <View className="bg-white rounded-2xl p-8 items-center justify-center">
+            <Image source={require('../../assets/images/Face_id.png')} className="w-16 h-16" />
+            <Text className="text-gray-500 text-sm text-center">
+              {userRole === 'teacher' ? 'Bạn có thể bỏ qua' : 'Sinh viên nhìn trực tiếp vào camera khi thấy 3, 2, 1, Go Hệ thống sẽ tự chụp ảnh bạn'} 
+            </Text>
+          </View>
+      </View>
       </ScrollView>
     </SafeAreaView>
   );
