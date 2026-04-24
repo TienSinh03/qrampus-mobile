@@ -11,6 +11,7 @@ import notificationReducer from '../features/notification/notificationSlice';
 import classSessionReducer from '../features/classSession/classSessionSlice';
 import attendanceSessionReducer from '../features/attendanceSession/attendanceSessionSlice';
 import attendanceHistoryReducer from '../features/student/attendanceHistorySlice';
+import faceVerifyReducer from '../features/faceVerify/faceVerifySlice';
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +27,7 @@ export const store = configureStore({
     classSession: classSessionReducer,
     attendanceSession: attendanceSessionReducer,
     attendanceHistory: attendanceHistoryReducer,
+    faceVerify: faceVerifyReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

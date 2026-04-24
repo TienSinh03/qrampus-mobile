@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, TouchableOpacity, Image } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import QuickActions from './QuickActions';
 import ScheduleCarousel from './ScheduleCarousel';
 import { selectUnreadCount } from '../features/notification/notificationSlice';
+import FaceCameraModal from './modal/FaceCameraModal';
 
 const BaseHomeScreen = ({
   navigation,
@@ -28,6 +29,7 @@ const BaseHomeScreen = ({
   const roleBgColor = userRole === 'teacher' ? '#f5f3ff' : '#eff6ff';
   const roleLabel = userRole === 'teacher' ? 'Giảng viên' : 'Sinh viên';
   const unreadCount = useSelector(selectUnreadCount);
+  const currentSchedule = todaySchedules[0] ?? null;
 
   const useCarousel = todaySchedules.length >= 2;
 
@@ -158,26 +160,15 @@ const BaseHomeScreen = ({
         </View>
 
 
-        {/* Today's Schedule */}
+        {/* Face verification */}
         <View className="px-6 pb-6">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-gray-900 text-lg font-bold">
-              {userRole === 'teacher' ? 'Check khuôn mặt' : 'Check khuôn mặt'}
-            </Text>
-            <Text 
-              className="text-sm font-semibold"
-              style={{ color: roleColor }}
-            >
-             {/* Btn bắt dầu */}
-            </Text>
-          </View>
-          <View className="bg-white rounded-2xl p-8 items-center justify-center">
-            <Image source={require('../../assets/images/Face_id.png')} className="w-16 h-16" />
-            <Text className="text-gray-500 text-sm text-center">
-              {userRole === 'teacher' ? 'Bạn có thể bỏ qua' : 'Sinh viên nhìn trực tiếp vào camera khi thấy 3, 2, 1, Go Hệ thống sẽ tự chụp ảnh bạn'} 
-            </Text>
-          </View>
-      </View>
+          <Text className="text-gray-900 text-lg font-bold mb-4">Check khuôn mặt</Text>
+          <FaceCameraModal
+            schedule={currentSchedule}
+            userRole={userRole}
+            onCapture={(photo) => console.log('Captured:', photo?.uri)}
+          />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
