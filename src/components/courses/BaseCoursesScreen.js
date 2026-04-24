@@ -125,7 +125,7 @@ const BaseCoursesScreen = ({
 
       {/* Header */}
       <LinearGradient
-        colors={['#0284c7', '#38bdf8']}
+        colors={userRole === 'teacher' ? ['#0284c7', '#38bdf8'] : ['#2563eb', '#3b82f6']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         className="px-5 pt-4 pb-6 overflow-hidden"

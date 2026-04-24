@@ -7,11 +7,13 @@ import {
   RefreshControl,
   Modal,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SvgUri } from 'react-native-svg';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTeacherLeaveRequestsThunk } from '../../features/leave-request/leaveRequestThunk';
 import { reasonTypes } from '../../utils/reason.type';
@@ -42,6 +44,10 @@ const formatDate = (dateString) => {
     return dateString;
   }
 };
+
+const decorSvgUri = Image.resolveAssetSource(
+  require('../../../assets/svg_cardteacher.svg')
+).uri;
 
 const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
@@ -197,144 +203,123 @@ const TeacherLeaveRequestListScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
 
       {/* Header */}
       <LinearGradient
         colors={['#0171a5', '#30b2ea']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        className="px-6 py-4"
+        className="px-6 pt-4 pb-6"
+        style={{ overflow: 'hidden' }}
       >
-        <View className="flex-row items-center justify-between mb-3">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
-          <View className="flex-1">
-            <Text className="text-white text-xl font-bold">Duyệt đơn nghỉ phép</Text>
-            {schedule && (
-              <Text className="text-white/80 text-sm" numberOfLines={1}>
-                {schedule.courseCode} - {schedule.courseName}
-              </Text>
-            )}
-          </View>
-          <TouchableOpacity 
-            onPress={() => setShowCourseModal(true)}
-            className="mr-3 bg-white/20 rounded-full p-2"
-          >
-            <Ionicons name="funnel" size={20} color="white" />
-          </TouchableOpacity>
-          {urgentCount > 0 && (
-            <View className="bg-red-500 rounded-full px-3 py-1">
-              <Text className="text-white text-xs font-bold">
-                {urgentCount} khẩn
-              </Text>
-            </View>
-          )}
+        <View
+          pointerEvents="none"
+          style={{ position: 'absolute', right: 0, bottom: 0, width: 110, height: 110, opacity: 0.35 }}
+        >
+          <SvgUri uri={decorSvgUri} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" />
         </View>
 
-        {/* Course Filter Badge */}
-        {schedule && filterCourse !== 'all' && (
-          <View className="bg-white/20 rounded-xl px-4 py-2 mb-3">
-            <View className="flex-row items-center">
-              <Ionicons name="book" size={16} color="white" />
-              <Text className="text-white font-semibold ml-2 flex-1" numberOfLines={1}>
-                Đang lọc: {schedule.courseName}
-              </Text>
-              <TouchableOpacity 
-                onPress={() => setFilterCourse('all')}
-                className="ml-2 bg-white/30 rounded-full p-1"
-              >
-                <Ionicons name="close" size={14} color="white" />
-              </TouchableOpacity>
-            </View>
+        <View className="flex-row items-center justify-between">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="w-10 h-10 bg-white/20 rounded-full items-center justify-center"
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+
+          <Text className="text-white text-lg font-bold">Duyệt đơn nghỉ phép</Text>
+
+          <View style={{ width: 40 }} className="items-end">
+            {urgentCount > 0 && (
+              <View className="bg-red-500 rounded-full px-2 py-0.5">
+                <Text className="text-white text-[10px] font-bold">{urgentCount}</Text>
+              </View>
+            )}
           </View>
-        )}
+        </View>
 
-        {/* Course Filter */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
-          <TouchableOpacity
-            onPress={() => setFilterCourse('all')}
-            className={`px-4 py-2 rounded-lg mr-2 ${
-              filterCourse === 'all' ? 'bg-white' : 'bg-white/20'
-            }`}
-          >
-            <Text className={`font-semibold ${
-              filterCourse === 'all' ? 'text-sky-600' : 'text-white'
-            }`}>
-              Tất cả môn
-            </Text>
-          </TouchableOpacity>
-          {courses.map((course) => (
-            <TouchableOpacity
-              key={course.courseCode}
-              onPress={() => setFilterCourse(course.courseCode)}
-              className={`px-4 py-2 rounded-lg mr-2 ${
-                filterCourse === course.courseCode ? 'bg-white' : 'bg-white/20'
-              }`}
-            >
-              <Text className={`font-semibold ${
-                filterCourse === course.courseCode ? 'text-sky-600' : 'text-white'
-              }`}>
-                {course.courseCode}
-                {course.pendingCount > 0 && ` (${course.pendingCount})`}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Status Filter Tabs */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-          <TouchableOpacity
-            onPress={() => setFilterStatus('pending')}
-            className={`px-4 py-2 rounded-lg mr-2 ${
-              filterStatus === 'pending' ? 'bg-white' : 'bg-white/20'
-            }`}
-          >
-            <Text className={`font-semibold ${
-              filterStatus === 'pending' ? 'text-sky-600' : 'text-white'
-            }`}>
-              Chờ duyệt ({pendingCount})
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setFilterStatus('approved')}
-            className={`px-4 py-2 rounded-lg mr-2 ${
-              filterStatus === 'approved' ? 'bg-white' : 'bg-white/20'
-            }`}
-          >
-            <Text className={`font-semibold ${
-              filterStatus === 'approved' ? 'text-sky-600' : 'text-white'
-            }`}>
-              Đã duyệt ({approvedCount})
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setFilterStatus('rejected')}
-            className={`px-4 py-2 rounded-lg mr-2 ${
-              filterStatus === 'rejected' ? 'bg-white' : 'bg-white/20'
-            }`}
-          >
-            <Text className={`font-semibold ${
-              filterStatus === 'rejected' ? 'text-sky-600' : 'text-white'
-            }`}>
-              Đã từ chối ({rejectedCount})
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setFilterStatus('all')}
-            className={`px-4 py-2 rounded-lg ${
-              filterStatus === 'all' ? 'bg-white' : 'bg-white/20'
-            }`}
-          >
-            <Text className={`font-semibold ${
-              filterStatus === 'all' ? 'text-sky-600' : 'text-white'
-            }`}>
-              Tất cả ({leavesWithHours.length})
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
+        <View className="mt-2">
+          <Text className="text-white/90 text-sm text-center">
+            {schedule
+              ? `${schedule.courseCode} · ${schedule.courseName}`
+              : 'Quản lý yêu cầu nghỉ phép của giảng viên'}
+          </Text>
+        </View>
       </LinearGradient>
+
+      {/* Filter bar */}
+      <View className="bg-white border-b border-gray-100 px-4 py-3" style={{ gap: 8 }}>
+        {/* Status chips */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
+          {[
+            { key: 'pending',  label: `Chờ duyệt`,   count: pendingCount },
+            { key: 'approved', label: `Đã duyệt`,    count: approvedCount },
+            { key: 'rejected', label: `Đã từ chối`,  count: rejectedCount },
+            { key: 'all',      label: `Tất cả`,      count: leavesWithHours.length },
+          ].map(({ key, label, count }) => {
+            const active = filterStatus === key;
+            return (
+              <TouchableOpacity
+                key={key}
+                onPress={() => setFilterStatus(key)}
+                className="rounded-xl border px-3 py-2 mr-2 flex-row items-center"
+                style={{
+                  backgroundColor: active ? '#0171a5' : '#f9fafb',
+                  borderColor: active ? '#0171a5' : '#e5e7eb',
+                }}
+              >
+                <Text style={{ color: active ? '#fff' : '#374151', fontSize: 13, fontWeight: '600' }}>
+                  {label}
+                </Text>
+                <View
+                  className="ml-1.5 rounded-full px-1.5"
+                  style={{ backgroundColor: active ? 'rgba(255,255,255,0.25)' : '#e5e7eb' }}
+                >
+                  <Text style={{ color: active ? '#fff' : '#6b7280', fontSize: 11, fontWeight: '700' }}>
+                    {count}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Course filter row */}
+        <View className="flex-row items-center" style={{ gap: 8 }}>
+          <View className="flex-1 flex-row items-center bg-gray-50 rounded-xl border border-gray-200 px-3 py-2">
+            <Ionicons name="book-outline" size={15} color="#9ca3af" />
+            <Text className="flex-1 ml-2 text-sm text-gray-500" numberOfLines={1}>
+              {filterCourse === 'all'
+                ? 'Tất cả môn học'
+                : courses.find(c => c.courseCode === filterCourse)?.name || filterCourse}
+            </Text>
+            {filterCourse !== 'all' && (
+              <TouchableOpacity onPress={() => setFilterCourse('all')}>
+                <Ionicons name="close-circle" size={15} color="#9ca3af" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <TouchableOpacity
+            onPress={() => setShowCourseModal(true)}
+            className="rounded-xl border px-3 py-2.5 flex-row items-center"
+            style={{
+              backgroundColor: filterCourse !== 'all' ? '#0171a5' : '#fff',
+              borderColor: filterCourse !== 'all' ? '#0171a5' : '#e5e7eb',
+            }}
+          >
+            <Ionicons
+              name="funnel-outline"
+              size={16}
+              color={filterCourse !== 'all' ? '#fff' : '#6b7280'}
+            />
+            {filterCourse !== 'all' && (
+              <Text className="text-white text-xs font-bold ml-1">1</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Request List */}
       <ScrollView
