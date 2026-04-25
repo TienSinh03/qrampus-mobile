@@ -106,6 +106,46 @@ export const loginThunk = createAsyncThunk(
   }
 );
 
+export const refreshTokenThunk = createAsyncThunk('auth/refreshToken', async ({ refreshToken, role }, { rejectWithValue }) => {
+  try {
+    const refreshToken = await SecureStore.getItemAsync('refreshToken');
+
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const res = await instance.post('/auth/refresh', { refresh_token: refreshToken});
+    const response = res?.data || {};
+    if (!response.success) {
+      throw new Error(response.message || 'Token refresh failed');
+    }
+
+    const data = response.data || {};
+    const newAccessToken = data?.accessToken || null;
+    const newRefreshToken = data?.refreshToken || null;
+    const user = data?.user || {};
+    if (!newAccessToken) {
+      throw new Error('No access token received from refresh');
+    }
+
+    await SecureStore.setItemAsync('accessToken', newAccessToken);
+    await SecureStore.setItemAsync('refreshToken', newRefreshToken);
+    setAccessToken(newAccessToken);
+
+    return { accessToken: newAccessToken, refreshToken: newRefreshToken, role, user };
+
+  } catch (err) {
+    // Clear tokens on refresh failure
+    await SecureStore.deleteItemAsync('accessToken');
+    await SecureStore.deleteItemAsync('refreshToken');
+    await SecureStore.deleteItemAsync('userLogin');
+    await SecureStore.deleteItemAsync('loginRole');
+    clearToken();
+    const msg = err?.message || 'Token refresh failed';
+    return rejectWithValue(msg);
+  }
+});
+
 export const logoutThunk = createAsyncThunk('auth/logout', async (_, { dispatch }) => {
   // Hủy đăng ký push token trước khi xóa session
   // try {
@@ -115,7 +155,6 @@ export const logoutThunk = createAsyncThunk('auth/logout', async (_, { dispatch 
   // }
 
   await SecureStore.deleteItemAsync('accessToken');
-  await SecureStore.deleteItemAsync('refreshToken');
   await SecureStore.deleteItemAsync('userLogin');
   await SecureStore.deleteItemAsync('loginRole');
   clearToken();
