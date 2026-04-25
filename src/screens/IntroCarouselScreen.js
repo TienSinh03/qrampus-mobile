@@ -52,7 +52,7 @@ const IntroCarouselScreen = ({ navigation }) => {
 
   return (
     // Sử dụng màu nền cực nhẹ (off-white) để tạo cảm giác sang trọng
-    <View className="flex-1 bg-[#F8FAFC]">
+    <View className="flex-1 bg-[#EBEBE3]">
       <StatusBar style="dark" />
       
       <SafeAreaView className="flex-1">
