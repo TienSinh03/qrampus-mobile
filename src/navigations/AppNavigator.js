@@ -44,6 +44,7 @@ import TermsPoliciesScreen from '../screens/TermsPoliciesScreen';
 import TeacherNotificationScreen from '../screens/teacher/TeacherNotificationScreen';
 import TeacherMyNotificationScreen from '../screens/teacher/TeacherMyNotificationScreen';
 import TeacherSurveyScreen from '../screens/teacher/SurveyScreen';
+import SettingScreen from '../screens/SettingScreen';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -323,6 +324,14 @@ const AppNavigator = () => {
         <Stack.Screen
           name="SurveyScreen"
           component={TeacherSurveyScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="Setting"
+          component={SettingScreen}
           options={{
             headerShown: false,
           }}

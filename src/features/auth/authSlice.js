@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loadSessionThunk, loginThunk, logoutThunk } from "./authThunks";
+import { loadSessionThunk, loginThunk, logoutThunk, refreshTokenThunk } from "./authThunks";
 
 // Định nghĩa các role hợp lệ
 export const ROLES = {
@@ -87,7 +87,28 @@ const authSlice = createSlice({
         })
         .addCase(logoutThunk.rejected, (state) => {
             return { ...initialState, isSessionLoaded: true };
+        })
+        
+        // Refresh token
+        .addCase(refreshTokenThunk.pending, (state) => {
+          state.isLoading = true;
+          state.error = null;
+        })
+        .addCase(refreshTokenThunk.fulfilled, (state, action) => {
+          state.isLoading = false;
+          state.accessToken = action.payload.accessToken;
+          state.refreshToken = action.payload.refreshToken || state.refreshToken;
+          state.user = action.payload.user;
+          state.loginRole = action.payload.role;
+          state.isAuthenticated = true;
+          state.error = null;
+        })
+        .addCase(refreshTokenThunk.rejected, (state, action) => {
+          state.isLoading = false;
+          state.error = action.payload;
+          state.isAuthenticated = false;
         });
+
   },
 });
 

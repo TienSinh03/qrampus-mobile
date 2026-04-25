@@ -14,7 +14,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginThunk } from '../features/auth/authThunks';
+import { loginThunk, refreshTokenThunk } from '../features/auth/authThunks';
 import {
   setLoginRole,
   clearError,
@@ -23,6 +23,18 @@ import {
   selectIsAuthenticated,
   selectLoginRole,
 } from '../features/auth/authSlice';
+
+import {
+  checkBiometricAvailable,
+  authenticateBiometric,
+  getBiometricConfig,
+} from '../utils/biometricAuth';
+
+// Cần cài đặt: npm install lucide-react-native
+import { 
+  ArrowLeft, User, Lock, Eye, EyeOff, 
+  RefreshCw, Fingerprint, BookOpen, MessageCircle, Phone 
+} from 'lucide-react-native';
 
 const LoginScreen = ({ route, navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
@@ -39,6 +51,17 @@ const LoginScreen = ({ route, navigation }) => {
   const currentLoginRole = useSelector(selectLoginRole);
 
   const isStudent = activeTab === 'student';
+
+  // Biometric states
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+
+  // Styling Themes (Tailwind Classes)
+  const themeHex = isStudent ? '#2563eb' : '#0891b2'; // blue-600 : cyan-600
+  const textTheme = isStudent ? 'text-blue-600' : 'text-cyan-600';
+  const bgTheme = isStudent ? 'bg-blue-600' : 'bg-cyan-600';
+  const borderTheme = isStudent ? 'border-blue-600' : 'border-cyan-600';
+  const lightBgTheme = isStudent ? 'bg-blue-50' : 'bg-cyan-50';
 
   useEffect(() => {
     dispatch(setLoginRole(activeTab));
@@ -75,6 +98,18 @@ const LoginScreen = ({ route, navigation }) => {
     }
   }, [error, dispatch]);
 
+  useEffect(() => {
+    checkLoginBiometric();
+  }, []);
+
+  const checkLoginBiometric = async () => {
+    const available = await checkBiometricAvailable();
+    const config = await getBiometricConfig();
+
+    setBiometricAvailable(available);
+    setBiometricEnabled(config.enabled);
+  };
+
   const handleLogin = () => {
     if (!username.trim()) {
       Alert.alert('Lỗi', 'Vui lòng nhập mã đăng nhập');
@@ -88,6 +123,39 @@ const LoginScreen = ({ route, navigation }) => {
       user_name: username.trim(),
       password,
       loginRole: activeTab,
+    }));
+  };
+
+  const handleBiometricLogin = async () => {
+    const config = await getBiometricConfig();
+    console.log('Biometric config on login attempt:', config);
+
+    if (!config.enabled || !config.refreshToken) {
+      Alert.alert(
+        'Chưa thể đăng nhập bằng vân tay',
+        'Bạn cần đăng nhập bằng mật khẩu lần đầu và bật chức năng vân tay trong phần cài đặt.'
+      );
+      return;
+    }
+
+    if (config.role !== activeTab) {
+      Alert.alert(
+        'Không thể sử dụng vân tay',
+        'Vui lòng đăng nhập bằng mật khẩu để tiếp tục.'
+      );
+      return;
+    }
+
+    const result = await authenticateBiometric('Xác thực vân tay để đăng nhập');
+
+    if (!result.success) {
+      Alert.alert('Đăng nhập thất bại', 'Xác thực vân tay không thành công');
+      return;
+    }
+
+    dispatch(refreshTokenThunk({
+      refreshToken: config.refreshToken,
+      role: config.role,
     }));
   };
 
@@ -105,100 +173,99 @@ const LoginScreen = ({ route, navigation }) => {
     setTimeout(() => setRefreshing(false), 1000);
   };
 
-  // Active tab accent color
-  const accentColor = isStudent ? '#1a56db' : '#0087ad';
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
 
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[themeHex]} tintColor={themeHex} />}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}
+          className="flex-1"
         >
-          {/* Top Bar */}
-          <View style={styles.topBar}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-              <Text style={styles.backArrow}>←</Text>
+          {/* Top Header */}
+          <View className="flex-row items-center justify-between px-5 pt-2 pb-4">
+            <TouchableOpacity 
+              onPress={() => navigation.goBack()} 
+              className="w-10 h-10 bg-slate-50 border border-slate-200 rounded-full items-center justify-center"
+            >
+              <ArrowLeft size={20} color="#475569" />
             </TouchableOpacity>
-            <Text style={styles.appName}>ĐĂNG NHẬP HỆ THỐNG</Text>
-            <View style={{ width: 40 }} />
+            <Text className={`text-base font-black tracking-widest ${textTheme}`}>
+              ĐĂNG NHẬP
+            </Text>
+            <View className="w-10" />
           </View>
 
-          {/* Tab Switcher — flat, sharp corners */}
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                isStudent && { borderBottomColor: '#1a56db', borderBottomWidth: 3 },
-              ]}
-              onPress={() => handleTabSwitch('student')}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.tabText, isStudent && { color: '#1a56db', fontWeight: '700' }]}>
-                Sinh viên
-              </Text>
-            </TouchableOpacity>
+          {/* Segmented Tab Switcher */}
+          <View className="px-5 mt-2 mb-6">
+            <View className="flex-row bg-slate-100 p-1 rounded-xl">
+              <TouchableOpacity
+                className={`flex-1 py-3 rounded-lg items-center justify-center ${isStudent ? 'bg-white shadow-sm' : ''}`}
+                onPress={() => handleTabSwitch('student')}
+                activeOpacity={0.8}
+              >
+                <Text className={`text-sm font-bold ${isStudent ? textTheme : 'text-slate-500'}`}>
+                  Sinh viên
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                !isStudent && { borderBottomColor: '#0087ad', borderBottomWidth: 3 },
-              ]}
-              onPress={() => handleTabSwitch('teacher')}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.tabText, !isStudent && { color: '#0087ad', fontWeight: '700' }]}>
-                Giảng viên
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                className={`flex-1 py-3 rounded-lg items-center justify-center ${!isStudent ? 'bg-white shadow-sm' : ''}`}
+                onPress={() => handleTabSwitch('teacher')}
+                activeOpacity={0.8}
+              >
+                <Text className={`text-sm font-bold ${!isStudent ? textTheme : 'text-slate-500'}`}>
+                  Giảng viên
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-
-          {/* Divider */}
-          <View style={styles.divider} />
 
           {/* Form Content */}
-          <View style={styles.formContainer}>
-            <Text style={styles.heading}>
-              Nhập thông tin đăng nhập để tiếp tục
+          <View className="px-6 flex-1">
+            <Text className="text-2xl font-extrabold text-slate-800 mb-6">
+              Chào mừng bạn 👋
             </Text>
 
-            {/* Username */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Mã đăng nhập</Text>
-              <View style={[styles.inputWrapper, { borderColor: accentColor }]}>
-                <Text style={styles.inputIcon}>👤</Text>
+            {/* Username Input */}
+            <View className="mb-5">
+              <Text className="text-sm font-semibold text-slate-700 mb-2">Mã đăng nhập</Text>
+              <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 h-14">
+                <User size={20} color="#94a3b8" />
                 <TextInput
                   value={username}
                   onChangeText={setUsername}
                   placeholder={isStudent ? 'Nhập mã sinh viên' : 'Nhập mã giảng viên'}
-                  placeholderTextColor="#aab"
-                  style={styles.input}
+                  placeholderTextColor="#94a3b8"
+                  className="flex-1 ml-3 text-base text-slate-800"
                   autoCapitalize="none"
                 />
               </View>
             </View>
 
-            {/* Password */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Mật khẩu</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputIcon}>🔒</Text>
+            {/* Password Input */}
+            <View className="mb-6">
+              <Text className="text-sm font-semibold text-slate-700 mb-2">Mật khẩu</Text>
+              <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-xl px-4 h-14">
+                <Lock size={20} color="#94a3b8" />
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
                   placeholder="Nhập mật khẩu"
-                  placeholderTextColor="#aab"
+                  placeholderTextColor="#94a3b8"
                   secureTextEntry={!showPassword}
-                  style={styles.input}
+                  className="flex-1 ml-3 text-base text-slate-800"
                 />
-                <TouchableOpacity onPress={() => setShowPassword(v => !v)} style={styles.eyeBtn}>
-                  <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁️'}</Text>
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="p-2">
+                  {showPassword ? (
+                    <EyeOff size={20} color="#94a3b8" />
+                  ) : (
+                    <Eye size={20} color="#94a3b8" />
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
@@ -207,260 +274,79 @@ const LoginScreen = ({ route, navigation }) => {
             <TouchableOpacity
               onPress={handleLogin}
               disabled={isLoading}
-              style={[styles.loginBtn, { backgroundColor: isLoading ? '#9ca3af' : accentColor }]}
-              activeOpacity={0.88}
+              className={`h-14 rounded-xl items-center justify-center mb-6 shadow-sm ${isLoading ? 'bg-slate-400' : bgTheme}`}
+              activeOpacity={0.85}
             >
               {isLoading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text style={styles.loginBtnText}>Đăng nhập</Text>
+                <Text className="text-white text-base font-bold tracking-wide">
+                  Đăng nhập
+                </Text>
               )}
             </TouchableOpacity>
 
-            {/* Forgot / Switch Account Row */}
-            <View style={styles.actionRow}>
+            {/* Actions Row */}
+            <View className="flex-row justify-between items-center mb-8">
               <TouchableOpacity>
-                <Text style={[styles.actionLink, { color: accentColor }]}>Quên mật khẩu</Text>
+                <Text className={`text-sm font-semibold ${textTheme}`}>Quên mật khẩu?</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.switchRow}>
-                <Text style={styles.actionText}>Đổi tài khoản</Text>
-                <Text style={{ color: accentColor, marginLeft: 4, fontSize: 16 }}>↺</Text>
+              <TouchableOpacity className="flex-row items-center">
+                <Text className="text-sm font-semibold text-slate-700 mr-1.5">Đổi tài khoản</Text>
+                <RefreshCw size={14} color={themeHex} />
               </TouchableOpacity>
             </View>
 
-            {/* Biometric */}
-            <TouchableOpacity style={styles.biometricRow}>
-              <View style={styles.biometricIcon}>
-                <Text style={{ fontSize: 26 }}>👆</Text>
-              </View>
-              <Text style={styles.biometricText}>Đăng nhập bằng vân tay</Text>
-            </TouchableOpacity>
+            {/* Biometric Button */}
+            {biometricAvailable && (
+              <TouchableOpacity
+                onPress={handleBiometricLogin}
+                activeOpacity={0.85}
+                className={`flex-row items-center p-4 rounded-2xl border-2 ${borderTheme} mb-8 bg-white shadow-sm`}
+              >
+                <View className={`w-12 h-12 rounded-full items-center justify-center mr-4 ${lightBgTheme}`}>
+                  <Fingerprint size={28} color={themeHex} />
+                </View>
+                <View className="flex-1">
+                  <Text className={`text-base font-bold ${textTheme} mb-0.5`}>
+                    Đăng nhập bằng vân tay
+                  </Text>
+                  <Text className="text-xs text-slate-500">
+                    Chạm nhẹ để truy cập nhanh chóng
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
           </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <View style={styles.footerLinks}>
-              <TouchableOpacity style={styles.footerItem}>
-                <Text style={styles.footerIcon}>📖</Text>
-                <Text style={styles.footerLabel}>Hướng dẫn{'\n'}sử dụng</Text>
+          {/* Footer Area */}
+          <View className="pt-6 pb-4 mt-auto bg-slate-50 border-t border-slate-200/60 items-center">
+            <View className="flex-row justify-around w-full px-4 mb-4">
+              <TouchableOpacity className="items-center flex-1">
+                <BookOpen size={24} color="#64748b" className="mb-2" />
+                <Text className="text-xs text-slate-500 font-medium text-center">Hướng dẫn</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.footerItem}>
-                <Text style={styles.footerIcon}>💬</Text>
-                <Text style={styles.footerLabel}>Câu hỏi{'\n'}thường gặp</Text>
+              <TouchableOpacity className="items-center flex-1">
+                <MessageCircle size={24} color="#64748b" className="mb-2" />
+                <Text className="text-xs text-slate-500 font-medium text-center">Hỏi đáp</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.footerItem}>
-                <Text style={styles.footerIcon}>📞</Text>
-                <Text style={styles.footerLabel}>Hotline{'\n'}hỗ trợ</Text>
+              <TouchableOpacity className="items-center flex-1">
+                <Phone size={24} color="#64748b" className="mb-2" />
+                <Text className="text-xs text-slate-500 font-medium text-center">Hotline</Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity>
-              <Text style={styles.privacyLink}>Chính sách quyền riêng tư</Text>
+              <Text className="text-xs text-slate-500 underline mb-2">Điều khoản & Quyền riêng tư</Text>
             </TouchableOpacity>
-            <Text style={styles.version}>Phiên bản 1.0.0</Text>
+            <Text className="text-[10px] text-slate-400 font-medium tracking-widest">
+              PHIÊN BẢN 1.0.0
+            </Text>
           </View>
+
         </KeyboardAvoidingView>
       </ScrollView>
     </SafeAreaView>
   );
-};
-
-const styles = {
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#ffffff',
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backArrow: {
-    fontSize: 22,
-    color: '#222',
-  },
-  appName: {
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: 2,
-    color: '#1a56db',
-  },
-
-  // TAB SWITCHER — no border radius
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#ffffff',
-    marginTop: 4,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderBottomColor: '#e5e7eb',
-    borderBottomWidth: 2,
-  },
-  tabText: {
-    fontSize: 15,
-    color: '#6b7280',
-    fontWeight: '500',
-    letterSpacing: 0.3,
-  },
-
-  divider: {
-    height: 1,
-    backgroundColor: '#e5e7eb',
-  },
-
-  formContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 28,
-    flex: 1,
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
-    lineHeight: 30,
-    marginBottom: 28,
-  },
-  fieldGroup: {
-    marginBottom: 18,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#d1d5db',
-    backgroundColor: '#fff',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    // No borderRadius — flat square corners
-  },
-  inputIcon: {
-    fontSize: 16,
-    marginRight: 10,
-    opacity: 0.6,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    color: '#111827',
-    padding: 0,
-    margin: 0,
-  },
-  eyeBtn: {
-    paddingLeft: 8,
-  },
-  eyeIcon: {
-    fontSize: 16,
-    opacity: 0.5,
-  },
-
-  loginBtn: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 20,
-    // No borderRadius — flat
-  },
-  loginBtnText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-
-  actionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  actionLink: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  actionText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
-  },
-
-  biometricRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    marginBottom: 20,
-  },
-  biometricIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  biometricText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#111827',
-  },
-
-  footer: {
-    paddingTop: 24,
-    paddingBottom: 16,
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-    backgroundColor: '#fafafa',
-  },
-  footerLinks: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  footerItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  footerIcon: {
-    fontSize: 28,
-    marginBottom: 6,
-  },
-  footerLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  privacyLink: {
-    fontSize: 13,
-    color: '#374151',
-    textDecorationLine: 'underline',
-    marginBottom: 6,
-  },
-  version: {
-    fontSize: 12,
-    color: '#9ca3af',
-  },
 };
 
 export default LoginScreen;

@@ -90,6 +90,7 @@ instance.interceptors.response.use(
           if (response.status === 200) {
             const newAccessToken = response.data?.data?.accessToken;
             await SecureStore.setItemAsync("accessToken", newAccessToken);
+            await SecureStore.setItemAsync("refreshToken", response.data?.data?.refreshToken);
             // Lazy require tránh circular dependency: axiosInstance ← authThunks ← authSlice
             const { store } = require('../store');
             store.dispatch({ type: 'auth/updateTokens', payload: { accessToken: newAccessToken } });

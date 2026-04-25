@@ -62,7 +62,7 @@ const StudentProfileScreen = ({ navigation }) => {
       icon: 'settings-outline',
       title: 'Cài đặt',
       subtitle: 'Cài đặt ứng dụng',
-      onPress: () => console.log('Settings'),
+      onPress: () => navigation.navigate('Setting', { userRole: 'student' }),
     },
     {
       id: '5',
