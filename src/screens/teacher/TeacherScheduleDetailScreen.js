@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   Dimensions,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -15,7 +16,7 @@ import { SvgUri } from 'react-native-svg';
 import AttendanceStatistics from '../../components/statistics/AttendanceStatistics';
 import SurveyStatistics from '../../components/statistics/SurveyStatistics';
 import { useDispatch, useSelector } from 'react-redux';
-import { getStudentsByClassSessionThunk } from '../../features/classSession/classSessionThunks';
+import { getStudentsByClassSessionThunk, getTeacherClassSessionOverviewThunk } from '../../features/classSession/classSessionThunks';
 import {
   clearStudents,
   selectStudents,
@@ -23,6 +24,8 @@ import {
   selectPracticeGroupBreakdown,
   selectApiPracticeGroup,
   selectStudentsLoading,
+  selectClassSessionOverview,
+  selectClassSessionOverviewLoading,
 } from '../../features/classSession/classSessionSlice';
 
 const { width } = Dimensions.get('window');
@@ -37,6 +40,10 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
   const [isInActiveWindow, setIsInActiveWindow] = useState(false);
   const [isUrgent, setIsUrgent] = useState(false);
   const studentCount = useSelector(selectTotalStudents);
+  const classSessionOverview = useSelector(selectClassSessionOverview);
+  const classSessionOverviewLoading = useSelector(selectClassSessionOverviewLoading);
+
+  const [refreshing, setRefreshing] = useState(false);
 
   const {
     id,
@@ -58,16 +65,30 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     dispatch(getStudentsByClassSessionThunk(schedule.id));
+    dispatch(getTeacherClassSessionOverviewThunk(schedule.id));
     return () => { dispatch(clearStudents()); };
   }, []);
 
-  // Thống kê điểm danh (thay bằng API call - hôm nay)
-  const [attendanceStats, setAttendanceStats] = useState({
-    present: 38,
-    absent: 5,
-    excused: 2,
-    total: studentCount,
-  });
+  const handleRefresh = useCallback((callback) => {
+    setRefreshing(true);
+    Promise.all([
+      dispatch(getStudentsByClassSessionThunk(schedule.id)),
+      dispatch(getTeacherClassSessionOverviewThunk(schedule.id)),
+    ]).finally(() => {
+      setRefreshing(false);
+      if (callback) callback();
+    });
+  }, [dispatch, schedule.id]);
+
+  const attendanceStats = useMemo(() => {
+    const newStats = {
+      present: classSessionOverview?.attendanceOverview?.latestSession?.attendedCount || 0,
+      absent: classSessionOverview?.attendanceOverview?.latestSession?.absentCount || 0,
+      excused: classSessionOverview?.leaveEvidence?.approved || 0,
+      total: studentCount,
+    };
+    return newStats;
+  }, [classSessionOverview, studentCount]);
 
   // Thống kê khảo sát (sẽ lấy từ API dựa vào schedule.id)
   const [surveyStats, setSurveyStats] = useState({
@@ -293,6 +314,9 @@ const TeacherScheduleDetailScreen = ({ navigation, route }) => {
         className="flex-1" 
         showsVerticalScrollIndicator={false} 
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* Quick Status Card */}
         {timeRemaining && (

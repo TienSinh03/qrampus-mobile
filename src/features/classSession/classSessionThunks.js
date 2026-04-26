@@ -24,3 +24,19 @@ export const getStudentsByClassSessionThunk = createAsyncThunk(
         }
     }
 );
+
+export const getTeacherClassSessionOverviewThunk = createAsyncThunk(
+    'teacher/classSessionOverview',
+    async (classSessionId, { rejectWithValue }) => {
+        try {
+            const response = await instance.get(`/teachers/class-sessions/${classSessionId}/overview`);
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Lấy tổng quan buổi học thất bại');
+            }
+            return response?.data?.data;
+        }
+        catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Lấy tổng quan buổi học thất bại');
+        }
+    }
+);

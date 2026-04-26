@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getStudentsByClassSessionThunk } from "./classSessionThunks";
+import { getStudentsByClassSessionThunk, getTeacherClassSessionOverviewThunk } from "./classSessionThunks";
 
 const initialState = {
     students: [],
@@ -12,6 +12,12 @@ const initialState = {
 
     studentsLoading: false,
     studentsError: null,
+
+    
+    // Class session overview state
+    classSessionOverview: null,
+    classSessionOverviewLoading: false,
+    classSessionOverviewError: null,
 };
 
 const classSessionSlice = createSlice({
@@ -48,6 +54,21 @@ const classSessionSlice = createSlice({
             .addCase(getStudentsByClassSessionThunk.rejected, (state, action) => {
                 state.studentsLoading = false;
                 state.studentsError = action.payload;
+            })
+                        
+            // Get teacher class session overview
+            .addCase(getTeacherClassSessionOverviewThunk.pending, (state) => {
+                state.classSessionOverviewLoading = true;
+                state.classSessionOverviewError = null;
+            })
+            .addCase(getTeacherClassSessionOverviewThunk.fulfilled, (state, action) => {
+                state.classSessionOverviewLoading = false;
+                state.classSessionOverview = action.payload;
+                state.classSessionOverviewError = null;
+            })
+            .addCase(getTeacherClassSessionOverviewThunk.rejected, (state, action) => {
+                state.classSessionOverviewLoading = false;
+                state.classSessionOverviewError = action.payload;
             });
     },
 });
@@ -62,5 +83,9 @@ export const selectApiPracticeGroup = (state) => state.classSession.practiceGrou
 export const selectStudentsLoading = (state) => state.classSession.studentsLoading;
 export const selectStudentsError = (state) => state.classSession.studentsError;
 export const selectLoadedForSessionId = (state) => state.classSession.loadedForSessionId;
+
+export const selectClassSessionOverview = (state) => state.classSession.classSessionOverview;
+export const selectClassSessionOverviewLoading = (state) => state.classSession.classSessionOverviewLoading;
+export const selectClassSessionOverviewError = (state) => state.classSession.classSessionOverviewError;
 
 export default classSessionSlice.reducer;
