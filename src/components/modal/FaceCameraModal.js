@@ -24,7 +24,7 @@ import { resetFaceVerify } from '../../features/faceVerify/faceVerifySlice';
 
 // ─── Inner modal ─────────────────────────────────────────────────────────────
 
-const CameraModal = ({ visible, onClose, onCapture, schedule, userRole }) => {
+const CameraModal = ({ visible, onClose, onCapture, schedule, userRole, mode = 'verify', preventClose = false }) => {
   const dispatch = useDispatch();
   const cameraRef = useRef(null);
   const [permission, requestPermission] = useCameraPermissions();
@@ -87,17 +87,26 @@ const CameraModal = ({ visible, onClose, onCapture, schedule, userRole }) => {
   };
 
   const sendForVerification = async (photo) => {
+    if (mode === 'avatar') {
+      onCapture?.({ photo });
+      setScreen('camera');
+      return;
+    }
+
     setScreen('verifying');
+
     try {
       const result = await dispatch(
         verifyFaceThunk({
-          imageUri:     photo.uri,
+          imageUri: photo.uri,
           attendanceId: schedule?.attendanceId ?? null,
         })
       ).unwrap();
+
       setVerifyResult(result);
       setScreen('result');
       onCapture?.({ photo, result });
+
     } catch (err) {
       setVerifyError(typeof err === 'string' ? err : 'Không thể xác thực. Vui lòng thử lại.');
       setScreen('result');
@@ -120,36 +129,43 @@ const CameraModal = ({ visible, onClose, onCapture, schedule, userRole }) => {
 
         {/* ── Header ── */}
         <LinearGradient colors={gradient} style={s.header}>
-          <TouchableOpacity style={s.closeBtn} onPress={onClose}>
-            <Ionicons name="chevron-down" size={26} color="white" />
-          </TouchableOpacity>
+          {!preventClose && (
+            <TouchableOpacity style={s.closeBtn} onPress={onClose}>
+              <Ionicons name="chevron-down" size={26} color="white" />
+            </TouchableOpacity>
+          )}
+
+          {preventClose && <View style={{ width: 40 }} />}
           <View style={s.headerMid}>
             <View style={s.headerLabel}>
               <Ionicons name="shield-checkmark" size={16} color="rgba(255,255,255,0.85)" />
-              <Text style={s.headerSub}>Xác thực điểm danh</Text>
+              <Text style={s.headerSub}>{mode === 'avatar' ? 'Chụp ảnh đại diện' : 'Xác thực điểm danh'}</Text>
             </View>
             <Text style={s.headerCourse} numberOfLines={1}>
-              {schedule?.courseName || 'Môn học'}
+              {mode === 'avatar' ? 'Ảnh đại diện' : schedule?.courseName || 'Môn học'}
             </Text>
           </View>
           <View style={{ width: 40 }} />
         </LinearGradient>
 
         {/* ── Info pills ── */}
-        <View style={s.pills}>
-          {!!schedule?.courseCode && (
-            <Pill icon="barcode-outline" text={schedule.courseCode} color={accent} tinted />
-          )}
-          {!!schedule?.startHour && (
-            <Pill icon="time-outline" text={`${schedule.startHour} – ${schedule.endHour}`} />
-          )}
-          {!!schedule?.room && (
-            <Pill icon="location-outline" text={schedule.room} />
-          )}
-          {!!schedule?.teacherName && (
-            <Pill icon="person-outline" text={schedule.teacherName} />
-          )}
-        </View>
+        {mode !== 'avatar' && (
+
+          <View style={s.pills}>
+            {!!schedule?.courseCode && (
+              <Pill icon="barcode-outline" text={schedule.courseCode} color={accent} tinted />
+            )}
+            {!!schedule?.startHour && (
+              <Pill icon="time-outline" text={`${schedule.startHour} – ${schedule.endHour}`} />
+            )}
+            {!!schedule?.room && (
+              <Pill icon="location-outline" text={schedule.room} />
+            )}
+            {!!schedule?.teacherName && (
+              <Pill icon="person-outline" text={schedule.teacherName} />
+            )}
+          </View>
+        )}
 
         {/* ── Screen: Camera ── */}
         {screen === 'camera' && (
@@ -316,7 +332,7 @@ const Center = ({ children }) => <View style={s.center}>{children}</View>;
 
 // ─── Default export: self-contained trigger + modal ───────────────────────────
 
-const FaceCameraModal = ({ schedule = null, userRole = 'student', onCapture }) => {
+const FaceCameraModal = ({ schedule = null, userRole = 'student', onCapture, mode = 'verify', autoOpen = false, hideTrigger = false, preventClose = false }) => {
   const [open, setOpen] = useState(false);
   const isPractice = schedule?.isPractice && !schedule?.isTheory;
   const roleColor = userRole === 'teacher' ? '#0171a5' : (isPractice ? '#059669' : '#2563eb');
@@ -325,32 +341,48 @@ const FaceCameraModal = ({ schedule = null, userRole = 'student', onCapture }) =
     onCapture?.({ photo, result });
   };
 
+  useEffect(() => {
+    if (autoOpen) {
+      setOpen(true);
+    }
+  }, [autoOpen]);
+
+
   return (
     <View>
-      <TouchableOpacity style={st.card} activeOpacity={0.8} onPress={() => setOpen(true)}>
-        <Image
-          source={require('../../../assets/images/Face_id.png')}
-          style={st.faceImg}
-          resizeMode="contain"
-        />
-        <Text style={st.cardTitle}>Xác thực khuôn mặt</Text>
-        <Text style={st.cardSub}>
-          {userRole === 'teacher'
-            ? 'Nhấn để xác thực khuôn mặt (tuỳ chọn)'
-            : 'Nhấn để mở camera xác thực điểm danh'}
-        </Text>
-        <View style={[st.btn, { backgroundColor: roleColor }]}>
-          <Ionicons name="camera-outline" size={16} color="white" />
-          <Text style={st.btnTxt}>Mở camera</Text>
-        </View>
-      </TouchableOpacity>
+
+      {!hideTrigger && (
+
+        <TouchableOpacity style={st.card} activeOpacity={0.8} onPress={() => setOpen(true)}>
+          <Image
+            source={require('../../../assets/images/Face_id.png')}
+            style={st.faceImg}
+            resizeMode="contain"
+          />
+          <Text style={st.cardTitle}>{mode === 'avatar' ? 'Cập nhật ảnh đại diện' : 'Xác thực khuôn mặt'}</Text>
+          <Text style={st.cardSub}>
+            {
+              mode === 'avatar' ? 'Nhấn để chụp ảnh đại diện' : 
+                userRole === 'teacher'
+                  ? 'Nhấn để xác thực khuôn mặt (tuỳ chọn)'
+                  : 'Nhấn để mở camera xác thực điểm danh'
+            }
+          </Text>
+          <View style={[st.btn, { backgroundColor: roleColor }]}>
+            <Ionicons name="camera-outline" size={16} color="white" />
+            <Text style={st.btnTxt}>Mở camera</Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       <CameraModal
         visible={open}
-        onClose={() => setOpen(false)}
+        onClose={() => { if (!preventClose) setOpen(false); }}
         onCapture={handleCapture}
         schedule={schedule}
         userRole={userRole}
+        mode={mode}
+        preventClose={preventClose}
       />
     </View>
   );

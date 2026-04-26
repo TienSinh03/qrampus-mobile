@@ -75,7 +75,7 @@ const LoginScreen = ({ route, navigation }) => {
       if (currentLoginRole === 'student') {
         navigation.reset({
           index: 0,
-          routes: [{ name: 'StudentHome', params: { userRole: currentLoginRole } }],
+          routes: [{ name: 'StudentAvatarGate', params: { userRole: currentLoginRole } }],
         });
       } else if (currentLoginRole === 'teacher') {
         navigation.reset({

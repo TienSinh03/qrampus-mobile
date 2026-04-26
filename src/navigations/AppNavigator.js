@@ -45,6 +45,8 @@ import TeacherNotificationScreen from '../screens/teacher/TeacherNotificationScr
 import TeacherMyNotificationScreen from '../screens/teacher/TeacherMyNotificationScreen';
 import TeacherSurveyScreen from '../screens/teacher/SurveyScreen';
 import SettingScreen from '../screens/SettingScreen';
+import StudentAvatarGateScreen from '../screens/student/StudentAvatarGateScreen';
+
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
@@ -72,7 +74,8 @@ const AppNavigator = () => {
   const getInitialRouteName = () => {
     if (!isSessionLoaded) return 'IntroCarousel';
     if (isAuthenticated && loginRole) {
-      return loginRole === 'student' ? 'StudentHome' : 'TeacherHome';
+      
+      return loginRole === 'student' ? 'StudentAvatarGate' : 'TeacherHome';
     }
     return 'IntroCarousel';
   };
@@ -110,6 +113,15 @@ const AppNavigator = () => {
           name="Login" 
           component={LoginScreen} 
         />
+        
+        <Stack.Screen
+          name="StudentAvatarGate"
+          component={StudentAvatarGateScreen}
+          options={{
+            gestureEnabled: false,
+          }}
+        />
+
         <Stack.Screen
           name="StudentHome"
           component={StudentTabNavigator}

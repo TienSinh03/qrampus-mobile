@@ -161,14 +161,14 @@ const BaseHomeScreen = ({
 
 
         {/* Face verification */}
-        <View className="px-6 pb-6">
+        {/* <View className="px-6 pb-6">
           <Text className="text-gray-900 text-lg font-bold mb-4">Check khuôn mặt</Text>
           <FaceCameraModal
             schedule={currentSchedule}
             userRole={userRole}
             onCapture={(photo) => console.log('Captured:', photo?.uri)}
           />
-        </View>
+        </View> */}
       </ScrollView>
     </SafeAreaView>
   );
