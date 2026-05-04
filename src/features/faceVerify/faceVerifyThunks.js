@@ -26,14 +26,24 @@ export const verifyFaceThunk = createAsyncThunk(
 
       const response = await instance.post('/face-verify/verify', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000, // face ML inference cần nhiều thời gian hơn default
       });
 
       // { match, status, distance, label, image_url, verified_at, student_code, full_name }
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || 'Xác thực thất bại'
-      );
+      const serverMsg = error.response?.data?.message || '';
+      const isTimeout =
+        error.code === 'ECONNABORTED' ||
+        error.message?.toLowerCase().includes('timeout') ||
+        serverMsg.toLowerCase().includes('timeout');
+
+      if (isTimeout) {
+        return rejectWithValue(
+          'Server xử lý quá lâu. Hãy thử lại – đảm bảo mặt rõ và ánh sáng tốt.'
+        );
+      }
+      return rejectWithValue(serverMsg || 'Xác thực thất bại');
     }
   }
 );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -10,6 +10,8 @@ import QuickActions from './QuickActions';
 import ScheduleCarousel from './ScheduleCarousel';
 import { selectUnreadCount } from '../features/notification/notificationSlice';
 import FaceCameraModal from './modal/FaceCameraModal';
+import AieFaceDetectModal from './modal/AieFaceDetectModal';
+import FaceComparisonModal from './modal/FaceComparisonModal';
 
 const BaseHomeScreen = ({
   navigation,
@@ -33,6 +35,10 @@ const BaseHomeScreen = ({
 
   const useCarousel = todaySchedules.length >= 2;
 
+  // State for face comparison
+  const [comparisonVisible, setComparisonVisible] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
+
   const getCurrentDate = () => {
     const days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
     const today = new Date();
@@ -46,6 +52,26 @@ const BaseHomeScreen = ({
   const onNotificationPress = () => {
     navigation.navigate('Notification', { userRole });
   }
+
+  const handleFaceCapture = ({ photo, result }) => {
+    // Store the captured photo URI
+    setCapturedPhoto(photo?.uri);
+    // Show comparison modal if we have avatar
+    if (userData?.avatar_url) {
+      setComparisonVisible(true);
+    }
+  };
+
+  const handleComparisonClose = ({ result }) => {
+    setComparisonVisible(false);
+    setCapturedPhoto(null);
+    // Optionally handle the comparison result here
+    if (result?.is_same_person) {
+      console.log('✅ Face match successful');
+    } else {
+      console.log('❌ Face does not match');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -161,14 +187,42 @@ const BaseHomeScreen = ({
 
 
         {/* Face verification */}
-        {/* <View className="px-6 pb-6">
+        <View className="px-6 pb-6">
           <Text className="text-gray-900 text-lg font-bold mb-4">Check khuôn mặt</Text>
           <FaceCameraModal
             schedule={currentSchedule}
             userRole={userRole}
             onCapture={(photo) => console.log('Captured:', photo?.uri)}
           />
-        </View> */}
+        </View>
+
+        <View className="px-6 pb-6">
+          <Text className="text-gray-900 text-lg font-bold mb-4">Check khuôn mặt API</Text>
+          <AieFaceDetectModal
+            avatarUrl={userData?.avatar_url}
+            userRole={userRole}
+          />
+        </View>
+
+        {/* ///my-face-recognition */}
+        <View className="px-6 pb-6">
+          <Text className="text-gray-900 text-lg font-bold mb-4">Check My Face</Text>
+          <FaceCameraModal
+            schedule={currentSchedule}
+            userRole={userRole}
+            onCapture={handleFaceCapture}
+          />
+        </View>
+
+        {/* Face Comparison Modal */}
+        <FaceComparisonModal
+          visible={comparisonVisible}
+          onClose={handleComparisonClose}
+          avatarUrl={userData?.avatar_url}
+          capturedPhotoUri={capturedPhoto}
+          userName={userData?.full_name || 'Người dùng'}
+          userRole={userRole}
+        />
       </ScrollView>
     </SafeAreaView>
   );

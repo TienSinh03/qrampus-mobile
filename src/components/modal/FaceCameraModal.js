@@ -72,9 +72,9 @@ const CameraModal = ({ visible, onClose, onCapture, schedule, userRole, mode = '
     if (!cameraRef.current) return;
     try {
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.85,
+        quality: 0.55,        // giảm từ 0.85 → upload nhanh hơn, đủ chất lượng cho ML
         base64: false,
-        skipProcessing: false,
+        skipProcessing: true, // bỏ qua xử lý local → chụp nhanh hơn
       });
       setIsCapturing(false);
       setCountdown(null);
