@@ -99,7 +99,6 @@ const authSlice = createSlice({
           state.accessToken = action.payload.accessToken;
           state.refreshToken = action.payload.refreshToken || state.refreshToken;
           state.user = action.payload.user;
-          state.loginRole = action.payload.role;
           state.isAuthenticated = true;
           state.error = null;
         })

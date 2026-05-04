@@ -36,7 +36,7 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
   });
 
   const hasActiveSession = hasActiveSessionProp || realtimeHasActiveSession;
-  console.log('TeacherScheduleCard render - hasActiveSession:', hasActiveSession, 'for schedule ID:', id);
+  // console.log('TeacherScheduleCard render - hasActiveSession:', hasActiveSession, 'for schedule ID:', id);
 
   const isPracticeSchedule = isPractice && !isTheory;
   const scheduleTypeLabel = isPracticeSchedule ? 'Thực hành' : 'Lý thuyết';

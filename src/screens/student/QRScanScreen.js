@@ -56,9 +56,7 @@ const QRScanScreen = ({ route, navigation }) => {
         }
 
         const current = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-          timeout: 2500,
-          maximumAge: 15000,
+          accuracy: Location.Accuracy.High
         });
 
         if (current?.coords) {
