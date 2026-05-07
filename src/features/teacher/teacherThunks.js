@@ -176,4 +176,33 @@ export const updateTeacherProfileThunk = createAsyncThunk(
     }
 );
 
+/**
+ * Lấy lịch dạy + trạng thái tạo phiên điểm danh của giảng viên
+ */
+export const getTeacherWorkloadThunk = createAsyncThunk(
+    'teacher/workload',
+    async (params = {}, { rejectWithValue }) => {
+        try {
+            const { from_date, to_date } = params;
+            const queryParams = new URLSearchParams();
+
+            if (from_date) queryParams.append('from_date', from_date);
+            if (to_date) queryParams.append('to_date', to_date);
+            
+            const queryString = queryParams.toString();
+            const url = `/teachers/me/attendance-workload${queryString ? `?${queryString}` : ''}`;
+            
+            const response = await instance.get(url);
+            
+            if (!response?.data?.success) {
+                throw new Error(response?.data?.message || 'Lấy lịch dạy thất bại');
+            }
+            
+            return response?.data?.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Lấy lịch dạy thất bại');
+        }
+    }
+);
+
 // lấy danh sách phiên chụp ảnh của giảng viên với phân trang

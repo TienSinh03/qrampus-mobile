@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getTeacherProfileThunk, getTeacherSchedulesThunk, getMySchedulesToday, getTeacherCoursesThunk, updateTeacherProfileThunk } from "./teacherThunks";
+import { getTeacherProfileThunk, getTeacherSchedulesThunk, getMySchedulesToday, getTeacherCoursesThunk, updateTeacherProfileThunk, getTeacherWorkloadThunk } from "./teacherThunks";
 
 const initialState = {
     profile: null,
@@ -18,6 +18,11 @@ const initialState = {
     courses: [], // Danh sách khóa học giảng dạy
     coursesLoading: false,
     coursesError: null,
+
+    // Workload state
+    workload: null, 
+    workloadLoading: false,
+    workloadError: null,
 };
 
 /**
@@ -133,6 +138,20 @@ const teacherSlice = createSlice({
                 state.coursesLoading = false;
                 state.coursesError = action.payload;
             })
+            // Get teacher workload
+            .addCase(getTeacherWorkloadThunk.pending, (state) => {
+                state.workloadLoading = true;
+                state.workloadError = null;
+            })
+            .addCase(getTeacherWorkloadThunk.fulfilled, (state, action) => {
+                state.workloadLoading = false;
+                state.workload = action.payload;
+                state.workloadError = null;
+            })
+            .addCase(getTeacherWorkloadThunk.rejected, (state, action) => {
+                state.workloadLoading = false;
+                state.workloadError = action.payload;
+            })
             // Update teacher profile
             .addCase(updateTeacherProfileThunk.pending, (state) => {
                 state.isLoading = true;
@@ -169,5 +188,10 @@ export const selectCurrentScheduleRange = (state) => state.teacher.currentSchedu
 export const selectTeacherCourses = (state) => state.teacher.courses;
 export const selectCoursesLoading = (state) => state.teacher.coursesLoading;
 export const selectCoursesError = (state) => state.teacher.coursesError;
+
+// Workload selectors
+export const selectTeacherWorkload = (state) => state.teacher.workload;
+export const selectWorkloadLoading = (state) => state.teacher.workloadLoading;
+export const selectWorkloadError = (state) => state.teacher.workloadError;
 
 export default teacherSlice.reducer;

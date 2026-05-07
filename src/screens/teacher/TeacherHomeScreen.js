@@ -88,15 +88,13 @@ const TeacherHomeScreen = ({ navigation }) => {
       id: '1',
       icon: 'qr-code-outline',
       label: 'Quản lý QR',
-      // onPress: () => navigation.navigate('CreateQRSession'),
-      onPress: () => console.log('Create QR Session'),
+      onPress: () => navigation.navigate('TeacherMyClasses'),
     },
     {
       id: '2',
       icon: 'calendar-outline',
       label: 'Phiên học',
-      // onPress: () => navigation.navigate('SessionList'),
-      onPress: () => console.log('Session List'),
+      onPress: () => navigation.navigate('TeacherMyClasses'),
     },
     {
       id: '3',

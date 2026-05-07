@@ -44,6 +44,7 @@ import TermsPoliciesScreen from '../screens/TermsPoliciesScreen';
 import TeacherNotificationScreen from '../screens/teacher/TeacherNotificationScreen';
 import TeacherMyNotificationScreen from '../screens/teacher/TeacherMyNotificationScreen';
 import TeacherSurveyScreen from '../screens/teacher/SurveyScreen';
+import TeacherMyClassesScreen from '../screens/teacher/TeacherMyClassesScreen';
 import SettingScreen from '../screens/SettingScreen';
 import StudentAvatarGateScreen from '../screens/student/StudentAvatarGateScreen';
 
@@ -348,7 +349,15 @@ const AppNavigator = () => {
             headerShown: false,
           }}
         />
-        
+
+        <Stack.Screen
+          name="TeacherMyClasses"
+          component={TeacherMyClassesScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

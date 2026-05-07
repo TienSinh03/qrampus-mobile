@@ -27,7 +27,7 @@ const { width } = Dimensions.get('window');
 const SessionListScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const { animatedHeight, animatedOpacity, animatedTranslateY, handleScroll, handleMomentumScrollBegin } = useCollapsibleHeader(width * 0.45);
-  const { schedule } = route.params;
+  const { schedule, nextScreen } = route.params;
 
   const sessions = useSelector(selectSessions);
   const historyLoading = useSelector(selectHistoryLoading);
@@ -163,118 +163,121 @@ const SessionListScreen = ({ navigation, route }) => {
             </Text>
           </View>
         </View>
-        <Animated.View
-          style={{
-            height: animatedHeight,
-            opacity: animatedOpacity,
-            transform: [{ translateY: animatedTranslateY }],
-            overflow: 'hidden'
-          }}
-        >
-          {/* Action Buttons */}
-          <View className="mt-3">
-            {/* Student List Button */}
-            <TouchableOpacity
-              onPress={() => navigation.navigate('StudentList', { schedule })}
-              className="bg-white rounded-xl mb-2 overflow-hidden"
-              style={{
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.15,
-                shadowRadius: 4,
-                elevation: 3,
-              }}
-            >
-              <View className="flex-row items-center p-4">
-                <View className="w-12 h-12 bg-sky-100 rounded-xl items-center justify-center mr-3">
-                  <Ionicons name="people" size={24} color="#0171a5" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-gray-900 font-bold text-base mb-0.5">Danh sách sinh viên</Text>
-                  <Text className="text-gray-500 text-xs">Xem và quản lý sinh viên trong lớp</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-              </View>
-            </TouchableOpacity>
-
-            {/* Create Session Button or Status */}
-            {isInActiveWindow && !schedule.hasActiveSession && (
+        {!nextScreen && (
+              
+          <Animated.View
+            style={{
+              height: animatedHeight,
+              opacity: animatedOpacity,
+              transform: [{ translateY: animatedTranslateY }],
+              overflow: 'hidden'
+            }}
+          >
+            {/* Action Buttons */}
+            <View className="mt-3">
+              {/* Student List Button */}
               <TouchableOpacity
-                onPress={handleCreateNewSession}
-                activeOpacity={0.8}
-                className="rounded-xl overflow-hidden"
+                onPress={() => navigation.navigate('StudentList', { schedule })}
+                className="bg-white rounded-xl mb-2 overflow-hidden"
                 style={{
-                  shadowColor: '#0171a5',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 6,
-                  elevation: 5,
-                }}
-              >
-                <LinearGradient
-                  colors={['#0171a5', '#30b2ea']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  className="flex-row items-center p-4"
-                >
-                  <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center mr-3">
-                    <Ionicons name="qr-code" size={26} color="white" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-white font-bold text-base mb-0.5">Tạo phiên điểm danh</Text>
-                    <Text className="text-white/80 text-xs">Tạo QR code để sinh viên điểm danh</Text>
-                  </View>
-                  <Ionicons name="add-circle" size={28} color="white" />
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
-
-            {isInActiveWindow && schedule.hasActiveSession && (
-              <View 
-                className="rounded-xl overflow-hidden"
-                style={{
-                  shadowColor: '#10b981',
+                  shadowColor: '#000',
                   shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.2,
+                  shadowOpacity: 0.15,
                   shadowRadius: 4,
                   elevation: 3,
                 }}
               >
-                <LinearGradient
-                  colors={['#10b981', '#34d399']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  className="flex-row items-center p-4"
-                >
-                  <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center mr-3">
-                    <View className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                <View className="flex-row items-center p-4">
+                  <View className="w-12 h-12 bg-sky-100 rounded-xl items-center justify-center mr-3">
+                    <Ionicons name="people" size={24} color="#0171a5" />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-white font-bold text-base mb-0.5">Phiên đang hoạt động</Text>
-                    <Text className="text-white/80 text-xs">Sinh viên đang điểm danh</Text>
+                    <Text className="text-gray-900 font-bold text-base mb-0.5">Danh sách sinh viên</Text>
+                    <Text className="text-gray-500 text-xs">Xem và quản lý sinh viên trong lớp</Text>
                   </View>
-                  <Ionicons name="checkmark-circle" size={28} color="white" />
-                </LinearGradient>
-              </View>
-            )}
+                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                </View>
+              </TouchableOpacity>
 
-            {!isInActiveWindow && (
-              <View className="bg-white/10 rounded-xl p-4 flex-row items-center">
-                <View className="w-10 h-10 bg-white/10 rounded-xl items-center justify-center mr-3">
-                  <Ionicons name="time-outline" size={22} color="white" />
+              {/* Create Session Button or Status */}
+              {isInActiveWindow && !schedule.hasActiveSession && (
+                <TouchableOpacity
+                  onPress={handleCreateNewSession}
+                  activeOpacity={0.8}
+                  className="rounded-xl overflow-hidden"
+                  style={{
+                    shadowColor: '#0171a5',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 6,
+                    elevation: 5,
+                  }}
+                >
+                  <LinearGradient
+                    colors={['#0171a5', '#30b2ea']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    className="flex-row items-center p-4"
+                  >
+                    <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center mr-3">
+                      <Ionicons name="qr-code" size={26} color="white" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-white font-bold text-base mb-0.5">Tạo phiên điểm danh</Text>
+                      <Text className="text-white/80 text-xs">Tạo QR code để sinh viên điểm danh</Text>
+                    </View>
+                    <Ionicons name="add-circle" size={28} color="white" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              )}
+
+              {isInActiveWindow && schedule.hasActiveSession && (
+                <View 
+                  className="rounded-xl overflow-hidden"
+                  style={{
+                    shadowColor: '#10b981',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 4,
+                    elevation: 3,
+                  }}
+                >
+                  <LinearGradient
+                    colors={['#10b981', '#34d399']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    className="flex-row items-center p-4"
+                  >
+                    <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center mr-3">
+                      <View className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-white font-bold text-base mb-0.5">Phiên đang hoạt động</Text>
+                      <Text className="text-white/80 text-xs">Sinh viên đang điểm danh</Text>
+                    </View>
+                    <Ionicons name="checkmark-circle" size={28} color="white" />
+                  </LinearGradient>
                 </View>
-                <View className="flex-1">
-                  <Text className="text-white/90 font-semibold text-sm mb-0.5">
-                    Chưa đến giờ tạo phiên
-                  </Text>
-                  <Text className="text-white/60 text-xs">
-                    Bạn có thể tạo phiên trong khoảng ±15 phút
-                  </Text>
+              )}
+
+              {!isInActiveWindow && (
+                <View className="bg-white/10 rounded-xl p-4 flex-row items-center">
+                  <View className="w-10 h-10 bg-white/10 rounded-xl items-center justify-center mr-3">
+                    <Ionicons name="time-outline" size={22} color="white" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-white/90 font-semibold text-sm mb-0.5">
+                      Chưa đến giờ tạo phiên
+                    </Text>
+                    <Text className="text-white/60 text-xs">
+                      Bạn có thể tạo phiên trong khoảng ±15 phút
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            )}
-          </View>
-        </Animated.View>
+              )}
+            </View>
+          </Animated.View>
+        )}
       </LinearGradient>
 
       {/* Sessions List */}

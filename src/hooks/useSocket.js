@@ -88,8 +88,10 @@ export function useSocket() {
           });
 
           const newAccessToken = response.data?.data?.accessToken;
+          const newRefreshToken = response.data?.data?.refreshToken;
           if (newAccessToken) {
             await SecureStore.setItemAsync('accessToken', newAccessToken);
+            await SecureStore.setItemAsync('refreshToken', newRefreshToken);
             dispatch(updateTokens({ accessToken: newAccessToken }));
             // Cập nhật token cho socket và reconnect
             socket.auth = { token: newAccessToken };
