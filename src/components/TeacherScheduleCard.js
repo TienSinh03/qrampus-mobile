@@ -50,40 +50,47 @@ const TeacherScheduleCard = ({ schedule, navigation }) => {
     const calculateTimeRemaining = () => {
       const now = new Date();
       const [startHourNum, startMinute] = startHour.split(':').map(Number);
-      
-      const classTime = new Date();
-      classTime.setHours(startHourNum, startMinute, 0, 0);
-      
-      const diffMs = classTime - now;
-      const diffMinutes = Math.floor(diffMs / 60000);
-      
-      // Kiểm tra nếu trong khoảng thời gian tạo phiên (5 phút trước đến 30 phút sau giờ bắt đầu)
-      const inWindow = diffMinutes >= -30 && diffMinutes <= 5;
+      const [endHourNum, endMinute] = endHour.split(':').map(Number);
 
+      const classStartTime = new Date();
+      classStartTime.setHours(startHourNum, startMinute, 0, 0);
+
+      const classEndTime = new Date();
+      classEndTime.setHours(endHourNum, endMinute, 0, 0);
+
+      const diffMs = classStartTime - now;
+      const diffMinutes = Math.floor(diffMs / 60000);
+
+      const diffEndMinutes = Math.floor((classEndTime - now) / 60000);
+
+      // Cửa sổ tạo phiên: 5 phút trước đến 30 phút sau khi bắt đầu
+      const inWindow = diffMinutes >= -30 && diffMinutes <= 5;
       setIsInActiveWindow(inWindow);
-      
-      // Kiểm tra nếu trong khoảng thời gian khẩn cấp (5 phút trước đến 5 phút sau giờ bắt đầu)
+
+      // Khẩn cấp: 5 phút trước đến 5 phút sau khi bắt đầu
       const urgent = diffMinutes >= -5 && diffMinutes <= 5;
       setIsUrgent(urgent);
-      
+
       if (diffMinutes > 60) {
         const hours = Math.floor(diffMinutes / 60);
         const mins = diffMinutes % 60;
         setTimeRemaining(`${hours}h ${mins}p nữa`);
       } else if (diffMinutes > 0) {
         setTimeRemaining(`${diffMinutes} phút nữa`);
-      } else if (diffMinutes > -30) {
+      } else if (diffEndMinutes > 0) {
+        // Lớp đã bắt đầu nhưng chưa kết thúc
         setTimeRemaining('Đang diễn ra');
       } else {
+        // Đã qua giờ kết thúc thực sự
         setTimeRemaining('Đã kết thúc');
       }
     };
 
     calculateTimeRemaining();
-    const interval = setInterval(calculateTimeRemaining, 30000); // Update every 30s
-    
+    const interval = setInterval(calculateTimeRemaining, 30000);
+
     return () => clearInterval(interval);
-  }, [startHour]);
+  }, [startHour, endHour]);
 
   const handleSchedulePress = () => {
     if (navigation) {

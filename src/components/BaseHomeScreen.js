@@ -28,7 +28,7 @@ const BaseHomeScreen = ({
   quickActions = [], // Array of { id, icon, label, onPress }
 }) => {
   const roleColor = userRole === 'teacher' ? '#0171a5' : '#2563eb';
-  const roleBgColor = userRole === 'teacher' ? '#f5f3ff' : '#eff6ff';
+  const roleBgColor = userRole === 'teacher' ? '#eff6ff' : '#eff6ff';
   const roleLabel = userRole === 'teacher' ? 'Giảng viên' : 'Sinh viên';
   const unreadCount = useSelector(selectUnreadCount);
   const currentSchedule = todaySchedules[0] ?? null;

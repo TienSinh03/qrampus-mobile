@@ -79,7 +79,7 @@ const StatsCard = ({ stats, userRole = 'teacher' }) => {
             <View key={index} className="flex-1 items-center">
               <View 
                 className={`w-12 h-12 rounded-full items-center justify-center mb-2`}
-                style={{ backgroundColor: isTeacher ? '#faf5ff' : '#eff6ff' }}
+                style={{ backgroundColor: isTeacher ? '#eff6ff' : '#eff6ff' }}
               >
                 <Ionicons 
                   name={stat.icon} 
