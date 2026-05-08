@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDispatch } from 'react-redux';
+import { WebView } from 'react-native-webview';
+import * as FileSystem from 'expo-file-system';
 import { verifyFaceThunk } from '../../features/faceVerify/faceVerifyThunks';
 import { resetFaceVerify } from '../../features/faceVerify/faceVerifySlice';
+import { useFaceRecognition } from '../../hooks/useFaceRecognition';
 
 // ─── Screen states inside the modal ─────────────────────────────────────────
 // 'camera'    → live camera + capture button
@@ -24,9 +27,34 @@ import { resetFaceVerify } from '../../features/faceVerify/faceVerifySlice';
 
 // ─── Inner modal ─────────────────────────────────────────────────────────────
 
-const CameraModal = ({ visible, onClose, onCapture, schedule, userRole, mode = 'verify', preventClose = false }) => {
+// HTML injected into the hidden WebView to extract RGB pixels from an image data URL
+const PIXEL_EXTRACTOR_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>
+<canvas id="c" width="112" height="112" style="display:none"></canvas>
+<script>
+function run(dataUrl){
+  var img=new Image();
+  img.onload=function(){
+    var ctx=document.getElementById('c').getContext('2d');
+    ctx.drawImage(img,0,0,112,112);
+    var d=ctx.getImageData(0,0,112,112).data;
+    var rgb=new Uint8Array(112*112*3);
+    for(var i=0;i<112*112;i++){rgb[i*3]=d[i*4];rgb[i*3+1]=d[i*4+1];rgb[i*3+2]=d[i*4+2];}
+    var b='',C=8192;
+    for(var j=0;j<rgb.length;j+=C){b+=String.fromCharCode.apply(null,rgb.subarray(j,Math.min(j+C,rgb.length)));}
+    window.ReactNativeWebView.postMessage(btoa(b));
+  };
+  img.onerror=function(){window.ReactNativeWebView.postMessage('ERROR');};
+  img.src=dataUrl;
+}
+window.addEventListener('message',function(e){run(e.data);});
+document.addEventListener('message',function(e){run(e.data);});
+</script></body></html>`;
+
+const CameraModal = ({ visible, onClose, onCapture, schedule, userRole, mode = 'verify', preventClose = false, referenceImageUri = null }) => {
   const dispatch = useDispatch();
   const cameraRef = useRef(null);
+  const webviewRef = useRef(null);
+  const pixelResolveRef = useRef(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -34,6 +62,9 @@ const CameraModal = ({ visible, onClose, onCapture, schedule, userRole, mode = '
   const [screen, setScreen] = useState('camera'); // 'camera' | 'verifying' | 'result'
   const [verifyResult, setVerifyResult] = useState(null);
   const [verifyError, setVerifyError] = useState(null);
+  const [isWebViewReady, setIsWebViewReady] = useState(false);
+
+  const { compare, isReady: isModelReady } = useFaceRecognition();
 
   useEffect(() => {
     if (visible && !permission?.granted) requestPermission();
@@ -50,6 +81,50 @@ const CameraModal = ({ visible, onClose, onCapture, schedule, userRole, mode = '
       dispatch(resetFaceVerify());
     }
   }, [visible]);
+
+  const onWebViewMessage = useCallback((event) => {
+    if (!pixelResolveRef.current) return;
+    const data = event.nativeEvent.data;
+    if (data === 'ERROR') {
+      pixelResolveRef.current.reject(new Error('Không thể trích xuất pixel'));
+    } else {
+      try {
+        const binary = atob(data);
+        const pixels = new Float32Array(binary.length);
+        for (let i = 0; i < binary.length; i++) pixels[i] = binary.charCodeAt(i);
+        pixelResolveRef.current.resolve(pixels);
+      } catch (e) {
+        pixelResolveRef.current.reject(e);
+      }
+    }
+    pixelResolveRef.current = null;
+  }, []);
+
+  const extractPixelsFromUri = useCallback(async (uri) => {
+    if (!isWebViewReady) throw new Error('WebView chưa sẵn sàng');
+    let base64;
+    if (uri.startsWith('http')) {
+      const tmpPath = FileSystem.cacheDirectory + '_face_tmp.jpg';
+      await FileSystem.downloadAsync(uri, tmpPath);
+      base64 = await FileSystem.readAsStringAsync(tmpPath, { encoding: FileSystem.EncodingType.Base64 });
+    } else {
+      base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    }
+    const mime = uri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+    const dataUrl = `data:${mime};base64,${base64}`;
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        pixelResolveRef.current = null;
+        reject(new Error('Pixel extraction timeout'));
+      }, 15000);
+      pixelResolveRef.current = {
+        resolve: (v) => { clearTimeout(timeout); resolve(v); },
+        reject:  (e) => { clearTimeout(timeout); reject(e);  },
+      };
+      webviewRef.current?.postMessage(dataUrl);
+    });
+  }, [isWebViewReady]);
 
   const startCountdown = () => {
     if (isCapturing || !isCameraReady) return;
@@ -95,18 +170,38 @@ const CameraModal = ({ visible, onClose, onCapture, schedule, userRole, mode = '
 
     setScreen('verifying');
 
+    // Local ONNX inference khi có ảnh tham chiếu và model đã load
+    if (referenceImageUri && isModelReady()) {
+      try {
+        const capturedPixels = await extractPixelsFromUri(photo.uri);
+        const refPixels      = await extractPixelsFromUri(referenceImageUri);
+        const localResult    = await compare(capturedPixels, refPixels);
+        const result = {
+          match:      localResult.is_same_person,
+          score:      localResult.score,
+          confidence: localResult.confidence,
+          isLocal:    true,
+        };
+        setVerifyResult(result);
+        setScreen('result');
+        onCapture?.({ photo, result });
+        return;
+      } catch (e) {
+        console.warn('[FaceCameraModal] Local inference thất bại, chuyển sang backend:', e);
+      }
+    }
+
+    // Backend fallback
     try {
       const result = await dispatch(
         verifyFaceThunk({
-          imageUri: photo.uri,
+          imageUri:     photo.uri,
           attendanceId: schedule?.attendanceId ?? null,
         })
       ).unwrap();
-
       setVerifyResult(result);
       setScreen('result');
       onCapture?.({ photo, result });
-
     } catch (err) {
       setVerifyError(typeof err === 'string' ? err : 'Không thể xác thực. Vui lòng thử lại.');
       setScreen('result');
@@ -268,13 +363,26 @@ const CameraModal = ({ visible, onClose, onCapture, schedule, userRole, mode = '
                   <Ionicons name="checkmark-circle" size={64} color="#16a34a" />
                 </View>
                 <Text style={[s.resultTitle, { color: '#15803d' }]}>Xác thực thành công!</Text>
-                <Text style={s.resultName}>{verifyResult.full_name}</Text>
-                <Text style={s.resultCode}>{verifyResult.student_code}</Text>
+                {!verifyResult.isLocal && (
+                  <>
+                    <Text style={s.resultName}>{verifyResult.full_name}</Text>
+                    <Text style={s.resultCode}>{verifyResult.student_code}</Text>
+                  </>
+                )}
                 <View style={s.distanceBadge}>
                   <Text style={s.distanceTxt}>
-                    Độ tương đồng: {((1 - verifyResult.distance) * 100).toFixed(1)}%
+                    {verifyResult.isLocal
+                      ? `Độ tương đồng: ${(verifyResult.score * 100).toFixed(1)}%`
+                      : `Độ tương đồng: ${((1 - verifyResult.distance) * 100).toFixed(1)}%`}
                   </Text>
                 </View>
+                {verifyResult.isLocal && (
+                  <View style={[s.distanceBadge, { backgroundColor: '#eff6ff', marginTop: 0 }]}>
+                    <Text style={[s.distanceTxt, { color: '#2563eb' }]}>
+                      Độ tin cậy: {verifyResult.confidence}
+                    </Text>
+                  </View>
+                )}
                 <TouchableOpacity
                   style={[s.resultBtn, { backgroundColor: '#16a34a' }]}
                   onPress={onClose}
@@ -292,10 +400,12 @@ const CameraModal = ({ visible, onClose, onCapture, schedule, userRole, mode = '
                 <Text style={s.resultSub}>
                   Không nhận diện được khuôn mặt. Hãy đảm bảo ánh sáng tốt và nhìn thẳng vào camera.
                 </Text>
-                {verifyResult?.distance !== undefined && (
+                {(verifyResult?.distance !== undefined || verifyResult?.score !== undefined) && (
                   <View style={[s.distanceBadge, { backgroundColor: '#fff7ed' }]}>
                     <Text style={[s.distanceTxt, { color: '#ea580c' }]}>
-                      Độ tương đồng: {((1 - verifyResult.distance) * 100).toFixed(1)}%
+                      {verifyResult.isLocal
+                        ? `Độ tương đồng: ${(verifyResult.score * 100).toFixed(1)}%`
+                        : `Độ tương đồng: ${((1 - verifyResult.distance) * 100).toFixed(1)}%`}
                     </Text>
                   </View>
                 )}
@@ -313,6 +423,16 @@ const CameraModal = ({ visible, onClose, onCapture, schedule, userRole, mode = '
             )}
           </View>
         )}
+
+        {/* Hidden WebView for pixel extraction */}
+        <WebView
+          ref={webviewRef}
+          source={{ html: PIXEL_EXTRACTOR_HTML }}
+          onLoad={() => setIsWebViewReady(true)}
+          onMessage={onWebViewMessage}
+          javaScriptEnabled
+          style={s.hiddenWebView}
+        />
 
       </SafeAreaView>
     </Modal>
@@ -332,7 +452,7 @@ const Center = ({ children }) => <View style={s.center}>{children}</View>;
 
 // ─── Default export: self-contained trigger + modal ───────────────────────────
 
-const FaceCameraModal = ({ schedule = null, userRole = 'student', onCapture, mode = 'verify', autoOpen = false, hideTrigger = false, preventClose = false }) => {
+const FaceCameraModal = ({ schedule = null, userRole = 'student', onCapture, mode = 'verify', autoOpen = false, hideTrigger = false, preventClose = false, referenceImageUri = null }) => {
   const [open, setOpen] = useState(false);
   const isPractice = schedule?.isPractice && !schedule?.isTheory;
   const roleColor = userRole === 'teacher' ? '#0171a5' : (isPractice ? '#059669' : '#2563eb');
@@ -383,6 +503,7 @@ const FaceCameraModal = ({ schedule = null, userRole = 'student', onCapture, mod
         userRole={userRole}
         mode={mode}
         preventClose={preventClose}
+        referenceImageUri={referenceImageUri}
       />
     </View>
   );
@@ -480,6 +601,7 @@ const s = StyleSheet.create({
     borderRadius: 999,
   },
   resultBtnTxt: { color: 'white', fontWeight: '700', fontSize: 15 },
+  hiddenWebView: { width: 0, height: 0, position: 'absolute', opacity: 0 },
 });
 
 const sp = StyleSheet.create({

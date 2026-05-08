@@ -56,7 +56,8 @@
           "locationAlwaysPermission": "Ứng dụng cần GPS để xác minh bạn đang ở trong phòng học khi điểm danh.",
           "locationWhenInUsePermission": "Ứng dụng cần GPS để xác minh bạn đang ở trong phòng học khi điểm danh."
         }
-      ]
+      ],
+      ["onnxruntime-react-native"]
 
     ],
     "owner": "sinhphan2003"
