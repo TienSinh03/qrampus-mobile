@@ -220,51 +220,6 @@ const AttendanceImageScreen = ({ navigation, route }) => {
     setModalVisible(true);
   };
 
-  const renderImageGrid = (image, index) => (
-    <View key={image.id || index} style={{ width: imageSizeGrid }} className="mb-4">
-      <TouchableOpacity
-        onPress={() => handleImagePress(image)}
-        activeOpacity={0.75}
-        className="rounded-xl overflow-hidden bg-gray-200 relative"
-        style={{ height: imageSizeGrid }}
-      >
-        <Image
-          source={{ uri: image.thumbnailUrl || image.fileUrl }}
-          style={{ width: '100%', height: '100%' }}
-          resizeMode="cover"
-        />
-
-        {/* Badge số sinh viên */}
-        {image.studentCountAi && (
-          <View className="absolute top-2 right-2 bg-black/70 rounded-full px-2 py-1 flex-row items-center">
-            <Ionicons name="people" size={12} color="white" />
-            <Text className="text-white text-xs font-bold ml-1">{image.studentCountAi}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-
-      {/* Thời gian */}
-      <Text className="text-gray-500 text-xs mt-1 text-center">
-        {formatDateTime(image.takenAt).split(',')[1]?.trim() || ''}
-      </Text>
-
-      {/* Nút xóa */}
-      <View className="flex-row justify-center mt-1">
-        <TouchableOpacity
-          onPress={() => handleDelete(image)}
-          className="p-1"
-          disabled={!canDeleteImage() || deleting}
-        >
-          <Ionicons
-            name="trash"
-            size={20}
-            color={!canDeleteImage() || deleting ? '#9ca3af' : '#ef4444'}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
   const renderImageList = (image, index) => (
     <TouchableOpacity
       key={image.id || index}
@@ -475,12 +430,6 @@ const AttendanceImageScreen = ({ navigation, route }) => {
 
             <View className="flex-row bg-gray-200 rounded-full p-1">
               <TouchableOpacity
-                onPress={() => setViewMode('grid')}
-                className={`px-4 py-2 rounded-full ${viewMode === 'grid' ? 'bg-white shadow' : ''}`}
-              >
-                <Ionicons name="grid" size={20} color={viewMode === 'grid' ? '#0171a5' : '#6b7280'} />
-              </TouchableOpacity>
-              <TouchableOpacity
                 onPress={() => setViewMode('list')}
                 className={`px-4 py-2 rounded-full ${viewMode === 'list' ? 'bg-white shadow' : ''}`}
               >
@@ -512,13 +461,7 @@ const AttendanceImageScreen = ({ navigation, route }) => {
         {/* Nội dung ảnh */}
         {!isLoading && images.length > 0 && (
           <View>
-            {viewMode === 'grid' ? (
-              <View className="flex-row flex-wrap justify-between">
-                {images.map(renderImageGrid)}
-              </View>
-            ) : (
               <View>{images.map(renderImageList)}</View>
-            )}
           </View>
         )}
 

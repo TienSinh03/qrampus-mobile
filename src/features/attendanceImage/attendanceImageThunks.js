@@ -106,6 +106,23 @@ export const uploadAttendanceImage = createAsyncThunk(
 );
 
 /**
+ * Lấy 1 ảnh điểm danh theo ID (dùng để poll kết quả AI)
+ */
+export const fetchAttendanceImageById = createAsyncThunk(
+  'attendanceImage/fetchById',
+  async (imageId, { rejectWithValue }) => {
+    try {
+      const response = await instance.get(`/attendance-images/${imageId}`);
+      return transformAttendanceImage(response.data.data);
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Không thể tải thông tin ảnh'
+      );
+    }
+  }
+);
+
+/**
  * Xóa ảnh điểm danh
  * Điều kiện: buổi học còn trong thời gian start_hour - end_hour
  */

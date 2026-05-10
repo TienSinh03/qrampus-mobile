@@ -1,8 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { 
+import {
   fetchAttendanceImagesBySessionId,
   uploadAttendanceImage,
   deleteAttendanceImage,
+  fetchAttendanceImageById,
 } from './attendanceImageThunks';
 
 const initialState = {
@@ -11,6 +12,7 @@ const initialState = {
   error: null,
   uploading: false,
   uploadError: null,
+  uploadedImageId: null,   // ID ảnh vừa upload, dùng để poll
   deleting: false,
   deleteError: null,
 };
@@ -25,6 +27,9 @@ const attendanceImageSlice = createSlice({
     clearError: (state) => {
       state.error = null;
       state.uploadError = null;
+    },
+    clearUploadedImageId: (state) => {
+      state.uploadedImageId = null;
     },
     resetAttendanceImageState: () => initialState,
   },
@@ -50,12 +55,22 @@ const attendanceImageSlice = createSlice({
       })
       .addCase(uploadAttendanceImage.fulfilled, (state, action) => {
         state.uploading = false;
-        // Thêm ảnh mới vào đầu danh sách
         state.images = [action.payload, ...state.images];
+        state.uploadedImageId = action.payload?.id ?? null;
       })
       .addCase(uploadAttendanceImage.rejected, (state, action) => {
         state.uploading = false;
         state.uploadError = action.payload;
+      })
+
+    // fetchAttendanceImageById (polling AI result)
+      .addCase(fetchAttendanceImageById.fulfilled, (state, action) => {
+        const updated = action.payload;
+        if (!updated) return;
+        const idx = state.images.findIndex((img) => img.id === updated.id);
+        if (idx !== -1) {
+          state.images[idx] = updated;
+        }
       })
 
     // deleteAttendanceImage
@@ -81,7 +96,7 @@ const attendanceImageSlice = createSlice({
 
 
 
-export const { clearImages, clearError, resetAttendanceImageState } =
+export const { clearImages, clearError, resetAttendanceImageState, clearUploadedImageId } =
   attendanceImageSlice.actions;
 
 export default attendanceImageSlice.reducer;
