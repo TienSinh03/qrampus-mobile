@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useSelector } from 'react-redux';
@@ -12,6 +12,7 @@ import { selectUnreadCount } from '../features/notification/notificationSlice';
 import FaceCameraModal from './modal/FaceCameraModal';
 import AieFaceDetectModal from './modal/AieFaceDetectModal';
 import FaceComparisonModal from './modal/FaceComparisonModal';
+import ArcFaceModal from './modal/ArcFaceModal';
 
 const BaseHomeScreen = ({
   navigation,
@@ -38,6 +39,7 @@ const BaseHomeScreen = ({
   // State for face comparison
   const [comparisonVisible, setComparisonVisible] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState(null);
+  const [arcFaceVisible, setArcFaceVisible] = useState(false);
 
   const getCurrentDate = () => {
     const days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
@@ -187,32 +189,69 @@ const BaseHomeScreen = ({
 
 
         {/* Face verification */}
-        <View className="px-6 pb-6">
+        {/* <View className="px-6 pb-6">
           <Text className="text-gray-900 text-lg font-bold mb-4">Check khuôn mặt</Text>
           <FaceCameraModal
             schedule={currentSchedule}
             userRole={userRole}
             onCapture={(photo) => console.log('Captured:', photo?.uri)}
           />
-        </View>
+        </View> */}
 
-        <View className="px-6 pb-6">
+        {/* <View className="px-6 pb-6">
           <Text className="text-gray-900 text-lg font-bold mb-4">Check khuôn mặt API</Text>
           <AieFaceDetectModal
             avatarUrl={userData?.avatar_url}
             userRole={userRole}
           />
-        </View>
+        </View> */}
 
         {/* ///my-face-recognition */}
-        <View className="px-6 pb-6">
+        {/* <View className="px-6 pb-6">
           <Text className="text-gray-900 text-lg font-bold mb-4">Check My Face</Text>
           <FaceCameraModal
             schedule={currentSchedule}
             userRole={userRole}
             onCapture={handleFaceCapture}
           />
+        </View> */}
+
+        {/* ArcFace Section */}
+        <View className="px-6 pb-6">
+          <Text className="text-gray-900 text-lg font-bold mb-4">ArcFace AI</Text>
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#2563eb',
+              borderRadius: 12,
+              paddingVertical: 14,
+              paddingHorizontal: 24,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              shadowColor: '#2563eb',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
+            onPress={() => setArcFaceVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="body" size={22} color="white" />
+            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+              arcface
+            </Text>
+          </TouchableOpacity>
         </View>
+
+        {/* ArcFace Modal */}
+        <ArcFaceModal
+          visible={arcFaceVisible}
+          onClose={() => setArcFaceVisible(false)}
+          userRole={userRole}
+          avatarUrl={userData?.avatar_url}
+        />
 
         {/* Face Comparison Modal */}
         <FaceComparisonModal

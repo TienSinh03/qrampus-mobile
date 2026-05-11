@@ -1,15 +1,20 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import * as SecureStore from 'expo-secure-store';
 import { instance } from '../../api/axiosInstance';
 
 /**
  * Gửi ảnh selfie lên backend để xác thực khuôn mặt.
+ * Dùng fetch thay axios để React Native tự set Content-Type với boundary đúng cho FormData.
  *
  * @param {string} imageUri       - URI ảnh chụp từ camera
- * @param {string} [attendanceId] - UUID bản ghi điểm danh (optional, gắn kết quả với attendance)
+ * @param {string} [attendanceId] - UUID bản ghi điểm danh (optional)
  */
 export const verifyFaceThunk = createAsyncThunk(
   'faceVerify/verify',
   async ({ imageUri, attendanceId = null }, { rejectWithValue }) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 60000);
+
     try {
       const filename = imageUri.split('/').pop() || 'face.jpg';
       const formData = new FormData();
@@ -24,26 +29,46 @@ export const verifyFaceThunk = createAsyncThunk(
         formData.append('attendance_id', attendanceId);
       }
 
-      const response = await instance.post('/face-verify/verify', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 60000, // face ML inference cần nhiều thời gian hơn default
+      const token = await SecureStore.getItemAsync('accessToken');
+      const baseURL = (instance.defaults.baseURL || '').replace(/\/$/, '');
+
+      const res = await fetch(`${baseURL}/face-verify/verify`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          // KHÔNG set Content-Type — React Native fetch tự thêm boundary cho FormData
+        },
+        body: formData,
+        signal: controller.signal,
       });
 
-      // { match, status, distance, label, image_url, verified_at, student_code, full_name }
-      return response.data.data;
+      clearTimeout(timer);
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        const msg =
+          json?.message ||
+          json?.error  ||
+          json?.detail ||
+          `Lỗi ${res.status}`;
+        return rejectWithValue(msg);
+      }
+
+      return json.data;
     } catch (error) {
-      const serverMsg = error.response?.data?.message || '';
+      clearTimeout(timer);
+
       const isTimeout =
-        error.code === 'ECONNABORTED' ||
-        error.message?.toLowerCase().includes('timeout') ||
-        serverMsg.toLowerCase().includes('timeout');
+        error.name === 'AbortError' ||
+        error.message?.toLowerCase().includes('timeout');
 
       if (isTimeout) {
         return rejectWithValue(
           'Server xử lý quá lâu. Hãy thử lại – đảm bảo mặt rõ và ánh sáng tốt.'
         );
       }
-      return rejectWithValue(serverMsg || 'Xác thực thất bại');
+      return rejectWithValue(error.message || 'Xác thực thất bại');
     }
   }
 );

@@ -32,8 +32,8 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "API_URL": "http://192.168.1.120:3000/api/v1",
-      "SOCKET_URL": "http://192.168.1.120:3001",
+      "API_URL": "http://103.166.182.35:3000/api/v1",
+      "SOCKET_URL": "http://103.166.182.35:3001",
       "eas": {
         "projectId": "31cf70ac-29d6-40df-8b94-c26c6e46686c"
       }
