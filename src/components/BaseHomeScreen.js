@@ -13,6 +13,7 @@ import FaceCameraModal from './modal/FaceCameraModal';
 import AieFaceDetectModal from './modal/AieFaceDetectModal';
 import FaceComparisonModal from './modal/FaceComparisonModal';
 import ArcFaceModal from './modal/ArcFaceModal';
+import HomeAttendanceWidget from './statistics/HomeAttendanceWidget';
 
 const BaseHomeScreen = ({
   navigation,
@@ -216,6 +217,16 @@ const BaseHomeScreen = ({
           />
         </View> */}
 
+
+        {/* Attendance Stats Widget - students only */}
+        {userRole === 'student' && (
+          <View className="px-6 pb-6">
+            <Text className="text-gray-900 text-lg font-bold mb-4">Điểm danh của bạn</Text>
+            <HomeAttendanceWidget navigation={navigation} />
+          </View>
+        )}
+
+        
         {/* ArcFace Section */}
         <View className="px-6 pb-6">
           <Text className="text-gray-900 text-lg font-bold mb-4">ArcFace AI</Text>
