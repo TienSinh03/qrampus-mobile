@@ -41,9 +41,9 @@ const TeacherProfileScreen = ({ navigation }) => {
     {
       id: '2',
       icon: 'document-text-outline',
-      title: 'Lịch sử điểm danh',
-      subtitle: 'Xem lịch sử điểm danh các lớp',
-      onPress: () => console.log('Attendance history'),
+      title: 'Lịch sử chấm công',
+      subtitle: 'Xem lịch sử chấm công',
+      onPress: () => navigation.navigate('TeacherAttendanceHistory'),
     },
     {
       id: '3',

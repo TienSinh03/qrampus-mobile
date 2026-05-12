@@ -86,9 +86,9 @@ const TeacherHomeScreen = ({ navigation }) => {
   const quickActions = [
     {
       id: '1',
-      icon: 'qr-code-outline',
-      label: 'Quản lý QR',
-      onPress: () => navigation.navigate('TeacherMyClasses'),
+      icon: 'checkmark-done-outline',
+      label: 'Chấm công',
+      onPress: () => navigation.navigate('TeacherAttendanceHistory'),
     },
     {
       id: '2',
