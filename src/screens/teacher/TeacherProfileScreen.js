@@ -49,8 +49,8 @@ const TeacherProfileScreen = ({ navigation }) => {
       id: '3',
       icon: 'stats-chart-outline',
       title: 'Thống kê chi tiết',
-      subtitle: 'Báo cáo và phân tích điểm danh',
-      onPress: () => console.log('Detailed statistics'),
+      subtitle: 'Báo cáo và phân tích chấm công',
+      onPress: () => navigation.navigate('TeacherAttendanceAnalytics'),
     },
     {
       id: '4',

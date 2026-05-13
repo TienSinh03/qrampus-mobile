@@ -18,6 +18,7 @@ import {
   selectAttendanceDashboardLoading,
 } from '../../features/teacher/teacherSlice';
 import { getTeacherAttendanceDashboardThunk } from '../../features/teacher/teacherThunks';
+import SemesterPickerModal from '../../components/modal/SemesterPickerModal';
 
 const PAGE_SIZE = 10;
 
@@ -105,7 +106,10 @@ const TeacherAttendanceHistoryScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (dashboard?.availableSemesters?.length > 0 && selectedSemester === null) {
-      setSelectedSemester(dashboard.availableSemesters[0]);
+      const firstSem = dashboard.availableSemesters[0];
+      setSelectedSemester(firstSem);
+      // Refetch với semester filter để monthlyBreakdown + summary đúng theo kỳ
+      fetch(firstSem);
     }
   }, [dashboard]);
 
@@ -265,39 +269,14 @@ const TeacherAttendanceHistoryScreen = ({ navigation }) => {
       )}
 
       {/* Semester picker modal */}
-      <Modal
+      <SemesterPickerModal
         visible={showSemesterPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowSemesterPicker(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setShowSemesterPicker(false)}>
-          <View className="flex-1 bg-black/40 justify-end">
-            <TouchableWithoutFeedback>
-              <View className="bg-white rounded-t-3xl px-5 pt-3 pb-8">
-                <View className="w-10 h-1 bg-gray-200 rounded-full self-center mb-4" />
-                <Text className="text-gray-900 text-base font-bold mb-4">Chọn học kỳ</Text>
-                {semesters.map((sem, index) => {
-                  const isSelected = sem === selectedSemester;
-                  return (
-                    <TouchableOpacity
-                      key={sem}
-                      onPress={() => onSemesterSelect(sem)}
-                      className={`flex-row items-center py-3.5 ${index < semesters.length - 1 ? 'border-b border-gray-100' : ''}`}
-                      activeOpacity={0.6}
-                    >
-                      <Text className={`flex-1 text-sm ${isSelected ? 'text-sky-600 font-bold' : 'text-gray-700 font-medium'}`}>
-                        {sem}
-                      </Text>
-                      {isSelected && <Ionicons name="checkmark" size={20} color="#0284c7" />}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+        onClose={() => setShowSemesterPicker(false)}
+        semesters={semesters}
+        onSemesterSelect={onSemesterSelect}
+        selectedSemester={selectedSemester}
+      />
+      
     </SafeAreaView>
   );
 };
