@@ -7,6 +7,19 @@ import { instance } from '../../api/axiosInstance';
 const transformAttendanceImage = (image) => {
   if (!image) return null;
 
+  const aiMeta = image.metadata?.ai;
+  const detections = Array.isArray(aiMeta?.detections) ? aiMeta.detections : [];
+  const countFromDetections = detections.reduce(
+    (sum, item) => sum + (Number(item?.people_count) || 0),
+    0
+  );
+
+  const studentCountAi =
+    image.student_count_ai ??
+    aiMeta?.total_students ??
+    aiMeta?.total_people ??
+    (detections.length ? countFromDetections : null);
+
   return {
     id: image.id,
     imageSessionId: image.image_session_id,
@@ -15,7 +28,7 @@ const transformAttendanceImage = (image) => {
     takenAt: image.taken_at,
     width: image.width,
     height: image.height,
-    studentCountAi: image.student_count_ai,
+    studentCountAi,
     aiModel: image.ai_model,
     aiProcessedAt: image.ai_processed_at,
     metadata: image.metadata,
