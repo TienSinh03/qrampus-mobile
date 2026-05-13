@@ -205,4 +205,60 @@ export const getTeacherWorkloadThunk = createAsyncThunk(
     }
 );
 
+/**
+ * Lấy dashboard thống kê chấm công của giảng viên
+ */
+export const getTeacherAttendanceDashboardThunk = createAsyncThunk(
+    'teacher/attendanceDashboard',
+    async (params = {}, { rejectWithValue }) => {
+        try {
+            const { semester, from_date, to_date } = params;
+            const queryParams = new URLSearchParams();
+            if (semester) queryParams.append('semester', semester);
+            if (from_date) queryParams.append('from_date', from_date);
+            if (to_date) queryParams.append('to_date', to_date);
+
+            const qs = queryParams.toString();
+            const url = `/attendance-sessions/teacher/dashboard${qs ? `?${qs}` : ''}`;
+
+            const response = await instance.get(url);
+            if (!response?.data?.success) {
+
+                throw new Error(response?.data?.message);
+            }
+
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Lấy thống kê chấm công thất bại');
+        }
+    }
+);
+
+/**
+ * Lấy danh sách buổi chấm công theo học phần (có phân trang)
+ */
+export const getTeacherCourseSessionsThunk = createAsyncThunk(
+    'teacher/courseSessions',
+    async ({ courseId, semester, month, practiceGroupId, page = 1, pageSize = 10 } = {}, { rejectWithValue }) => {
+        try {
+            const queryParams = new URLSearchParams();
+            if (semester) queryParams.append('semester', semester);
+            if (month) queryParams.append('month', month);
+            if (practiceGroupId) queryParams.append('practice_group_id', practiceGroupId);
+
+            queryParams.append('page', page);
+            queryParams.append('page_size', pageSize);
+
+            const qs = queryParams.toString();
+            const url = `/attendance-sessions/teacher/courses/${courseId}/sessions${qs ? `?${qs}` : ''}`;
+            const response = await instance.get(url);
+
+            if (!response?.data?.success) throw new Error(response?.data?.message);
+            return { data: response.data.data, page };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || error.message || 'Lấy danh sách phiên chấm công thất bại');
+        }
+    }
+);
+
 // lấy danh sách phiên chụp ảnh của giảng viên với phân trang

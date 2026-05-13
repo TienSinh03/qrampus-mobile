@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getTeacherProfileThunk, getTeacherSchedulesThunk, getMySchedulesToday, getTeacherCoursesThunk, updateTeacherProfileThunk, getTeacherWorkloadThunk } from "./teacherThunks";
+import { getTeacherProfileThunk, getTeacherSchedulesThunk, getMySchedulesToday, getTeacherCoursesThunk, updateTeacherProfileThunk, getTeacherWorkloadThunk, getTeacherAttendanceDashboardThunk, getTeacherCourseSessionsThunk } from "./teacherThunks";
 
 const initialState = {
     profile: null,
@@ -20,9 +20,22 @@ const initialState = {
     coursesError: null,
 
     // Workload state
-    workload: null, 
+    workload: null,
     workloadLoading: false,
     workloadError: null,
+
+    // Attendance dashboard state
+    attendanceDashboard: null,
+    attendanceDashboardLoading: false,
+    attendanceDashboardError: null,
+
+    // Course sessions state (paginated)
+    courseSessionsList: [],        // accumulated sessions across pages
+    courseSessionsSummary: null,
+    courseSessionsPagination: null,
+    courseSessionsLoading: false,  // first page / full screen
+    courseSessionsLoadingMore: false, // subsequent pages
+    courseSessionsError: null,
 };
 
 /**
@@ -152,6 +165,49 @@ const teacherSlice = createSlice({
                 state.workloadLoading = false;
                 state.workloadError = action.payload;
             })
+            // Attendance dashboard
+            .addCase(getTeacherAttendanceDashboardThunk.pending, (state) => {
+                state.attendanceDashboardLoading = true;
+                state.attendanceDashboardError = null;
+            })
+            .addCase(getTeacherAttendanceDashboardThunk.fulfilled, (state, action) => {
+                state.attendanceDashboardLoading = false;
+                state.attendanceDashboard = action.payload;
+            })
+            .addCase(getTeacherAttendanceDashboardThunk.rejected, (state, action) => {
+                state.attendanceDashboardLoading = false;
+                state.attendanceDashboardError = action.payload;
+            })
+            // Course sessions (paginated)
+            .addCase(getTeacherCourseSessionsThunk.pending, (state, action) => {
+                const page = action.meta.arg?.page ?? 1;
+                if (page === 1) {
+                    state.courseSessionsLoading = true;
+                    state.courseSessionsList = [];
+                    state.courseSessionsSummary = null;
+                    state.courseSessionsPagination = null;
+                } else {
+                    state.courseSessionsLoadingMore = true;
+                }
+                state.courseSessionsError = null;
+            })
+            .addCase(getTeacherCourseSessionsThunk.fulfilled, (state, action) => {
+                const { data, page } = action.payload;
+                state.courseSessionsLoading = false;
+                state.courseSessionsLoadingMore = false;
+                state.courseSessionsSummary = data.summary;
+                state.courseSessionsPagination = data.pagination;
+                if (page === 1) {
+                    state.courseSessionsList = data.sessions;
+                } else {
+                    state.courseSessionsList = [...state.courseSessionsList, ...data.sessions];
+                }
+            })
+            .addCase(getTeacherCourseSessionsThunk.rejected, (state, action) => {
+                state.courseSessionsLoading = false;
+                state.courseSessionsLoadingMore = false;
+                state.courseSessionsError = action.payload;
+            })
             // Update teacher profile
             .addCase(updateTeacherProfileThunk.pending, (state) => {
                 state.isLoading = true;
@@ -193,5 +249,18 @@ export const selectCoursesError = (state) => state.teacher.coursesError;
 export const selectTeacherWorkload = (state) => state.teacher.workload;
 export const selectWorkloadLoading = (state) => state.teacher.workloadLoading;
 export const selectWorkloadError = (state) => state.teacher.workloadError;
+
+// Attendance dashboard selectors
+export const selectAttendanceDashboard = (state) => state.teacher.attendanceDashboard;
+export const selectAttendanceDashboardLoading = (state) => state.teacher.attendanceDashboardLoading;
+export const selectAttendanceDashboardError = (state) => state.teacher.attendanceDashboardError;
+
+// Course sessions selectors
+export const selectCourseSessionsList = (state) => state.teacher.courseSessionsList;
+export const selectCourseSessionsSummary = (state) => state.teacher.courseSessionsSummary;
+export const selectCourseSessionsPagination = (state) => state.teacher.courseSessionsPagination;
+export const selectCourseSessionsLoading = (state) => state.teacher.courseSessionsLoading;
+export const selectCourseSessionsLoadingMore = (state) => state.teacher.courseSessionsLoadingMore;
+export const selectCourseSessionsError = (state) => state.teacher.courseSessionsError;
 
 export default teacherSlice.reducer;

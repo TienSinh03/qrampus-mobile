@@ -47,6 +47,8 @@ import TeacherSurveyScreen from '../screens/teacher/SurveyScreen';
 import TeacherMyClassesScreen from '../screens/teacher/TeacherMyClassesScreen';
 import SettingScreen from '../screens/SettingScreen';
 import StudentAvatarGateScreen from '../screens/student/StudentAvatarGateScreen';
+import TeacherAttendanceHistoryScreen from '../screens/teacher/TeacherAttendanceHistoryScreen';
+import TeacherCourseAttendanceSessionsScreen from '../screens/teacher/TeacherCourseAttendanceSessionsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -353,6 +355,22 @@ const AppNavigator = () => {
         <Stack.Screen
           name="TeacherMyClasses"
           component={TeacherMyClassesScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="TeacherAttendanceHistory"
+          component={TeacherAttendanceHistoryScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="TeacherCourseAttendanceSessions"
+          component={TeacherCourseAttendanceSessionsScreen}
           options={{
             headerShown: false,
           }}
