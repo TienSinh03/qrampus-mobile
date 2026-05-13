@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -47,12 +48,13 @@ const AttendanceImageScreen = ({ navigation, route }) => {
 
   console.log('[DEBUG] imageSession:', imageSession);
 
-  useEffect(() => {
-    if (imageSession?.id) {
-      console.log('========imageSession============:', imageSession);
-      dispatch(fetchAttendanceImagesBySessionId(imageSession.id));
-    }
-  }, [imageSession?.id, dispatch]);
+  useFocusEffect(
+    useCallback(() => {
+      if (imageSession?.id) {
+        dispatch(fetchAttendanceImagesBySessionId(imageSession.id));
+      }
+    }, [imageSession?.id, dispatch])
+  );
 
   // Kiểm tra có được phép thêm ảnh không
   const canAddImage = () => {
