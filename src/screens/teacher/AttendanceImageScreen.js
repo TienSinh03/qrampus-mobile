@@ -240,7 +240,7 @@ const AttendanceImageScreen = ({ navigation, route }) => {
           <Text className="text-gray-800 font-medium">
             Ảnh {index + 1} - {formatDateTime(image.takenAt)}
           </Text>
-          {image.studentCountAi && (
+          {image.studentCountAi != null && (
             <View className="flex-row items-center mt-1">
               <Ionicons name="people" size={16} color="#4b5563" />
               <Text className="text-gray-600 ml-1">{image.studentCountAi} sinh viên</Text>
@@ -504,7 +504,7 @@ const AttendanceImageScreen = ({ navigation, route }) => {
                 <Text className="text-white text-base">
                   {formatDateTime(selectedImage.takenAt)}
                 </Text>
-                {selectedImage.studentCountAi && (
+                {selectedImage.studentCountAi != null && (
                   <View className="flex-row items-center mt-2">
                     <Ionicons name="people" size={18} color="white" />
                     <Text className="text-white ml-2">
