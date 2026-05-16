@@ -283,7 +283,7 @@ const AttendancePhotoScreen = ({ navigation, route }) => {
                       <ActivityIndicator size="large" color="#38bdf8" />
                     </View>
                     <Text className="text-white font-black text-lg text-center">
-                      AI đang phân tích ảnh
+                      Mô hình đang phân tích ảnh
                     </Text>
                     <Text className="text-white/50 text-sm text-center mt-2">
                       Đang đếm số lượng sinh viên trong lớp...
