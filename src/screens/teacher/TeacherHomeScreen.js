@@ -137,7 +137,7 @@ const TeacherHomeScreen = ({ navigation }) => {
       id: '7',
       icon: 'bar-chart-outline',
       label: 'Thống kê',
-      onPress: () => navigation.navigate('TeacherStatistics'),
+      onPress: () => navigation.navigate('TeacherAttendanceAnalytics'),
       // onPress: () => console.log('Statistics'),
     },
     // ĐĂNG XUẤT

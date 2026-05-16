@@ -1,31 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  Alert, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
   ActivityIndicator,
-  Vibration 
+  Vibration
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { CameraView, Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { scanAttendanceByQRThunk } from '../../features/attendanceSession/attendanceSessionThunks';
-import { setScheduleAttended } from '../../features/student/studentSlice';
+import { setScheduleAttended, selectStudentProfile } from '../../features/student/studentSlice';
 import { getDevicePayload } from '../../utils/device.helper';
 import * as Location from 'expo-location';
+import ArcFaceModal from '../../components/modal/ArcFaceModal';
 
 const QRScanScreen = ({ route, navigation }) => {
   const dispatch = useDispatch();
   const { scheduleId, courseName, courseCode, room } = route.params || {};
-  
+  const profile = useSelector(selectStudentProfile);
+
   const [hasPermission, setHasPermission] = useState(null);
   const [locationPermission, setLocationPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
+  const [arcFaceVisible, setArcFaceVisible] = useState(false);
+  const [attendanceId, setAttendanceId] = useState(null);
 
   const prefetchedDeviceInfoRef = useRef(null);
   const prefetchedLocationRef = useRef(null);
@@ -159,26 +163,17 @@ const QRScanScreen = ({ route, navigation }) => {
       });
       console.log('DEBUG scan total ms =', Date.now() - t0);
 
-      // Thành công
-      Alert.alert(
-        'Điểm danh thành công',
-        `Bạn đã điểm danh cho lớp ${courseName || courseCode}`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Cập nhật trạng thái đã điểm danh trong store
-              dispatch(
-                setScheduleAttended({
-                  classSessionId: scheduleId,
-                  attendedAt: result?.attendance?.scan_time,
-                })
-              );
-              navigation.goBack()
-            },
-          },
-        ]
+      dispatch(
+        setScheduleAttended({
+          classSessionId: scheduleId,
+          attendedAt: result?.attendance?.scan_time,
+        })
       );
+
+      // xác thực khuôn mặt
+      setAttendanceId(result?.attendance?.id || null);
+      setIsProcessing(false);
+      setArcFaceVisible(true);
     } catch (error) {      
       Alert.alert(
         ' Điểm danh thất bại',
@@ -201,10 +196,14 @@ const QRScanScreen = ({ route, navigation }) => {
     }
   };
 
-  // Hàm giả lập gọi API điểm danh
   const submitAttendance = async (attendanceData) => {
     const result = await dispatch(scanAttendanceByQRThunk(attendanceData)).unwrap();
     return result;
+  };
+
+  const handleArcFaceClose = () => {
+    setArcFaceVisible(false);
+    navigation.goBack();
   };
 
   if (hasPermission === null) {
@@ -379,6 +378,18 @@ const QRScanScreen = ({ route, navigation }) => {
           </View>
         </SafeAreaView>
       </CameraView>
+
+      {/* ArcFace xác thực khuôn mặt sau điểm danh */}
+      <ArcFaceModal
+        visible={arcFaceVisible}
+        onClose={handleArcFaceClose}
+        userRole="student"
+        avatarUrl={profile?.avatar_url}
+        attendanceId={attendanceId}
+        courseName={courseName}
+        courseCode={courseCode}
+        room={room}
+      />
     </View>
   );
 };

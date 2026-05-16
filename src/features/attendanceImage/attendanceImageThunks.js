@@ -48,7 +48,7 @@ export const fetchAttendanceImagesBySessionId = createAsyncThunk(
         `/attendance-images/session/${imageSessionId}`
       );
 
-      console.log('Fetched attendance images (raw):', response);
+      // console.log('Fetched attendance images (raw):', response);
 
       // Transform data từ snake_case sang camelCase
       const transformedData =

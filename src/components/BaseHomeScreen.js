@@ -228,6 +228,7 @@ const BaseHomeScreen = ({
 
         
         {/* ArcFace Section */}
+        {userRole === 'student' && (
         <View className="px-6 pb-6">
           <Text className="text-gray-900 text-lg font-bold mb-4">ArcFace AI</Text>
           <TouchableOpacity
@@ -255,6 +256,7 @@ const BaseHomeScreen = ({
             </Text>
           </TouchableOpacity>
         </View>
+        )}
 
         {/* ArcFace Modal */}
         <ArcFaceModal

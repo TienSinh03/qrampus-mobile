@@ -28,7 +28,7 @@ import {
  * - avatarUrl: URL ảnh gốc của SV (truyền từ parent, không cần gọi API)
  * - attendanceId: UUID điểm danh (tuỳ chọn)
  */
-const ArcFaceModal = ({ visible, onClose, userRole = 'student', avatarUrl, attendanceId }) => {
+const ArcFaceModal = ({ visible, onClose, userRole = 'student', avatarUrl, attendanceId, courseName, courseCode, room }) => {
   const dispatch = useDispatch();
   const status = useSelector(selectFaceVerifyStatus);
   const result = useSelector(selectFaceVerifyResult);
@@ -154,10 +154,26 @@ const ArcFaceModal = ({ visible, onClose, userRole = 'student', avatarUrl, atten
           {/* ── CAPTURE ── */}
           {screen === 'capture' && (
             <View>
+
+              {(courseName || courseCode) && (
+                <View style={styles.courseBox}>
+                  <Ionicons name="book-outline" size={16} color="#0171a5" />
+                  
+                  <View style={{ flex: 1, marginLeft: 8 }}>
+                    {courseName && <Text style={styles.courseName}>{courseName}</Text>}
+                    
+                    <View style={{ flexDirection: 'row', gap: 12, marginTop: 2 }}>
+                      {courseCode && <Text style={styles.courseMeta}>Mã lớp: {courseCode}</Text>}
+                      {room && <Text style={styles.courseMeta}>Phòng: {room}</Text>}
+                    </View>
+                  </View>
+                </View>
+              )}
+
               <View style={styles.infoBox}>
                 <Ionicons name="information-circle-outline" size={18} color={roleColor} />
                 <Text style={[styles.infoText, { color: roleColor }]}>
-                  Chụp hoặc tải ảnh khuôn mặt của bạn để so sánh với ảnh đại diện đã đăng ký
+                  Chụp hoặc tải ảnh khuôn mặt của bạn để xác thực danh tính sau điểm danh
                 </Text>
               </View>
 
@@ -276,6 +292,11 @@ const ArcFaceModal = ({ visible, onClose, userRole = 'student', avatarUrl, atten
                 <Text style={styles.cardTitle}>Kết quả</Text>
                 <MetaRow label="Sinh viên" value={result.full_name} />
                 <MetaRow label="Mã SV" value={result.student_code} />
+
+                {courseName && <MetaRow label="Môn học" value={courseName} />}
+                {courseCode && <MetaRow label="Mã lớp" value={courseCode} />}
+                {room && <MetaRow label="Phòng" value={room} />}
+                
                 <MetaRow
                   label="Cosine similarity"
                   value={result.cosine_similarity != null ? result.cosine_similarity.toFixed(6) : null}
@@ -373,6 +394,18 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.85)', fontWeight: '500' },
   headerTitle: { fontSize: 16, color: 'white', fontWeight: 'bold', marginTop: 4 },
   scrollContent: { padding: 20, paddingBottom: 40 },
+  courseBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#f0f9ff',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#0171a5',
+  },
+  courseName: { fontSize: 14, fontWeight: '700', color: '#0c4a6e' },
+  courseMeta: { fontSize: 12, color: '#0369a1', fontWeight: '500' },
   infoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
