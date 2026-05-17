@@ -1,7 +1,8 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform, TouchableOpacity, Animated } from 'react-native';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { selectLoginRole } from '../features/auth/authSlice';
 const Tab = createBottomTabNavigator();
@@ -11,6 +12,9 @@ const BaseTabNavigator = ({
 }) => {
   const userRole = useSelector(selectLoginRole);
   const roleColor = userRole === 'teacher' ? '#0171a5' : '#2563eb';
+  const insets = useSafeAreaInsets();
+  const bottomInset = Platform.OS === 'ios' ? insets.bottom : Math.max(insets.bottom, 12);
+  const tabBarHeight = Platform.OS === 'ios' ? 60 + bottomInset : 60 + bottomInset;
 
   return (
     <Tab.Navigator
@@ -19,8 +23,8 @@ const BaseTabNavigator = ({
         tabBarActiveTintColor: roleColor,
         tabBarInactiveTintColor: '#9ca3af',
         tabBarStyle: {
-          height: Platform.OS === 'ios' ? 85 : 75,
-          paddingBottom: Platform.OS === 'ios' ? 25 : 15,
+          height: tabBarHeight,
+          paddingBottom: bottomInset,
           paddingTop: 8,
           borderTopWidth: 1,
           borderTopColor: '#f3f4f6',
@@ -33,6 +37,9 @@ const BaseTabNavigator = ({
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
+        },
+        tabBarItemStyle: {
+          paddingBottom: Platform.OS === 'android' ? 2 : 0,
         },
         tabBarIcon: ({ focused, color, size }) => {
           const currentTab = tabs.find(tab => tab.name === route.name);
