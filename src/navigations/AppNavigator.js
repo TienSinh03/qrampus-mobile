@@ -4,13 +4,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useDispatch, useSelector } from 'react-redux';
 import { View, ActivityIndicator } from 'react-native';
 import { loadSessionThunk } from '../features/auth/authThunks';
-import { 
-  selectIsAuthenticated, 
+import {
+  selectIsAuthenticated,
   selectLoginRole,
   selectIsLoading,
 } from '../features/auth/authSlice';
 import { useSocket } from '../hooks/useSocket';
 import { usePushNotification } from '../hooks/usePushNotification';
+import { checkBiometricAvailable, getBiometricConfig } from '../utils/biometricAuth';
 
 import IntroCarouselScreen from '../screens/IntroCarouselScreen';
 import RoleSelectionScreen from '../screens/RoleSelectionScreen';
@@ -59,8 +60,9 @@ const AppNavigator = () => {
   const loginRole = useSelector(selectLoginRole);
   const isLoading = useSelector(selectIsLoading);
   const [isSessionLoaded, setIsSessionLoaded] = React.useState(false);
+  const [biometricRole, setBiometricRole] = React.useState(null);
 
-  // Kích hoạt Socket.IO realtime 
+  // Kích hoạt Socket.IO realtime
   useSocket();
   // Kích hoạt Expo Push Notification (đăng ký token + listen)
   usePushNotification();
@@ -69,6 +71,16 @@ const AppNavigator = () => {
   useEffect(() => {
     const loadSession = async () => {
       await dispatch(loadSessionThunk());
+
+      // Kiểm tra biometric để quyết định bỏ qua IntroCarousel nếu cần
+      const [available, config] = await Promise.all([
+        checkBiometricAvailable(),
+        getBiometricConfig(),
+      ]);
+      if (available && config.enabled && config.role) {
+        setBiometricRole(config.role);
+      }
+
       setIsSessionLoaded(true);
     };
     loadSession();
@@ -78,9 +90,10 @@ const AppNavigator = () => {
   const getInitialRouteName = () => {
     if (!isSessionLoaded) return 'IntroCarousel';
     if (isAuthenticated && loginRole) {
-      
       return loginRole === 'student' ? 'StudentAvatarGate' : 'TeacherHome';
     }
+    // Bỏ qua Intro nếu biometric đã bật — LoginScreen sẽ tự auto-prompt vân tay
+    if (biometricRole) return 'Login';
     return 'IntroCarousel';
   };
 
@@ -113,9 +126,10 @@ const AppNavigator = () => {
           name="RoleSelection" 
           component={RoleSelectionScreen} 
         />
-        <Stack.Screen 
-          name="Login" 
-          component={LoginScreen} 
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          initialParams={biometricRole ? { role: biometricRole } : undefined}
         />
         
         <Stack.Screen

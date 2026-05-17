@@ -26,8 +26,8 @@ import {
 
 import {
   checkBiometricAvailable,
-  authenticateBiometric,
   getBiometricConfig,
+  getBiometricRefreshToken,
 } from '../utils/biometricAuth';
 
 // Cần cài đặt: npm install lucide-react-native
@@ -99,15 +99,18 @@ const LoginScreen = ({ route, navigation }) => {
   }, [error, dispatch]);
 
   useEffect(() => {
-    checkLoginBiometric();
+    initBiometric();
   }, []);
 
-  const checkLoginBiometric = async () => {
+  const initBiometric = async () => {
     const available = await checkBiometricAvailable();
     const config = await getBiometricConfig();
-
     setBiometricAvailable(available);
     setBiometricEnabled(config.enabled);
+    // Tự động hiện prompt vân tay khi mở màn hình nếu đã bật
+    if (available && config.enabled) {
+      setTimeout(handleBiometricLogin, 300);
+    }
   };
 
   const handleLogin = () => {
@@ -127,36 +130,39 @@ const LoginScreen = ({ route, navigation }) => {
   };
 
   const handleBiometricLogin = async () => {
-    const config = await getBiometricConfig();
-    console.log('Biometric config on login attempt:', config);
+    try {
+      const isAvailable = await checkBiometricAvailable();
+      if (!isAvailable) {
+        Alert.alert('Không hỗ trợ', 'Thiết bị chưa đăng ký vân tay hoặc Face ID.');
+        return;
+      }
 
-    if (!config.enabled || !config.refreshToken) {
-      Alert.alert(
-        'Chưa thể đăng nhập bằng vân tay',
-        'Bạn cần đăng nhập bằng mật khẩu lần đầu và bật chức năng vân tay trong phần cài đặt.'
-      );
-      return;
+      const config = await getBiometricConfig();
+      if (!config.enabled) {
+        Alert.alert(
+          'Chưa bật vân tay',
+          'Hãy đăng nhập bằng mật khẩu và bật vân tay trong phần cài đặt.'
+        );
+        return;
+      }
+
+      if (config.role !== activeTab) {
+        Alert.alert('Không khớp tài khoản', 'Vân tay được lưu cho tab khác. Vui lòng đăng nhập bằng mật khẩu.');
+        return;
+      }
+
+      // OS tự hiện prompt sinh trắc học — không cần gọi authenticateBiometric()
+      const biometricToken = await getBiometricRefreshToken();
+      if (!biometricToken) return;
+
+      await dispatch(refreshTokenThunk({ role: config.role, biometricToken })).unwrap();
+    } catch (err) {
+      const msg = err?.message || '';
+      // Bỏ qua lỗi khi user tự hủy prompt
+      if (!msg.toLowerCase().includes('cancel') && !msg.toLowerCase().includes('user')) {
+        Alert.alert('Đăng nhập thất bại', msg || 'Xác thực thất bại, vui lòng thử lại.');
+      }
     }
-
-    if (config.role !== activeTab) {
-      Alert.alert(
-        'Không thể sử dụng vân tay',
-        'Vui lòng đăng nhập bằng mật khẩu để tiếp tục.'
-      );
-      return;
-    }
-
-    const result = await authenticateBiometric('Xác thực vân tay để đăng nhập');
-
-    if (!result.success) {
-      Alert.alert('Đăng nhập thất bại', 'Xác thực vân tay không thành công');
-      return;
-    }
-
-    dispatch(refreshTokenThunk({
-      refreshToken: config.refreshToken,
-      role: config.role,
-    }));
   };
 
   const handleTabSwitch = (tab) => {
@@ -298,7 +304,7 @@ const LoginScreen = ({ route, navigation }) => {
             </View>
 
             {/* Biometric Button */}
-            {biometricAvailable && (
+            {biometricAvailable && biometricEnabled && (
               <TouchableOpacity
                 onPress={handleBiometricLogin}
                 activeOpacity={0.85}

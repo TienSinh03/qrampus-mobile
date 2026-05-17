@@ -8,6 +8,7 @@ import {
   Platform,
   TouchableOpacity,
 } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Đã thêm ArrowLeft cho nút Back
@@ -15,7 +16,6 @@ import { Fingerprint, ShieldAlert, ShieldCheck, ArrowLeft } from 'lucide-react-n
 
 import {
   checkBiometricAvailable,
-  authenticateBiometric,
   enableBiometricLogin,
   disableBiometricLogin,
   getBiometricConfig,
@@ -60,15 +60,17 @@ const SettingScreen = ({ route, navigation }) => {
     }
 
     if (value) {
-      const result = await authenticateBiometric('Xác thực để bật đăng nhập bằng vân tay');
-      if (!result.success) {
-        Alert.alert('Thất bại', 'Xác thực vân tay không thành công');
+      const refreshToken = await SecureStore.getItemAsync('refreshToken');
+      if (!refreshToken) {
+        Alert.alert('Lỗi', 'Không tìm thấy phiên đăng nhập. Vui lòng đăng xuất và đăng nhập lại.');
         return;
       }
-      await enableBiometricLogin({ role: userRole });
+
+      // enableBiometricLogin dùng requireAuthentication: true → OS tự xác thực, không gọi thêm
+      await enableBiometricLogin({ role: userRole, refreshToken });
       setBiometricEnabled(true);
       Alert.alert('Thành công', 'Đã bật đăng nhập bằng sinh trắc học');
-      
+
     } else {
       await disableBiometricLogin();
       setBiometricEnabled(false);

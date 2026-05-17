@@ -4,6 +4,7 @@ import * as SecureStore from "expo-secure-store";
 import { getDevicePayload } from "../../utils/device.helper";
 import { resetNotifications } from "../notification/notificationSlice";
 import { unregisterPushTokenThunk } from "../notification/notificationThunks";
+import { disableBiometricLogin } from "../../utils/biometricAuth";
 
 // Định nghĩa các role hợp lệ cho từng loại đăng nhập
 const ALLOWED_ROLES = {
@@ -106,15 +107,17 @@ export const loginThunk = createAsyncThunk(
   }
 );
 
-export const refreshTokenThunk = createAsyncThunk('auth/refreshToken', async ({ refreshToken, role }, { rejectWithValue }) => {
+// biometricToken: token lấy từ SecureStore được bảo vệ sinh trắc học (khi login bằng vân tay)
+// Nếu không có biometricToken, đọc refreshToken thông thường từ SecureStore (auto-refresh)
+export const refreshTokenThunk = createAsyncThunk('auth/refreshToken', async ({ role, biometricToken }, { rejectWithValue }) => {
   try {
-    const refreshToken = await SecureStore.getItemAsync('refreshToken');
+    const refreshToken = biometricToken || await SecureStore.getItemAsync('refreshToken');
 
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
 
-    const res = await instance.post('/auth/refresh', { refresh_token: refreshToken});
+    const res = await instance.post('/auth/refresh', { refresh_token: refreshToken });
     const response = res?.data || {};
     if (!response.success) {
       throw new Error(response.message || 'Token refresh failed');
@@ -135,14 +138,13 @@ export const refreshTokenThunk = createAsyncThunk('auth/refreshToken', async ({ 
     return { accessToken: newAccessToken, refreshToken: newRefreshToken, role, user };
 
   } catch (err) {
-    // Clear tokens on refresh failure
     await SecureStore.deleteItemAsync('accessToken');
     await SecureStore.deleteItemAsync('refreshToken');
     await SecureStore.deleteItemAsync('userLogin');
     await SecureStore.deleteItemAsync('loginRole');
+    await disableBiometricLogin();
     clearToken();
-    const msg = err?.message || 'Token refresh failed';
-    return rejectWithValue(msg);
+    return rejectWithValue(err?.message || 'Token refresh failed');
   }
 });
 
