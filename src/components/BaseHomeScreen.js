@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import QuickActions from './QuickActions';
 import ScheduleCarousel from './ScheduleCarousel';
 import { selectUnreadCount } from '../features/notification/notificationSlice';
-import FaceCameraModal from './modal/FaceCameraModal';
+// import FaceCameraModal from './modal/FaceCameraModal';
 import AieFaceDetectModal from './modal/AieFaceDetectModal';
 import FaceComparisonModal from './modal/FaceComparisonModal';
 import ArcFaceModal from './modal/ArcFaceModal';
