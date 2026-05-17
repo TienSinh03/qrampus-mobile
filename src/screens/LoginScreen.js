@@ -196,7 +196,7 @@ const LoginScreen = ({ route, navigation }) => {
           <View className="flex-row items-center justify-between px-5 pt-2 pb-4">
             <TouchableOpacity 
               onPress={() => navigation.goBack()} 
-              className="w-10 h-10 bg-slate-50 border border-slate-200 rounded-full items-center justify-center"
+              className="w-10 h-10 bg-slate-50 border border-slate-200 items-center justify-center"
             >
               <ArrowLeft size={20} color="#475569" />
             </TouchableOpacity>
@@ -208,9 +208,9 @@ const LoginScreen = ({ route, navigation }) => {
 
           {/* Segmented Tab Switcher */}
           <View className="px-5 mt-2 mb-6">
-            <View className="flex-row bg-slate-100 p-1 rounded-xl">
+            <View className="flex-row bg-slate-100 p-1">
               <TouchableOpacity
-                className={`flex-1 py-3 rounded-lg items-center justify-center ${isStudent ? 'bg-white shadow-sm' : ''}`}
+                className={`flex-1 py-3 items-center justify-center ${isStudent ? 'bg-white shadow-sm' : ''}`}
                 onPress={() => handleTabSwitch('student')}
                 activeOpacity={0.8}
               >
@@ -220,7 +220,7 @@ const LoginScreen = ({ route, navigation }) => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                className={`flex-1 py-3 rounded-lg items-center justify-center ${!isStudent ? 'bg-white shadow-sm' : ''}`}
+                className={`flex-1 py-3  items-center justify-center ${!isStudent ? 'bg-white shadow-sm' : ''}`}
                 onPress={() => handleTabSwitch('teacher')}
                 activeOpacity={0.8}
               >

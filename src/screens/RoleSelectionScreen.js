@@ -30,7 +30,7 @@ const RoleSelectionScreen = ({ navigation }) => {
           <TouchableOpacity
             onPress={() => handleRoleSelect('student')}
             activeOpacity={0.9}
-            className="relative bg-[#6347D9]  h-48 mb-12 flex-row overflow-visible border-b-4 border-r-4 border-black/10"
+            className="relative bg-[#2563eb]  h-48 mb-12 flex-row overflow-visible  border-black/10"
           >
             {/* Hình minh họa - Vị trí tuyệt đối để tràn viền như mẫu */}
             <View className="absolute -top-6 left-4 w-32 h-52 justify-end">
@@ -53,7 +53,7 @@ const RoleSelectionScreen = ({ navigation }) => {
           <TouchableOpacity
             onPress={() => handleRoleSelect('teacher')}
             activeOpacity={0.9}
-            className="relative bg-[#0087ad] h-48 mb-20 flex-row-reverse overflow-visible border-b-4 border-l-4 border-black/10"
+            className="relative bg-[#0087ad] h-48 mb-20 flex-row-reverse overflow-visible border-black/10"
           >
             {/* Hình minh họa */}
             <View className="absolute -top-6 right-4 w-32 h-52 justify-end">
