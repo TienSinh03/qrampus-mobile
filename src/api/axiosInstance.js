@@ -110,6 +110,10 @@ instance.interceptors.response.use(
           await SecureStore.deleteItemAsync("loginRole");
           clearToken();
 
+          // Reset Redux auth state để AppNavigator điều hướng về màn login
+          const { store } = require('../store');
+          store.dispatch({ type: 'auth/resetAuth' });
+
           console.error("Error refreshing token:", refreshError);
           processQueue(refreshError, null);
           return Promise.reject(refreshError);
