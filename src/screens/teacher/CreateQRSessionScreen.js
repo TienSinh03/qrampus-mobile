@@ -62,7 +62,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
   
   // Timing state
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const [qrTimeRemaining, setQrTimeRemaining] = useState(10);
+  const [qrTimeRemaining, setQrTimeRemaining] = useState(5);
   
   // Attendance state
   const [attendedStudents, setAttendedStudents] = useState([]);
@@ -118,7 +118,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
     dispatch(setActiveSession({ id: existingSession.id }));
     setSelectedDuration(existingSession.session_duration_minutes);
     setTimeRemaining(remaining);
-    setQrTimeRemaining(10);
+    setQrTimeRemaining(5);
     setSessionActive(true);
 
     // Lấy QR mới ngay lập tức
@@ -134,12 +134,12 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
       const result = await dispatch(createAttendanceSessionThunk({
         class_session_id: schedule.id,
         session_duration_minutes: duration,
-        qr_interval: 10,
+        qr_interval: 5,
       })).unwrap();
 
       setSessionActive(true);
       setTimeRemaining(duration * 60);
-      setQrTimeRemaining(10);
+      setQrTimeRemaining(5);
       animateQR();
 
       // Cập nhật hasActiveSession trong Redux để TeacherScheduleCard hiển thị realtime
@@ -274,7 +274,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
       setQrTimeRemaining((prev) => {
         if (prev <= 1) {
           fetchNextQR();
-          return 10;
+          return 5;
         }
         return prev - 1;
       });
@@ -690,7 +690,7 @@ const CreateQRSessionScreen = ({ navigation, route }) => {
                     <Text className="text-gray-900 font-bold text-lg">
                       {duration} phút
                     </Text>
-                    <Text className="text-gray-500 text-xs">QR mới mỗi 10 giây</Text>
+                    <Text className="text-gray-500 text-xs">QR mới mỗi 5 giây</Text>
                   </View>
                 </View>
                 <Ionicons name="chevron-forward" size={24} color="#0171a5" />

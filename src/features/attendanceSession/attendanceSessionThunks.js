@@ -7,7 +7,7 @@ import { instance } from "../../api/axiosInstance";
  */
 export const createAttendanceSessionThunk = createAsyncThunk(
     'attendanceSession/create',
-    async ({ class_session_id, session_duration_minutes, qr_interval = 10 }, { rejectWithValue }) => {
+    async ({ class_session_id, session_duration_minutes, qr_interval = 5 }, { rejectWithValue }) => {
         try {
             const response = await instance.post('/attendance-sessions', {
                 class_session_id,
