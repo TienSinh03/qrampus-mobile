@@ -150,11 +150,12 @@ export const refreshTokenThunk = createAsyncThunk('auth/refreshToken', async ({ 
 
 export const logoutThunk = createAsyncThunk('auth/logout', async (_, { dispatch }) => {
   // Hủy đăng ký push token trước khi xóa session
-  // try {
-  //   await dispatch(unregisterPushTokenThunk()).unwrap();
-  // } catch (_e) {
-  //   // Không block logout nếu unregister fail
-  // }
+  // Phải gọi TRƯỚC khi clearToken() vì endpoint cần access token để xác thực
+  try {
+    await dispatch(unregisterPushTokenThunk()).unwrap();
+  } catch (_e) {
+    // Không block logout nếu unregister fail
+  }
 
   await SecureStore.deleteItemAsync('accessToken');
   await SecureStore.deleteItemAsync('userLogin');
