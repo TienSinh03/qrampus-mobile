@@ -1,11 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import BaseProfileScreen from '../../components/BaseProfileScreen';
+import { selectStudentProfile, selectStudentLoading } from '../../features/student/studentSlice';
+import { getStudentProfileThunk } from '../../features/student/studentThunks';
 
 const StudentProfileScreen = ({ navigation }) => {
-  const userData = {
-    name: 'Nguyễn Văn Nam',
-    id: 'MSSV: 20200001',
-    subtitle: 'IT K65 - Công nghệ thông tin',
+  const dispatch = useDispatch();
+  const profile = useSelector(selectStudentProfile);
+  const isLoading = useSelector(selectStudentLoading);
+
+  // Chỉ fetch nếu chưa có data (trường hợp user vào ProfileScreen trước)
+  useEffect(() => {
+    if (!profile && !isLoading) {
+      dispatch(getStudentProfileThunk());
+    }
+  }, [profile, isLoading, dispatch]);
+
+  // Map dữ liệu từ API sang format UI
+  const userData = profile ? {
+    name: profile?.full_name || 'Sinh viên',
+    code: `MSSV: ${profile?.student_code || ''}`,
+    major: profile?.class_name || '',
+    avatarUri: profile?.avatar_url || null,
+  } : {
+    name: 'Đang tải...',
+    code: 'MSSV: ---',
+    major: '---',
     avatarUri: null,
   };
 
@@ -20,14 +40,15 @@ const StudentProfileScreen = ({ navigation }) => {
       icon: 'person-outline',
       title: 'Thông tin cá nhân',
       subtitle: 'Xem và chỉnh sửa thông tin',
-      onPress: () => console.log('Profile info'),
+      // onPress: () => console.log('Profile info'),
+      onPress: () => navigation.navigate('ProfileDetail'),
     },
     {
       id: '2',
-      icon: 'document-text-outline',
-      title: 'Lịch sử điểm danh',
-      subtitle: 'Xem lịch sử điểm danh các môn học',
-      onPress: () => console.log('Attendance history'),
+      icon: 'lock-closed-outline',
+      title: 'Đổi mật khẩu',
+      subtitle: 'Thay đổi mật khẩu đăng nhập',
+      onPress: () => navigation.navigate('ChangePassword'),
     },
     {
       id: '3',
@@ -41,7 +62,7 @@ const StudentProfileScreen = ({ navigation }) => {
       icon: 'settings-outline',
       title: 'Cài đặt',
       subtitle: 'Cài đặt ứng dụng',
-      onPress: () => console.log('Settings'),
+      onPress: () => navigation.navigate('Setting', { userRole: 'student' }),
     },
     {
       id: '5',
@@ -50,6 +71,9 @@ const StudentProfileScreen = ({ navigation }) => {
       subtitle: 'Hướng dẫn sử dụng và hỗ trợ',
       onPress: () => console.log('Help'),
     },
+    //điều khoản và chính sách sử dụng
+    { id: '6', icon: 'document-text-outline', title: 'Điều khoản & Chính sách', subtitle: 'Xem điều khoản và chính sách sử dụng', onPress: () => navigation.navigate('TermsPolicies') }
+    
   ];
 
   return (
@@ -60,6 +84,7 @@ const StudentProfileScreen = ({ navigation }) => {
       stats={stats}
       menuItems={menuItems}
     />
+    
   );
 };
 

@@ -30,7 +30,7 @@ const StatsCard = ({ stats, userRole = 'teacher' }) => {
       icon: 'time-outline',
       label: 'Số giờ đã dạy',
       value: `${hoursThisWeek}h`,
-      valueColor: 'text-purple-600',
+      valueColor: 'text-sky-600',
     },
     {
       icon: 'people-outline',
@@ -60,11 +60,13 @@ const StatsCard = ({ stats, userRole = 'teacher' }) => {
   ];
 
   return (
-    <View className="px-6 mb-4">
-      <Text className="text-gray-900 text-base font-bold mb-3">
-        Thống kê tuần này
-      </Text>
+    <View className="px-4 mb-4">
+      <View className="flex-row items-center justify-between mb-4">
+        <Text className="text-gray-900 text-lg font-bold">
+           Thống kê tuần này
+        </Text>
       
+      </View>
       <View className="bg-white rounded-2xl p-4" style={{
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -77,12 +79,12 @@ const StatsCard = ({ stats, userRole = 'teacher' }) => {
             <View key={index} className="flex-1 items-center">
               <View 
                 className={`w-12 h-12 rounded-full items-center justify-center mb-2`}
-                style={{ backgroundColor: isTeacher ? '#faf5ff' : '#eff6ff' }}
+                style={{ backgroundColor: isTeacher ? '#eff6ff' : '#eff6ff' }}
               >
                 <Ionicons 
                   name={stat.icon} 
                   size={24} 
-                  color={isTeacher ? '#7c3aed' : '#2563eb'} 
+                  color={isTeacher ? '#0171a5' : '#2563eb'} 
                 />
               </View>
               <Text className={`text-2xl font-bold ${stat.valueColor} mb-1`}>

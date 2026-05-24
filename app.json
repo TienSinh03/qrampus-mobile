@@ -20,12 +20,46 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "edgeToEdgeEnabled": true,
+      "package": "com.phansinh.QRampus",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "extra": {
+      "API_URL": "http://103.166.182.35:3000/api/v1",
+      "SOCKET_URL": "http://103.166.182.35:3001",
+      "eas": {
+        "projectId": "31cf70ac-29d6-40df-8b94-c26c6e46686c"
+      }
+    },
     "plugins": [
-    ]
+      "expo-secure-store",
+      [
+      "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#2563eb",
+          "defaultChannel": "default",
+          "sounds": []
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Ứng dụng cần GPS để xác minh bạn đang ở trong phòng học khi điểm danh.",
+          "locationAlwaysPermission": "Ứng dụng cần GPS để xác minh bạn đang ở trong phòng học khi điểm danh.",
+          "locationWhenInUsePermission": "Ứng dụng cần GPS để xác minh bạn đang ở trong phòng học khi điểm danh."
+        }
+      ],
+      ["onnxruntime-react-native"]
+
+    ],
+    "owner": "sinhphan2003"
   }
 }

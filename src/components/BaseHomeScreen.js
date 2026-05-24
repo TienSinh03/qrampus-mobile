@@ -1,14 +1,23 @@
-import React from 'react';
-import { View, Text, ScrollView, RefreshControl, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, RefreshControl, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useSelector } from 'react-redux';
 import Header from './Header';
 import StatsCard from './StatsCard';
 import { Ionicons } from '@expo/vector-icons';
+import QuickActions from './QuickActions';
+import ScheduleCarousel from './ScheduleCarousel';
+import { selectUnreadCount } from '../features/notification/notificationSlice';
+// import FaceCameraModal from './modal/FaceCameraModal';
+import AieFaceDetectModal from './modal/AieFaceDetectModal';
+import FaceComparisonModal from './modal/FaceComparisonModal';
+import ArcFaceModal from './modal/ArcFaceModal';
+import HomeAttendanceWidget from './statistics/HomeAttendanceWidget';
 
 const BaseHomeScreen = ({
   navigation,
-  userRole = 'student', // 'student' or 'teacher'
+  userRole = 'student',
   userData,
   todaySchedules = [],
   stats = null,
@@ -17,9 +26,21 @@ const BaseHomeScreen = ({
   onRefresh,
   renderScheduleCard,
   customSections = null, // Additional custom sections
+  isLoading = false,
+  quickActions = [], // Array of { id, icon, label, onPress }
 }) => {
-  const roleColor = userRole === 'teacher' ? '#7c3aed' : '#2563eb';
+  const roleColor = userRole === 'teacher' ? '#0171a5' : '#2563eb';
+  const roleBgColor = userRole === 'teacher' ? '#eff6ff' : '#eff6ff';
   const roleLabel = userRole === 'teacher' ? 'Giảng viên' : 'Sinh viên';
+  const unreadCount = useSelector(selectUnreadCount);
+  const currentSchedule = todaySchedules[0] ?? null;
+
+  const useCarousel = todaySchedules.length >= 2;
+
+  // State for face comparison
+  const [comparisonVisible, setComparisonVisible] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
+  const [arcFaceVisible, setArcFaceVisible] = useState(false);
 
   const getCurrentDate = () => {
     const days = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
@@ -35,17 +56,49 @@ const BaseHomeScreen = ({
     navigation.navigate('Notification', { userRole });
   }
 
+  const handleFaceCapture = ({ photo, result }) => {
+    // Store the captured photo URI
+    setCapturedPhoto(photo?.uri);
+    // Show comparison modal if we have avatar
+    if (userData?.avatar_url) {
+      setComparisonVisible(true);
+    }
+  };
+
+  const handleComparisonClose = ({ result }) => {
+    setComparisonVisible(false);
+    setCapturedPhoto(null);
+    // Optionally handle the comparison result here
+    if (result?.is_same_person) {
+      console.log('✅ Face match successful');
+    } else {
+      console.log('❌ Face does not match');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
       
       {/* Header */}
       <Header
-        userName={userData?.name}
-        avatarUri={userData?.avatarUri}
+        userName={userData?.full_name || 'Người dùng'}
+        avatarUri={userData?.avatar_url}
         onNotificationPress={onNotificationPress}
         roleColor={roleColor}
+        unreadCount={unreadCount}
+        navigation={navigation}
       />
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <View className="absolute top-0 left-0 right-0 bottom-0 bg-black/20 z-10 justify-center items-center">
+          <View className="bg-white rounded-2xl p-6 shadow-lg">
+            <ActivityIndicator size="large" color={roleColor} />
+            <Text className="text-gray-600 mt-3 text-center">Đang tải lịch học...</Text>
+          </View>
+        </View>
+      )}
 
       <ScrollView
         className="flex-1"
@@ -55,8 +108,9 @@ const BaseHomeScreen = ({
         }
       >
         {/* Date Section */}
-        <View className="px-6 py-4">
-          <Text className="text-gray-500 text-sm mb-1">Hôm nay</Text>
+        <View className="px-6 py-4 flex-row items-center gap-2 justify-between">
+          <Text className="text-gray-500 text-sm">Hôm nay</Text>
+
           <Text className="text-gray-900 text-xl font-bold">
             {getCurrentDate()}
           </Text>
@@ -89,8 +143,13 @@ const BaseHomeScreen = ({
         {/* Stats Card */}
         {stats && <StatsCard stats={stats} userRole={userRole} />}
 
-        {/* Custom Sections */}
-        {customSections}
+        {/* Quick Actions */}
+        <QuickActions
+          actions={quickActions}
+          roleColor={roleColor}
+          roleBgColor={roleBgColor}
+          userRole={userRole}
+        />
 
         {/* Today's Schedule */}
         <View className="px-6 pb-6">
@@ -102,15 +161,23 @@ const BaseHomeScreen = ({
               className="text-sm font-semibold"
               style={{ color: roleColor }}
             >
-              {todaySchedules.length} tiết {userRole === 'teacher' ? 'dạy' : 'học'}
+              {todaySchedules.length || 0} tiết {userRole === 'teacher' ? 'dạy' : 'học'}
             </Text>
           </View>
 
           {todaySchedules.length > 0 ? (
-            todaySchedules.map((schedule) => renderScheduleCard(schedule))
+            useCarousel ? (
+              <ScheduleCarousel
+                data={todaySchedules}
+                renderCard={renderScheduleCard}
+                accentColor={roleColor}
+              />
+            ) : (
+              todaySchedules.map((schedule) => renderScheduleCard(schedule))
+            )
           ) : (
             <View className="bg-white rounded-2xl p-8 items-center justify-center">
-              <Text className="text-6xl mb-3">📅</Text>
+              <Image source={require('../../assets/images/calendar.png')} className="w-16 h-16" />
               <Text className="text-gray-900 font-bold text-lg mb-1">
                 Không có lịch {userRole === 'teacher' ? 'giảng' : 'học'}
               </Text>
@@ -120,6 +187,94 @@ const BaseHomeScreen = ({
             </View>
           )}
         </View>
+
+
+        {/* Face verification */}
+        {/* <View className="px-6 pb-6">
+          <Text className="text-gray-900 text-lg font-bold mb-4">Check khuôn mặt</Text>
+          <FaceCameraModal
+            schedule={currentSchedule}
+            userRole={userRole}
+            onCapture={(photo) => console.log('Captured:', photo?.uri)}
+          />
+        </View> */}
+
+        {/* <View className="px-6 pb-6">
+          <Text className="text-gray-900 text-lg font-bold mb-4">Check khuôn mặt API</Text>
+          <AieFaceDetectModal
+            avatarUrl={userData?.avatar_url}
+            userRole={userRole}
+          />
+        </View> */}
+
+        {/* ///my-face-recognition */}
+        {/* <View className="px-6 pb-6">
+          <Text className="text-gray-900 text-lg font-bold mb-4">Check My Face</Text>
+          <FaceCameraModal
+            schedule={currentSchedule}
+            userRole={userRole}
+            onCapture={handleFaceCapture}
+          />
+        </View> */}
+
+
+        {/* Attendance Stats Widget - students only */}
+        {userRole === 'student' && (
+          <View className="px-6 pb-6">
+            <Text className="text-gray-900 text-lg font-bold mb-4">Điểm danh của bạn</Text>
+            <HomeAttendanceWidget navigation={navigation} />
+          </View>
+        )}
+
+        
+        {/* ArcFace Section */}
+        {userRole === 'student' && (
+        <View className="px-6 pb-6">
+          <Text className="text-gray-900 text-lg font-bold mb-4">ArcFace AI</Text>
+          <TouchableOpacity
+            style={{
+              backgroundColor: '#2563eb',
+              borderRadius: 12,
+              paddingVertical: 14,
+              paddingHorizontal: 24,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              shadowColor: '#2563eb',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
+            onPress={() => setArcFaceVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="body" size={22} color="white" />
+            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+              arcface
+            </Text>
+          </TouchableOpacity>
+        </View>
+        )}
+
+        {/* ArcFace Modal */}
+        <ArcFaceModal
+          visible={arcFaceVisible}
+          onClose={() => setArcFaceVisible(false)}
+          userRole={userRole}
+          avatarUrl={userData?.avatar_url}
+        />
+
+        {/* Face Comparison Modal */}
+        <FaceComparisonModal
+          visible={comparisonVisible}
+          onClose={handleComparisonClose}
+          avatarUrl={userData?.avatar_url}
+          capturedPhotoUri={capturedPhoto}
+          userName={userData?.full_name || 'Người dùng'}
+          userRole={userRole}
+        />
       </ScrollView>
     </SafeAreaView>
   );

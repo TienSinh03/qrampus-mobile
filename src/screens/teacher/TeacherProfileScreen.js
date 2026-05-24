@@ -1,12 +1,28 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import BaseProfileScreen from '../../components/BaseProfileScreen';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectTeacherProfile, selectTeacherError, selectTeacherLoading } from '../../features/teacher/teacherSlice';
+import { getTeacherProfileThunk } from '../../features/teacher/teacherThunks';
 
 const TeacherProfileScreen = ({ navigation }) => {
+
+  const dispatch = useDispatch();
+  const profile = useSelector(selectTeacherProfile);
+  const error = useSelector(selectTeacherError);
+  const isLoading = useSelector(selectTeacherLoading);
+  console.log(' profile teacher profile:', profile);
+  useEffect(() => {
+    if (!profile && !isLoading) {
+      dispatch(getTeacherProfileThunk());
+    }
+  }, [profile, isLoading, dispatch]);
+
+
   const userData = {
-    name: 'Thầy Nguyễn Văn A',
-    id: 'Mã GV: GV001234',
-    subtitle: 'Khoa Công nghệ thông tin',
-    avatarUri: null,
+    name: profile?.full_name || 'Giảng viên',
+    code: `MSGV: ${profile?.teacher_code || ''}`,
+    major: profile?.department || '',
+    avatarUri: profile?.avatar_url || null,
   };
 
   const stats = [
@@ -20,50 +36,37 @@ const TeacherProfileScreen = ({ navigation }) => {
       icon: 'person-outline',
       title: 'Thông tin cá nhân',
       subtitle: 'Xem và chỉnh sửa thông tin',
-      onPress: () => console.log('Profile info'),
+      onPress: () => navigation.navigate('ProfileDetail'),
     },
     {
       id: '2',
-      icon: 'book-outline',
-      title: 'Danh sách lớp học',
-      subtitle: 'Quản lý các lớp học đang giảng dạy',
-      onPress: () => console.log('My courses'),
+      icon: 'document-text-outline',
+      title: 'Lịch sử chấm công',
+      subtitle: 'Xem lịch sử chấm công',
+      onPress: () => navigation.navigate('TeacherAttendanceHistory'),
     },
     {
       id: '3',
-      icon: 'document-text-outline',
-      title: 'Lịch sử điểm danh',
-      subtitle: 'Xem lịch sử điểm danh các lớp',
-      onPress: () => console.log('Attendance history'),
+      icon: 'stats-chart-outline',
+      title: 'Thống kê chi tiết',
+      subtitle: 'Báo cáo và phân tích chấm công',
+      onPress: () => navigation.navigate('TeacherAttendanceAnalytics'),
     },
     {
       id: '4',
-      icon: 'stats-chart-outline',
-      title: 'Thống kê chi tiết',
-      subtitle: 'Báo cáo và phân tích điểm danh',
-      onPress: () => console.log('Detailed statistics'),
-    },
-    {
-      id: '5',
-      icon: 'qr-code-outline',
-      title: 'Quản lý QR',
-      subtitle: 'Lịch sử tạo mã QR điểm danh',
-      onPress: () => console.log('QR history'),
-    },
-    {
-      id: '6',
       icon: 'settings-outline',
       title: 'Cài đặt',
       subtitle: 'Cài đặt ứng dụng',
-      onPress: () => console.log('Settings'),
+      onPress: () => navigation.navigate('Setting', { userRole: 'teacher' }),
     },
     {
-      id: '7',
+      id: '5',
       icon: 'help-circle-outline',
       title: 'Trợ giúp',
       subtitle: 'Hướng dẫn sử dụng và hỗ trợ',
       onPress: () => console.log('Help'),
     },
+    { id: '6', icon: 'document-text-outline', title: 'Điều khoản & Chính sách', subtitle: 'Xem điều khoản và chính sách sử dụng', onPress: () => navigation.navigate('TermsPolicies') }
   ];
 
   return (

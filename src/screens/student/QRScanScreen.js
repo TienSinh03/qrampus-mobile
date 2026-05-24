@@ -1,28 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  Alert, 
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
   ActivityIndicator,
-  Vibration 
+  Vibration
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { CameraView, Camera } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
-import * as Device from 'expo-device';
+import { useDispatch, useSelector } from 'react-redux';
+import { scanAttendanceByQRThunk } from '../../features/attendanceSession/attendanceSessionThunks';
+import { setScheduleAttended, selectStudentProfile } from '../../features/student/studentSlice';
+import { getDevicePayload } from '../../utils/device.helper';
+import * as Location from 'expo-location';
+import ArcFaceModal from '../../components/modal/ArcFaceModal';
 
 const QRScanScreen = ({ route, navigation }) => {
+  const dispatch = useDispatch();
   const { scheduleId, courseName, courseCode, room } = route.params || {};
-  
+  const profile = useSelector(selectStudentProfile);
+
   const [hasPermission, setHasPermission] = useState(null);
+  const [locationPermission, setLocationPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
+  const [arcFaceVisible, setArcFaceVisible] = useState(false);
+  const [attendanceId, setAttendanceId] = useState(null);
+
+  const prefetchedDeviceInfoRef = useRef(null);
+  const prefetchedLocationRef = useRef(null);
 
   useEffect(() => {
     getCameraPermissions();
+
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      const granted = status === 'granted';
+      setLocationPermission(granted);
+
+      try {
+        prefetchedDeviceInfoRef.current = await getDevicePayload();
+      } catch (e) {
+        console.warn('Device prefetch failed:', e?.message);
+      }
+
+      if (!granted) return;
+
+      try {
+        const lastKnown = await Location.getLastKnownPositionAsync();
+        if (lastKnown?.coords) {
+          prefetchedLocationRef.current = {
+            latitude: lastKnown.coords.latitude,
+            longitude: lastKnown.coords.longitude,
+          };
+        }
+
+        const current = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High
+        });
+
+        if (current?.coords) {
+          prefetchedLocationRef.current = {
+            latitude: current.coords.latitude,
+            longitude: current.coords.longitude,
+          };
+        }
+      } catch (e) {
+        console.warn('Location prefetch failed:', e?.message);
+      }
+    })();
   }, []);
 
   // Yêu cầu quyền truy cập camera
@@ -31,10 +81,39 @@ const QRScanScreen = ({ route, navigation }) => {
     setHasPermission(status === 'granted');
   };
 
+  // Yêu cầu quyền truy cập vị trí
+  // const getLocationPermission = async () => {
+  //   try {
+  //     const { status } = await Location.requestForegroundPermissionsAsync();
+  //     setLocationPermission(status === 'granted');
+
+  //     if (status !== 'granted') {
+  //       Alert.alert(
+  //         'Cần quyền truy cập vị trí',
+  //         'Vui lòng cấp quyền truy cập vị trí trong Cài đặt để sử dụng tính năng này.',
+  //         [
+  //           {
+  //             text: 'Hủy', 
+  //             onPress: () => navigation.goBack(),
+  //             style: 'cancel'
+  //           },
+  //           {
+  //             text: 'Cấp quyền',
+  //             onPress: () => Location.requestForegroundPermissionsAsync()
+  //           }
+  //         ]
+  //       )
+  //     }     
+  //   } catch (error) {
+  //     console.error('Location permission error:', error);
+  //   }
+  // }
+
   // Xử lý khi quét mã QR
   const handleBarCodeScanned = async ({ type, data }) => {
     if (scanned || isProcessing) return;
-    
+    const t0 = Date.now();
+
     setScanned(true);
     setIsProcessing(true);
     Vibration.vibrate(100); // Rung nhẹ khi quét
@@ -43,39 +122,62 @@ const QRScanScreen = ({ route, navigation }) => {
       // Parse QR data
       const qrData = JSON.parse(data);
       const { qr_token, attendance_session_id } = qrData;
-
+      
       if (!qr_token || !attendance_session_id) {
         throw new Error('QR code không hợp lệ');
       }
 
-      // Lấy device ID
-      const deviceId = Device.osInternalBuildId || Device.modelId || 'unknown';
+      let latitude = null;
+      let longitude = null;
+
+      // if (locationPermission) {
+      //   try {
+      //     const location = await Location.getCurrentPositionAsync({
+      //       accuracy: Location.Accuracy.High,
+      //       timeout: 10000,
+      //       maximumAge: 5000,
+      //     });
+
+      //     latitude = location.coords.latitude;
+      //     longitude = location.coords.longitude;
+      //   } catch (error) {
+      //     console.warn('Không lấy được GPS:', error.message);
+      //   }
+      // } else {
+      //   Alert.alert('Cần bật GPS', 'Bạn phải bật GPS để điểm danh');
+      //   return;
+      // }
+      // // Lấy payload thiết bị để backend kiểm tra chống chia sẻ thiết bị
+      // const deviceInfo = await getDevicePayload();
+
+      const loc = prefetchedLocationRef.current || {};
+      const deviceInfo = prefetchedDeviceInfoRef.current || null;
 
       // Gọi API điểm danh
-      await submitAttendance({
+      const result = await submitAttendance({
         qr_token,
-        attendance_session_id,
-        device_id_used: deviceId,
-        scan_time: new Date().toISOString(),
+        class_session_id: scheduleId,
+        latitude: loc.latitude ?? null,
+        longitude: loc.longitude ??  null,
+        device_info: deviceInfo,
       });
+      console.log('DEBUG scan total ms =', Date.now() - t0);
 
-      // Thành công
-      Alert.alert(
-        'Điểm danh thành công',
-        `Bạn đã điểm danh cho lớp ${courseName || courseCode}`,
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.goBack(),
-          },
-        ]
+      dispatch(
+        setScheduleAttended({
+          classSessionId: scheduleId,
+          attendedAt: result?.attendance?.scan_time,
+        })
       );
-    } catch (error) {
-      console.error('Scan error:', error);
-      
+
+      // xác thực khuôn mặt
+      setAttendanceId(result?.attendance?.id || null);
+      setIsProcessing(false);
+      setArcFaceVisible(true);
+    } catch (error) {      
       Alert.alert(
         ' Điểm danh thất bại',
-        error.message || 'Có lỗi xảy ra. Vui lòng thử lại.',
+        error?.message || error || 'Có lỗi xảy ra. Vui lòng thử lại.',
         [
           {
             text: 'Quét lại',
@@ -94,48 +196,14 @@ const QRScanScreen = ({ route, navigation }) => {
     }
   };
 
-  // Hàm giả lập gọi API điểm danh
   const submitAttendance = async (attendanceData) => {
-    //  Gọi API thực tế
-    // const response = await fetch('/attendance/scan', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${userToken}`,
-    //   },
-    //   body: JSON.stringify(attendanceData),
-    // });
+    const result = await dispatch(scanAttendanceByQRThunk(attendanceData)).unwrap();
+    return result;
+  };
 
-    // if (!response.ok) {
-    //   const error = await response.json();
-    //   throw new Error(error.message || 'Không thể điểm danh');
-    // }
-
-    // return await response.json();
-
-    // Mock API call
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Giả lập các trường hợp lỗi
-        const random = Math.random();
-        
-        if (random < 0.1) {
-          reject(new Error('Mã QR đã hết hạn'));
-        } else if (random < 0.2) {
-          reject(new Error('Bạn chưa đăng ký lớp học này'));
-        } else if (random < 0.3) {
-          reject(new Error('Bạn đã điểm danh rồi'));
-        } else if (random < 0.4) {
-          reject(new Error('Thiết bị này đã được sử dụng bởi sinh viên khác'));
-        } else {
-          resolve({
-            success: true,
-            message: 'Điểm danh thành công',
-            attendance_id: Math.floor(Math.random() * 1000),
-          });
-        }
-      }, 1500);
-    });
+  const handleArcFaceClose = () => {
+    setArcFaceVisible(false);
+    navigation.goBack();
   };
 
   if (hasPermission === null) {
@@ -229,11 +297,22 @@ const QRScanScreen = ({ route, navigation }) => {
 
             {/* Processing overlay */}
             {isProcessing && (
-              <View className="absolute inset-0 bg-black/60 rounded-2xl items-center justify-center">
-                <ActivityIndicator size="large" color="#3b82f6" />
-                <Text className="text-white mt-3 font-semibold">
-                  Đang xử lý...
-                </Text>
+              <View className="absolute inset-0 rounded-2xl">
+                <View className="absolute inset-0 bg-black/70" />
+
+                <View className="absolute inset-0 items-center justify-center px-6">
+                  <View className="w-full max-w-[240px] bg-slate-900/90 border border-blue-400/40 rounded-2xl px-5 py-6 items-center">
+                    <ActivityIndicator size="large" color="#60a5fa" />
+
+                    <Text className="text-white text-base font-bold mt-3 text-center">
+                      Đang xử lý mã QR
+                    </Text>
+
+                    <Text className="text-slate-300 text-xs text-center mt-1 leading-5">
+                      Vui lòng giữ yên điện thoại trong giây lát
+                    </Text>
+                  </View>
+                </View>
               </View>
             )}
           </View>
@@ -299,6 +378,18 @@ const QRScanScreen = ({ route, navigation }) => {
           </View>
         </SafeAreaView>
       </CameraView>
+
+      {/* ArcFace xác thực khuôn mặt sau điểm danh */}
+      <ArcFaceModal
+        visible={arcFaceVisible}
+        onClose={handleArcFaceClose}
+        userRole="student"
+        avatarUrl={profile?.avatar_url}
+        attendanceId={attendanceId}
+        courseName={courseName}
+        courseCode={courseCode}
+        room={room}
+      />
     </View>
   );
 };

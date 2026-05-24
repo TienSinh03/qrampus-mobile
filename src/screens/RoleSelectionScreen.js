@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const RoleSelectionScreen = ({ navigation }) => {
   const handleRoleSelect = (role) => {
@@ -10,77 +9,79 @@ const RoleSelectionScreen = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient
-      colors={['#132440', '#9333ea', '#DD7BDF']}
-      start={{ x: 0, y: 1 }}
-      end={{ x: 1, y: 0 }}
-      className="flex-1"
-    >
-      <StatusBar style="light" />
-      <SafeAreaView className="flex-1">
-        <View className="flex-1 justify-center items-center px-8">
-          {/* Header */}
-          <View className="items-center mb-12">
-            <Text className="text-6xl mb-6">🎯</Text>
-            <Text className="text-white text-4xl font-bold text-center mb-4">Chọn vai trò</Text>
-            <Text className="text-white/90 text-lg text-center">Vui lòng chọn vai trò của bạn để tiếp tục</Text>
+    <View className="flex-1 bg-[#EBEBE3]">
+      <StatusBar style="dark" />
+      <SafeAreaView className="flex-1 px-6">
+        
+        {/* Header Section */}
+        <View className="mt-10 mb-8 px-2">
+          <Text className="text-[#1A1A1A] text-[32px] font-bold leading-[48px] tracking-tight text-justify">
+            Chào mừng bạn đến với hệ thống điểm danh
+          </Text>
+          {/* Mũi tên cong vẽ tay (Nếu có ảnh SVG/PNG thì thay vào đây) */}
+          <View className="ml-24 mt-2">
+            <Text className="text-3xl rotate-[20deg]">⤵</Text>
           </View>
-
-          {/* Role Options */}
-          <View className="w-full">
-            <TouchableOpacity
-              onPress={() => handleRoleSelect('student')}
-              className="bg-white rounded-3xl p-8 mb-6"
-              style={{
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 8,
-              }}
-              activeOpacity={0.8}
-            >
-              <View className="items-center">
-                <View className="bg-blue-100 w-20 h-20 rounded-full items-center justify-center mb-4">
-                  <Text className="text-5xl">🎓</Text>
-                </View>
-                <Text className="text-blue-600 text-2xl font-bold mb-2">Sinh viên</Text>
-                <Text className="text-gray-600 text-center text-base">Quét QR code để điểm danh và xem lịch học của bạn</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => handleRoleSelect('teacher')}
-              className="bg-white rounded-3xl p-8"
-              style={{
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 8,
-              }}
-              activeOpacity={0.8}
-            >
-              <View className="items-center">
-                <View className="bg-purple-100 w-20 h-20 rounded-full items-center justify-center mb-4">
-                  <Text className="text-5xl">👨‍🏫</Text>
-                </View>
-                <Text className="text-purple-600 text-2xl font-bold mb-2">Giảng viên</Text>
-                <Text className="text-gray-600 text-center text-base">Tạo QR code điểm danh và quản lý lớp học</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Back Button */}
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="mt-8 bg-white/20 px-6 py-3 rounded-full"
-          >
-            <Text className="text-white text-base font-semibold">← Quay lại</Text>
-          </TouchableOpacity>
         </View>
+
+        <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+          
+          {/* Card: Sinh viên (Nằm bên trái) */}
+          <TouchableOpacity
+            onPress={() => handleRoleSelect('student')}
+            activeOpacity={0.9}
+            className="relative bg-[#2563eb]  h-48 mb-12 flex-row overflow-visible  border-black/10"
+          >
+            {/* Hình minh họa - Vị trí tuyệt đối để tràn viền như mẫu */}
+            <View className="absolute -top-6 left-4 w-32 h-52 justify-end">
+               {/* Thay Source bằng require('./path-to-your-student-img.png') */}
+               <View className="w-full h-full bg-slate-200/20 rounded-b-full items-center justify-center">
+                  <Text className="text-5xl">👩‍🎓</Text>
+               </View>
+            </View>
+            
+            <View className="flex-1 justify-center items-end pr-8">
+              <Text className="text-white text-2xl font-bold text-right">Sinh viên</Text>
+              <Text className="text-white/80 text-sm text-right mt-1">
+                Học tập &{"\n"}Điểm danh QR
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+
+          {/* Card: Giảng viên (Nằm bên phải) */}
+          <TouchableOpacity
+            onPress={() => handleRoleSelect('teacher')}
+            activeOpacity={0.9}
+            className="relative bg-[#0087ad] h-48 mb-20 flex-row-reverse overflow-visible border-black/10"
+          >
+            {/* Hình minh họa */}
+            <View className="absolute -top-6 right-4 w-32 h-52 justify-end">
+               <View className="w-full h-full bg-slate-200/20 rounded-b-full items-center justify-center">
+                  <Text className="text-5xl">👨‍🏫</Text>
+               </View>
+            </View>
+
+            <View className="flex-1 justify-center items-start pl-8">
+              <Text className="text-white text-2xl font-bold">Giảng viên</Text>
+              <Text className="text-white/80 text-sm mt-1">
+                Quản lý lớp &{"\n"}Tạo mã QR
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+        </ScrollView>
+
+        {/* Footer trang trí các icon nhỏ */}
+        <View className="absolute bottom-10 right-10 rotate-12">
+           <Text className="text-purple-400 text-2xl">✦</Text>
+        </View>
+        <View className="absolute top-40 right-6 -rotate-12">
+           <Text className="text-blue-300 text-xl">✨</Text>
+        </View>
+
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 };
 

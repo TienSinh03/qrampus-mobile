@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "37811908765",
+    "project_id": "qrampus-d62d8",
+    "storage_bucket": "qrampus-d62d8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:37811908765:android:827ce1cc4979c6cc302474",
+        "android_client_info": {
+          "package_name": "com.phansinh.QRampus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqM09k961TDNQWsz8g-CxL8HknoxmOJOw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

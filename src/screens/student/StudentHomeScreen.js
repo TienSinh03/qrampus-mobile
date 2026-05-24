@@ -1,41 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BaseHomeScreen from '../../components/BaseHomeScreen';
 import ScheduleCard from '../../components/ScheduleCard';
-
+import { useSelector, useDispatch } from 'react-redux';
+import { getStudentProfileThunk, getMySchedulesToday } from '../../features/student/studentThunks';
+import { selectStudentProfile, selectSchedulesLoading, selectStudentSchedulesToday } from '../../features/student/studentSlice';
+import { logoutThunk } from '../../features/auth/authThunks';
 const StudentHomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const userRole = 'student';
-  // thay bằng API call
-  const [todaySchedules, setTodaySchedules] = useState([
+
+  const dispatch = useDispatch();
+  const profile = useSelector(selectStudentProfile);
+  const isLoading = useSelector(selectSchedulesLoading);
+  const schedules = useSelector(selectStudentSchedulesToday);
+
+
+  const handleLogout = () => {
+    dispatch(logoutThunk());
+    
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'IntroCarousel' }],
+    });
+  };
+
+  const quickActions = [
     {
       id: '1',
-      courseName: 'Lập trình Di động',
-      courseCode: 'IT4788',
-      room: 'D3-201',
-      startTime: '07:00',
-      endTime: '09:00',
-      teacherName: 'TS. Nguyễn Văn A',
-      hasQR: true,
+      icon: 'time-outline',
+      label: 'Lịch sử điểm danh',
+      onPress: () => navigation.navigate('AttendanceHistory'),
     },
     {
       id: '2',
-      courseName: 'Trí tuệ Nhân tạo',
-      courseCode: 'IT4868',
-      room: 'D5-302',
-      startTime: '09:15',
-      endTime: '11:15',
-      teacherName: 'PGS.TS. Trần Thị B',
-      hasQR: false,
+      icon: 'clipboard-outline',
+      label: 'Xin nghỉ phép',
+      onPress: () => navigation.navigate('LeaveRequest'),
     },
-  ]);
+    {
+      id: '3',
+      icon: 'list-outline',
+      label: 'Đơn y/c nghỉ của tôi',
+      onPress: () => navigation.navigate('LeaveRequestList'),
+    },
+    {
+      id: '4',
+      icon: 'chatbox-ellipses-outline',
+      label: 'Khảo sát',
+      onPress: () => navigation.navigate('SurveyList'),
+    },
+    {
+      id: '5',
+      icon: 'stats-chart-outline',
+      label: 'Thống kê',
+      onPress: () => console.log('Statistics'),
+    },
+    // quản lý lần đ6ỏi thiết bị
+    {
+      id: '6',
+      icon: 'phone-portrait-outline',
+      label: 'Quản lý thiết bị',
+      onPress: () => navigation.navigate('DeviceChangeHistory'),
+    },
+    {
+      id: '7',
+      icon: 'shield-checkmark-outline',
+      label: 'Đổi mật khẩu',
+      onPress: () => navigation.navigate('ChangePassword'),
+    },
+    {
+      id: '8',
+      icon: 'log-out-outline',
+      label: 'Đăng xuất',
+      onPress: () => handleLogout(),
+    }
+  ];
 
-  const userData = {
-    name: 'Nguyễn Văn Nam',
-    avatarUri: null,
-  };
+  useEffect(() => {
+    // Load student profile on mount
+    dispatch(getStudentProfileThunk());
+
+    // Load today's schedules on mount
+    dispatch(getMySchedulesToday());
+  }, [dispatch]);
+
+
   const onRefresh = () => {
     setRefreshing(true);
-    // giả lập tải dữ liệu
+    dispatch(getMySchedulesToday());
     setTimeout(() => {
       setRefreshing(false);
     }, 1500);
@@ -53,11 +105,13 @@ const StudentHomeScreen = ({ navigation }) => {
     <BaseHomeScreen
       navigation={navigation}
       userRole={userRole}
-      userData={userData}
-      todaySchedules={todaySchedules}
+      userData={profile}
+      todaySchedules={schedules}
       refreshing={refreshing}
       onRefresh={onRefresh}
       renderScheduleCard={renderScheduleCard}
+      isLoading={isLoading}
+      quickActions={quickActions}
     />
   );
 };
