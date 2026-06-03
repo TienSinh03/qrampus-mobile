@@ -170,10 +170,18 @@ const QRScanScreen = ({ route, navigation }) => {
         })
       );
 
-      // xác thực khuôn mặt
       setAttendanceId(result?.attendance?.id || null);
       setIsProcessing(false);
-      setArcFaceVisible(true);
+
+      if (result?.needs_face_verification) {
+        setArcFaceVisible(true);
+      } else {
+        Alert.alert(
+          'Điểm danh thành công',
+          'Bạn đã điểm danh thành công!',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
+      }
     } catch (error) {      
       Alert.alert(
         ' Điểm danh thất bại',
